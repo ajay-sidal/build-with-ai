@@ -34,3 +34,5 @@ data/partners.json
 
 # misc
 .DS_Store
+.vercel
+.env*.local
