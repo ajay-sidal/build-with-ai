@@ -3,10 +3,18 @@ import { appendFile, mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../../utils/affiliate'
 import { getDataDir } from '../../../../lib/dataDir'
+import { getAlphaStatsPg, signupAlphaPg } from '../../../../lib/alphaStore'
 
 export const runtime = 'nodejs'
 
 const LIMIT = 1000
+
+const STORE = (() => {
+  const explicit = (process.env.ALPHA_STORE || '').trim().toLowerCase()
+  if (explicit) return explicit
+  const hasDb = Boolean((process.env.DATABASE_URL || '').trim())
+  return hasDb ? 'postgres' : 'file'
+})()
 
 function normalizeEmail(input: string) {
   return input.trim().toLowerCase()
@@ -38,6 +46,11 @@ async function getAlphaStats(dataDir: string) {
 
 export async function GET() {
   try {
+    if (STORE === 'postgres') {
+      const stats = await getAlphaStatsPg(LIMIT)
+      return NextResponse.json(stats)
+    }
+
     const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
     const stats = await getAlphaStats(dataDir)
@@ -59,6 +72,22 @@ export async function POST(req: Request) {
 
     const cookies = parseCookieHeader(req.headers.get('cookie'))
     const partnerId = (cookies[AFFILIATE_COOKIE_NAME] || '').toString().trim()
+
+    if (STORE === 'postgres') {
+      const result = await signupAlphaPg({
+        email,
+        partnerId: partnerId || undefined,
+        userAgent: req.headers.get('user-agent') || undefined,
+        limit: LIMIT,
+      })
+
+      if (!result.ok) {
+        const status = result.error === 'Alpha list is full' ? 403 : 500
+        return NextResponse.json(result, { status })
+      }
+
+      return NextResponse.json(result)
+    }
 
     const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
