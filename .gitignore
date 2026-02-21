@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# build output
+build/
+dist/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.*
+env.local
+*.local
+
+# vercel
+.vercel/
+
+# local lead capture (runtime)
+data/*.jsonl
+
+# misc
+.DS_Store
