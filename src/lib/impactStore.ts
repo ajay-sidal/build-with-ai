@@ -50,11 +50,28 @@ async function getFromFiles(): Promise<{ assetsSecured: number; marzFundingUsd: 
 async function getFromDb(): Promise<{ assetsSecured: number; marzFundingUsd: number }> {
   const pool = getPostgresPool()
 
-  // assets secured: completed Stripe sessions (best available durable proxy)
+  // Ensure alpha table exists (shared with alphaStore)
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS public.alpha_signups (
+      email text PRIMARY KEY,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      partner_id text,
+      user_agent text
+    )`,
+  )
+
+  // assets secured: prefer completed Stripe sessions, but fall back to alpha signups so early traction shows up.
   const assetsRes = await pool.query<{ count: string }>(
     `SELECT COUNT(*)::text AS count FROM public.stripe_sessions WHERE status = 'COMPLETED'`,
   )
-  const assetsSecured = Number(assetsRes.rows?.[0]?.count || 0)
+
+  const alphaRes = await pool.query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count FROM public.alpha_signups`,
+  )
+
+  const stripeCompleted = Number(assetsRes.rows?.[0]?.count || 0)
+  const alphaCount = Number(alphaRes.rows?.[0]?.count || 0)
+  const assetsSecured = Math.max(stripeCompleted, alphaCount)
 
   // funding: sum of markup amounts in USD (your margin)
   const fundingRes = await pool.query<{ sum: string | null }>(
