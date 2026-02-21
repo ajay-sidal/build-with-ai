@@ -1,9 +1,10 @@
 import Stripe from 'stripe'
 import { NextResponse } from 'next/server'
 import { opClient } from '../../../../lib/openprovider'
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { appendFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { processCheckoutSessionCompleted } from '../../../../lib/stripeProvisioning'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -56,7 +57,7 @@ async function recordAffiliateSale(args: {
     },
   }
 
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   await mkdir(dataDir, { recursive: true })
   const outFile = join(dataDir, 'affiliate_sales.jsonl')
 

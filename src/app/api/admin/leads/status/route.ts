@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDataDir } from '../../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -29,7 +30,7 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const dataDir = join(process.cwd(), 'data')
+    const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
 
     const statusFile = join(dataDir, 'lead-statuses.json')

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { mkdir, readFile, appendFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
 
   if (!partnerId) return NextResponse.json({ error: 'Missing partnerId' }, { status: 400 })
 
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   await mkdir(dataDir, { recursive: true })
 
   const salesPath = join(dataDir, 'affiliate_sales.jsonl')

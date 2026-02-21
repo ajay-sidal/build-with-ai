@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../../utils/affiliate'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -27,7 +28,7 @@ type RequestBody = {
 }
 
 async function loadProposal(slug: string): Promise<ProposalRecord | null> {
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   const paths = [join(dataDir, 'proposals.json'), join(dataDir, 'proposals.sample.json')]
 
   for (const p of paths) {

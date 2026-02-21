@@ -1,6 +1,7 @@
 import type Stripe from 'stripe'
 import { mkdir, readFile, appendFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDataDir } from './dataDir'
 
 export type StripeMetadata = Record<string, string>
 
@@ -77,7 +78,7 @@ export async function processCheckoutSessionCompleted(args: {
   opClient: ProvisioningOpClient
   options?: ProcessOptions
 }): Promise<ProcessResult> {
-  const dataDir = args.options?.dataDir || join(process.cwd(), 'data')
+  const dataDir = args.options?.dataDir || getDataDir()
   const stripeSessionId = args.session.id
   const paymentType = (args.metadata.payment_type || '').toString()
 

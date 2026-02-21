@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDataDir } from '../../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -31,7 +32,7 @@ export async function PATCH(req: Request) {
   const requestId = body?.requestId?.trim() || ''
   if (!requestId) return NextResponse.json({ error: 'Missing requestId' }, { status: 400 })
 
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   await mkdir(dataDir, { recursive: true })
   const payoutPath = join(dataDir, 'payout_requests.jsonl')
 

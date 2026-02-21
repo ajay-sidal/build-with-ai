@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { appendFile, mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../../utils/affiliate'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -37,7 +38,7 @@ async function getAlphaStats(dataDir: string) {
 
 export async function GET() {
   try {
-    const dataDir = join(process.cwd(), 'data')
+    const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
     const stats = await getAlphaStats(dataDir)
     return NextResponse.json(stats)
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     const cookies = parseCookieHeader(req.headers.get('cookie'))
     const partnerId = (cookies[AFFILIATE_COOKIE_NAME] || '').toString().trim()
 
-    const dataDir = join(process.cwd(), 'data')
+    const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
 
     const path = join(dataDir, 'alpha_list.jsonl')

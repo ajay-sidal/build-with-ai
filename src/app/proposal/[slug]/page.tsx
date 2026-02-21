@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDataDir } from '../../../lib/dataDir'
 import ProposalClient from './ProposalClient'
 
 export const runtime = 'nodejs'
@@ -24,7 +25,7 @@ type ProposalRecord = {
 type ProposalsFile = Record<string, ProposalRecord>
 
 async function loadProposal(slug: string): Promise<ProposalRecord | null> {
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   const paths = [join(dataDir, 'proposals.json'), join(dataDir, 'proposals.sample.json')]
 
   for (const p of paths) {

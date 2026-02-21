@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -27,7 +28,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   const payoutPath = join(dataDir, 'payout_requests.jsonl')
   const text = await readFile(payoutPath, { encoding: 'utf8' }).catch((err: any) => {
     if (err?.code === 'ENOENT') return ''

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { mkdir, appendFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const dataDir = join(process.cwd(), 'data')
+    const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
     const file = join(dataDir, 'leads.jsonl')
     await appendFile(file, `${JSON.stringify(inquiry)}\n`, { encoding: 'utf8' })

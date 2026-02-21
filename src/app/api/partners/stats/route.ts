@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -47,7 +48,7 @@ export async function GET(req: Request) {
   const partnerId = (url.searchParams.get('partnerId') || '').trim()
   if (!partnerId) return NextResponse.json({ error: 'Missing partnerId' }, { status: 400 })
 
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   const path = join(dataDir, 'affiliate_sales.jsonl')
   const text = await readFile(path, { encoding: 'utf8' }).catch((err: any) => {
     if (err?.code === 'ENOENT') return ''

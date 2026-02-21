@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { randomBytes } from 'node:crypto'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -31,7 +32,7 @@ function slugify(input: string) {
 }
 
 async function loadPartnersFile(): Promise<{ path: string; json: PartnersFile }> {
-  const dataDir = join(process.cwd(), 'data')
+  const dataDir = getDataDir()
   await mkdir(dataDir, { recursive: true })
   const path = join(dataDir, 'partners.json')
 
