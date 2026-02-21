@@ -1,11 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Sparkles } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Input } from './ui/input'
+import { formatCurrency } from '../utils/pricing'
 
 type DomainResult = {
   domain: string
@@ -30,10 +31,51 @@ function formatMoney(currency: string, amount: number) {
 
 export default function DomainSearch() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [query, setQuery] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [results, setResults] = React.useState<DomainResult[]>([])
+
+  const checkoutState = searchParams.get('checkout')
+  const checkoutDomain = searchParams.get('domain')
+  const showUpsell = checkoutState === 'success' && Boolean(checkoutDomain)
+
+  const [licenseLoading, setLicenseLoading] = React.useState(false)
+  const [licenseError, setLicenseError] = React.useState<string | null>(null)
+
+  const [licenseQuote, setLicenseQuote] = React.useState<
+    | { currency: string; customerAmount: number }
+    | null
+  >(null)
+
+  React.useEffect(() => {
+    let cancelled = false
+    if (!showUpsell) return
+
+    ;(async () => {
+      try {
+        const res = await fetch('/api/licenses/plesk/quote', { cache: 'no-store' })
+        const json = (await res.json().catch(() => null)) as
+          | { quote?: { currency: string; customerAmount: number }; error?: string }
+          | null
+
+        if (!res.ok) throw new Error(json?.error || 'Failed to load license pricing')
+        if (!json?.quote) throw new Error('Missing quote')
+
+        if (!cancelled) setLicenseQuote(json.quote)
+      } catch (err) {
+        if (!cancelled) {
+          setLicenseQuote(null)
+          setLicenseError(err instanceof Error ? err.message : 'Failed to load license pricing')
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [showUpsell])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -108,10 +150,64 @@ export default function DomainSearch() {
     }
   }
 
+  async function onBuyLicense() {
+    if (!checkoutDomain) return
+
+    setLicenseLoading(true)
+    setLicenseError(null)
+
+    try {
+      const res = await fetch('/api/checkout/license', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain_name: checkoutDomain }),
+      })
+
+      const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null
+      if (!res.ok) throw new Error(data?.error || 'License checkout failed')
+      if (!data?.url) throw new Error('Missing checkout URL')
+      window.location.href = data.url
+    } catch (err) {
+      setLicenseError(err instanceof Error ? err.message : 'License checkout failed')
+    } finally {
+      setLicenseLoading(false)
+    }
+  }
+
   return (
     <div className="w-full">
       <Card>
         <CardHeader>
+          {showUpsell ? (
+            <div className="mb-4 rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-4">
+              <div className="text-sm font-medium text-emerald-200">Domain secured.</div>
+              <div className="mt-1 text-xs text-zinc-300">
+                Your registration is processing. Complete your setup with AI-native hosting.
+              </div>
+
+              <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-semibold tracking-tight text-zinc-100">AI‑Native Hosting</div>
+                    <div className="mt-1 text-xs text-zinc-400">
+                      Complete your setup. Add a Plesk Web Host license for{' '}
+                      {licenseQuote
+                        ? `${formatCurrency(licenseQuote.currency, licenseQuote.customerAmount)}/mo`
+                        : '—/mo'}.
+                      {' '}High-performance management for your new domain.
+                    </div>
+                  </div>
+
+                  <Button type="button" onClick={onBuyLicense} disabled={licenseLoading || !licenseQuote}>
+                    {licenseLoading ? 'Starting…' : 'Add Plesk'}
+                  </Button>
+                </div>
+
+                {licenseError ? <div className="mt-3 text-xs text-red-300">{licenseError}</div> : null}
+              </div>
+            </div>
+          ) : null}
+
           <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Input

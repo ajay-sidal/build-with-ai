@@ -307,6 +307,35 @@ export interface DomainUpdateDomainResponseData {
   [key: string]: unknown;
 }
 
+// --- Licenses: Plesk (Create / List) ---
+export interface PleskLicenseCreateRequest {
+  domain_name: string;
+  period: number;
+  items: string[];
+  [key: string]: unknown;
+}
+
+export interface PleskLicense {
+  id?: number | string;
+  domain_name?: string;
+  activation_code?: string;
+  expiration_date?: string;
+  status?: string;
+  items?: string[];
+  [key: string]: unknown;
+}
+
+export interface PleskLicenseCreateResponseData {
+  activation_code?: string;
+  license?: PleskLicense;
+  [key: string]: unknown;
+}
+
+export interface PleskLicenseListResponseData {
+  results?: PleskLicense[];
+  [key: string]: unknown;
+}
+
 class OpenProviderClient {
   private readonly client: AxiosInstance;
   private token: string | null = null;
@@ -672,6 +701,25 @@ class OpenProviderClient {
         }
         return res.data.data;
       });
+  }
+
+  /**
+   * Creates a Plesk license via POST /v1beta/licenses/plesk.
+   * Common usage: { domain_name, period: 1, items: ['PLESK-12-VPS-WEB-HOST-1M'] }
+   */
+  public async createPleskLicense(request: PleskLicenseCreateRequest): Promise<PleskLicenseCreateResponseData> {
+    await this.ensureLoggedIn();
+    return this.post<PleskLicenseCreateRequest, PleskLicenseCreateResponseData>('licenses/plesk', request);
+  }
+
+  /**
+   * Lists Plesk licenses via GET /v1beta/licenses/plesk.
+   * Params are passed through as querystring (if supported by your account).
+   */
+  public async listPleskLicenses(params?: Record<string, unknown>): Promise<PleskLicense[]> {
+    await this.ensureLoggedIn();
+    const data = await this.get<PleskLicenseListResponseData>('licenses/plesk', params);
+    return data?.results ?? [];
   }
 }
 

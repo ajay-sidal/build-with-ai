@@ -95,6 +95,22 @@ export async function POST(req: Request) {
       // ignore
     }
 
+    if (md.payment_type === 'LICENSE_PURCHASE') {
+      const domainName = (md.domain_name || '').toString().trim()
+      const item = (md.item || 'PLESK-12-VPS-WEB-HOST-1M').toString().trim()
+
+      if (domainName) {
+        // Provision the Plesk license via OpenProvider
+        await opClient.createPleskLicense({
+          domain_name: domainName,
+          period: 1,
+          items: [item],
+        })
+      }
+
+      return NextResponse.json({ received: true })
+    }
+
     if (md.payment_type === 'SERVICE_DEPOSIT') {
       const slug = (md.proposal_slug || 'unknown').toString()
       const email = (md.lead_email || '').toString().trim().toLowerCase()

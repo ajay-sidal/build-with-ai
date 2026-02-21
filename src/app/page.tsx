@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import DomainSearch from '../components/DomainSearch'
 
 export default function HomePage() {
@@ -12,7 +13,9 @@ export default function HomePage() {
         </p>
       </div>
 
-      <DomainSearch />
+      <Suspense fallback={null}>
+        <DomainSearch />
+      </Suspense>
 
       <p className="mt-12 text-sm text-zinc-500">
         Tip: Try “I’m starting a sustainable fashion brand called Verde.”
