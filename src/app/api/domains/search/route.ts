@@ -62,10 +62,15 @@ export async function POST(req: Request) {
       suggestedDomainParts.length > 0 ? await opClient.checkDomains(suggestedDomainParts, true) : []
 
     const merged = new Map<string, typeof baseChecks[number]>()
-    for (const r of [...baseChecks, ...suggestedChecks]) merged.set(r.domain, r)
+    for (const r of [...baseChecks, ...suggestedChecks]) {
+      const d = (r as any)?.domain
+      if (typeof d !== 'string' || !d.includes('.')) continue
+      merged.set(d, r)
+    }
 
     const results = Array.from(merged.values())
       .map((r) => {
+        if (typeof (r as any)?.domain !== 'string') return r
         if (!r.price) return r
         const resellerPrice = r.price
         const tld = String(r.domain.split('.').pop() || '').toLowerCase()
