@@ -45,8 +45,8 @@ export async function GET(req: Request) {
       const currency = (r.price?.currency || '').toUpperCase() || null
       const resellerAmount = typeof r.price?.amount === 'number' ? r.price.amount : null
 
-      // Mark HOT if reseller amount is low enough to indicate a promo (e.g. $1.99).
-      const isHot = resellerAmount != null && resellerAmount <= 2.5
+      // Mark HOT if reseller amount is low enough to indicate a promo (common wholesale promos are ~$2.99).
+      const isHot = resellerAmount != null && resellerAmount <= 3.0
 
       if (tld) {
         await upsertTldPromo({ tld, isHot, resellerAmount, currency })
