@@ -37,6 +37,9 @@ export default function DomainSearch() {
   const [error, setError] = React.useState<string | null>(null)
   const [results, setResults] = React.useState<DomainResult[]>([])
 
+  const [alphaStats, setAlphaStats] = React.useState<{ remaining: number; limit: number } | null>(null)
+  const [alphaUnlocked, setAlphaUnlocked] = React.useState(false)
+
   const checkoutState = searchParams.get('checkout')
   const checkoutDomain = searchParams.get('domain')
   const showUpsell = checkoutState === 'success' && Boolean(checkoutDomain)
@@ -48,6 +51,35 @@ export default function DomainSearch() {
     | { currency: string; customerAmount: number }
     | null
   >(null)
+
+  React.useEffect(() => {
+    const unlocked = typeof window !== 'undefined' ? window.localStorage.getItem('alpha_unlocked') : null
+    if (unlocked === '1') setAlphaUnlocked(true)
+  }, [])
+
+  React.useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      try {
+        const res = await fetch('/api/marketing/alpha-signup', { cache: 'no-store' })
+        const json = (await res.json().catch(() => null)) as { remaining?: number; limit?: number } | null
+        if (!res.ok) return
+        const remaining = Number(json?.remaining)
+        const limit = Number(json?.limit)
+        if (!cancelled && Number.isFinite(remaining) && Number.isFinite(limit)) setAlphaStats({ remaining, limit })
+      } catch {
+        // ignore
+      }
+    }
+
+    load()
+    const t = window.setInterval(load, 15000)
+    return () => {
+      cancelled = true
+      window.clearInterval(t)
+    }
+  }, [])
 
   React.useEffect(() => {
     let cancelled = false
@@ -136,6 +168,7 @@ export default function DomainSearch() {
             owner_handle: handle,
             resellerPrice: result.resellerPrice,
           },
+          discountCode: alphaUnlocked ? 'ALPHA50' : undefined,
         }),
       })
 
@@ -174,10 +207,50 @@ export default function DomainSearch() {
     }
   }
 
+  async function onShareUnlock() {
+    const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/`
+
+    const text = 'Unlock $5 .digital domains + 50% off your first SSL — join BuildWithAI Alpha'
+    const intent = `https://x.com/intent/post?text=${encodeURIComponent(`${text} ${shareUrl}`)}`
+
+    try {
+      if (typeof navigator !== 'undefined' && 'share' in navigator) {
+        await (navigator as any).share({ text, url: shareUrl })
+      } else if (typeof window !== 'undefined') {
+        window.open(intent, '_blank', 'noopener,noreferrer')
+      }
+    } catch {
+      // ignore
+    }
+
+    if (typeof window !== 'undefined') window.localStorage.setItem('alpha_unlocked', '1')
+    setAlphaUnlocked(true)
+  }
+
   return (
     <div className="w-full">
       <Card>
         <CardHeader>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950 px-4 py-2 text-xs text-zinc-300">
+              <span className="uppercase tracking-widest text-zinc-500">Alpha Slots Remaining</span>
+              <span className="font-mono text-zinc-100">
+                {alphaStats ? `${alphaStats.remaining}/${alphaStats.limit}` : '—/1000'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="secondary" onClick={onShareUnlock}>
+                Share on X to unlock $5.00 .digital domains
+              </Button>
+              {alphaUnlocked ? (
+                <div className="rounded-full border border-emerald-800/40 bg-emerald-950/20 px-4 py-2 text-xs text-emerald-200">
+                  Code unlocked: <span className="font-mono">ALPHA50</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
           {showUpsell ? (
             <div className="mb-4 rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-4">
               <div className="text-sm font-medium text-emerald-200">Domain secured.</div>

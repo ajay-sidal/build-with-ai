@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "audit": "tsx src/utils/audit-test.ts"
+    "audit": "tsx src/utils/audit-test.ts",
+    "e2e:license": "tsx src/utils/e2e-license-flow.ts"
   },
   "keywords": [],
   "author": "",

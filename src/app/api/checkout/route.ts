@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { calculateCustomerPrice } from '../../../utils/pricing'
 import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../utils/affiliate'
+import { applyDiscountToCustomerPrice } from '../../../utils/discounts'
 
 export const runtime = 'nodejs'
 
@@ -25,6 +26,7 @@ type SslCartItem = {
 
 type RequestBody = {
   cart: DomainCartItem | SslCartItem
+  discountCode?: string
 }
 
 function roundMoney(amount: number) {
@@ -51,12 +53,45 @@ export async function POST(req: Request) {
     const origin = req.headers.get('origin') || 'http://localhost:3000'
     const cookies = parseCookieHeader(req.headers.get('cookie'))
     const partnerId = cookies[AFFILIATE_COOKIE_NAME] || ''
+    const discountCode = (body.discountCode || '').toString().trim().toUpperCase()
 
     if (body.cart.kind === 'domain') {
       const item = body.cart
       const currency = item.resellerPrice.currency
-      const finalAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'DOMAIN'))
+      const originalCustomerAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'DOMAIN'))
       const resellerAmount = roundMoney(item.resellerPrice.amount)
+
+      const baseDiscounted = applyDiscountToCustomerPrice({
+        customerPrice: originalCustomerAmount,
+        resellerPrice: resellerAmount,
+        code: discountCode,
+      })
+
+      // Marketing hook: share unlocks "$5 .digital" (never below reseller price).
+      const isDigital = (item.tld || '').toString().trim().toLowerCase() === 'digital'
+      const discountedCustomerAmount = (() => {
+        if (discountCode === 'ALPHA50' && isDigital) return roundMoney(Math.max(resellerAmount, 5.0))
+        return baseDiscounted.customerPrice
+      })()
+
+      const finalAmount = discountedCustomerAmount
+      const originalMarkup = roundMoney(Math.max(0, originalCustomerAmount - resellerAmount))
+
+      const metadata: Record<string, string> = {
+        kind: 'domain',
+        domain_name: item.name,
+        tld: item.tld,
+        owner_handle: item.owner_handle,
+        fqdn: item.domain,
+        partner_id: partnerId,
+        currency,
+        reseller_amount: String(resellerAmount),
+        customer_amount: String(finalAmount),
+        original_customer_amount: String(originalCustomerAmount),
+        markup_amount: String(originalMarkup),
+      }
+
+      if (discountCode) metadata.discount_code = discountCode
 
       const session = await stripe.checkout.sessions.create({
         mode: 'payment',
@@ -74,17 +109,7 @@ export async function POST(req: Request) {
             },
           },
         ],
-        metadata: {
-          kind: 'domain',
-          domain_name: item.name,
-          tld: item.tld,
-          owner_handle: item.owner_handle,
-          fqdn: item.domain,
-          partner_id: partnerId,
-          currency,
-          reseller_amount: String(resellerAmount),
-          customer_amount: String(finalAmount),
-        },
+        metadata,
       })
 
       return NextResponse.json({ url: session.url })
@@ -93,8 +118,31 @@ export async function POST(req: Request) {
     // SSL cart: session + metadata (provisioning handled elsewhere)
     const item = body.cart
     const currency = item.resellerPrice.currency
-    const finalAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'SSL'))
+    const originalCustomerAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'SSL'))
     const resellerAmount = roundMoney(item.resellerPrice.amount)
+
+    const discounted = applyDiscountToCustomerPrice({
+      customerPrice: originalCustomerAmount,
+      resellerPrice: resellerAmount,
+      code: discountCode,
+    })
+
+    const finalAmount = discounted.customerPrice
+    const originalMarkup = roundMoney(Math.max(0, originalCustomerAmount - resellerAmount))
+
+    const metadata: Record<string, string> = {
+      kind: 'ssl',
+      product_id: String(item.product_id),
+      period: String(item.period),
+      partner_id: partnerId,
+      currency,
+      reseller_amount: String(resellerAmount),
+      customer_amount: String(finalAmount),
+      original_customer_amount: String(originalCustomerAmount),
+      markup_amount: String(originalMarkup),
+    }
+
+    if (discountCode) metadata.discount_code = discountCode
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -112,15 +160,7 @@ export async function POST(req: Request) {
           },
         },
       ],
-      metadata: {
-        kind: 'ssl',
-        product_id: String(item.product_id),
-        period: String(item.period),
-        partner_id: partnerId,
-        currency,
-        reseller_amount: String(resellerAmount),
-        customer_amount: String(finalAmount),
-      },
+      metadata,
     })
 
     return NextResponse.json({ url: session.url })

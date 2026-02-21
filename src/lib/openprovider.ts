@@ -4,7 +4,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-const OPENPROVIDER_BASE_URL = 'https://api.openprovider.eu/v1beta/';
+const OPENPROVIDER_BASE_URL = (() => {
+  const raw = (process.env.OPENPROVIDER_BASE_URL || 'https://api.openprovider.eu/v1beta/').trim();
+  return raw.endsWith('/') ? raw : `${raw}/`;
+})();
 
 export type OpenProviderResponseCode = number;
 

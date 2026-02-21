@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import DomainSearch from '../components/DomainSearch'
+import LaunchMagnet from '../components/LaunchMagnet'
 
 export default function HomePage() {
   return (
@@ -14,6 +15,7 @@ export default function HomePage() {
       </div>
 
       <Suspense fallback={null}>
+        <LaunchMagnet />
         <DomainSearch />
       </Suspense>
 
