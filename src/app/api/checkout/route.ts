@@ -5,6 +5,7 @@ import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../utils/affilia
 import { applyDiscountToCustomerPrice } from '../../../utils/discounts'
 import { dbRateLimit } from '../../../lib/opsStore'
 import { randomUUID } from 'node:crypto'
+import { normalizeUserTier, USER_TIER_COOKIE } from '../../../utils/membership'
 
 export const runtime = 'nodejs'
 
@@ -67,12 +68,15 @@ export async function POST(req: Request) {
     const origin = req.headers.get('origin') || 'http://localhost:3000'
     const cookies = parseCookieHeader(req.headers.get('cookie'))
     const partnerId = cookies[AFFILIATE_COOKIE_NAME] || ''
+    const userTier = normalizeUserTier(cookies[USER_TIER_COOKIE])
     const discountCode = (body.discountCode || '').toString().trim().toUpperCase()
 
     if (body.cart.kind === 'domain') {
       const item = body.cart
       const currency = item.resellerPrice.currency
-      const originalCustomerAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'DOMAIN'))
+      const originalCustomerAmount = roundMoney(
+        calculateCustomerPrice(item.resellerPrice.amount, 'DOMAIN', { userTier }),
+      )
       const resellerAmount = roundMoney(item.resellerPrice.amount)
 
       const baseDiscounted = applyDiscountToCustomerPrice({

@@ -1,6 +1,10 @@
 export type PricingCategory = 'DOMAIN' | 'SSL' | 'LICENSE' | (string & {})
 
-export function calculateCustomerPrice(resellerPrice: number, category?: PricingCategory): number {
+export function calculateCustomerPrice(
+  resellerPrice: number,
+  category?: PricingCategory,
+  options?: { userTier?: 'AI_EXPLORER' | 'AI_ARCHITECT' | 'ENTERPRISE_AI' },
+): number {
   if (!Number.isFinite(resellerPrice)) {
     throw new Error('Invalid resellerPrice')
   }
@@ -8,7 +12,16 @@ export function calculateCustomerPrice(resellerPrice: number, category?: Pricing
   const c = (category || '').toUpperCase()
 
   if (c === 'DOMAIN') {
-    return Math.max(resellerPrice * 1.25, resellerPrice + 5.0)
+    const tier = (options?.userTier || 'AI_EXPLORER').toUpperCase() as
+      | 'AI_EXPLORER'
+      | 'AI_ARCHITECT'
+      | 'ENTERPRISE_AI'
+
+    if (tier === 'ENTERPRISE_AI') return resellerPrice
+
+    const percent = tier === 'AI_ARCHITECT' ? 0.1 : 0.25
+    const floorAdd = tier === 'AI_ARCHITECT' ? 2.0 : 5.0
+    return Math.max(resellerPrice * (1 + percent), resellerPrice + floorAdd)
   }
 
   if (c === 'SSL') {

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { opClient } from '../../../../lib/openprovider'
 import { calculateCustomerPrice } from '../../../../utils/pricing'
+import { parseCookieHeader } from '../../../../utils/affiliate'
+import { normalizeUserTier, USER_TIER_COOKIE } from '../../../../utils/membership'
+import { getHotTlds } from '../../../../lib/promoStore'
 
 export const runtime = 'nodejs'
 
@@ -31,9 +34,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing query' }, { status: 400 })
   }
 
-  const tlds = ['com', 'digital', 'ai', 'app', 'tech']
+  const tlds = ['com', 'digital', 'ai', 'app', 'tech', 'blog', 'biz', 'horse', 'me']
+
+  const cookies = parseCookieHeader(req.headers.get('cookie'))
+  const userTier = normalizeUserTier(cookies[USER_TIER_COOKIE])
 
   try {
+    const hotTlds = await getHotTlds().catch(() => new Set<string>())
+
     // Step 1: run suggestion + base checks in parallel
     const [suggestions, baseChecks] = await Promise.all([
       opClient.suggestNames(query, 10, tlds),
@@ -60,12 +68,14 @@ export async function POST(req: Request) {
       .map((r) => {
         if (!r.price) return r
         const resellerPrice = r.price
+        const tld = String(r.domain.split('.').pop() || '').toLowerCase()
         return {
           ...r,
           resellerPrice,
+          isHot: hotTlds.has(tld),
           price: {
             currency: r.price.currency,
-            amount: roundMoney(calculateCustomerPrice(r.price.amount, 'DOMAIN')),
+            amount: roundMoney(calculateCustomerPrice(r.price.amount, 'DOMAIN', { userTier })),
           },
         }
       })

@@ -1,6 +1,9 @@
 import { opClient } from '../../../lib/openprovider'
 import RenewalManagement from './RenewalManagement'
 import { unstable_cache } from 'next/cache'
+import { cookies } from 'next/headers'
+import { normalizeUserTier, tierLabel, type UserTier, USER_TIER_COOKIE } from '../../../utils/membership'
+import { calculateCustomerPrice, formatCurrency } from '../../../utils/pricing'
 
 function formatMoney(currency?: string, amount?: number) {
   if (!currency || amount == null) return '—'
@@ -19,6 +22,9 @@ const getTransactionsCached = unstable_cache(async () => opClient.listTransactio
 const getDomainsCached = unstable_cache(async () => opClient.listDomains(), ['op-domains'], { revalidate: 60 })
 
 export default async function BillingPage() {
+  const cookieStore = await cookies()
+  const userTier = normalizeUserTier(cookieStore.get(USER_TIER_COOKIE)?.value)
+
   let invoices: Awaited<ReturnType<typeof opClient.listInvoices>> = []
   let transactions: Awaited<ReturnType<typeof opClient.listTransactions>> = []
   let domains: Awaited<ReturnType<typeof opClient.listDomains>> = []
@@ -46,6 +52,45 @@ export default async function BillingPage() {
           {loadError}
         </div>
       ) : null}
+
+      <section className="rounded-xl border border-zinc-800 bg-zinc-950/60">
+        <div className="px-5 pt-5">
+          <h2 className="text-sm font-medium text-zinc-200">Potential Savings</h2>
+          <p className="mt-1 text-xs text-zinc-500">Estimated domain pricing impact by tier.</p>
+        </div>
+        <div className="px-5 pb-5 pt-4">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+            <div className="text-sm text-zinc-200">
+              Current tier: <span className="font-medium text-zinc-100">{tierLabel(userTier as UserTier)}</span>
+            </div>
+
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
+              {(['AI_EXPLORER', 'AI_ARCHITECT', 'ENTERPRISE_AI'] as const).map((t) => {
+                const wholesale = 12
+                const explorer = calculateCustomerPrice(wholesale, 'DOMAIN', { userTier: 'AI_EXPLORER' })
+                const price = calculateCustomerPrice(wholesale, 'DOMAIN', { userTier: t })
+                const savings = Math.max(0, explorer - price)
+
+                return (
+                  <div key={t} className="rounded-lg border border-zinc-800 p-3">
+                    <div className="text-xs uppercase tracking-widest text-zinc-500">{tierLabel(t)}</div>
+                    <div className="mt-1 text-sm text-zinc-200">
+                      Example: {formatCurrency('USD', price)} on a {formatCurrency('USD', wholesale)} wholesale domain
+                    </div>
+                    <div className="mt-1 text-xs text-zinc-500">
+                      vs Explorer: saves {formatCurrency('USD', savings)}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="mt-3 text-xs text-zinc-500">
+              This is an estimate based on markup policy; exact savings depend on the TLD wholesale price.
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="rounded-xl border border-zinc-800 bg-zinc-950/60">
         <div className="px-5 pt-5">

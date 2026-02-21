@@ -7,6 +7,7 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Input } from './ui/input'
 import { formatCurrency } from '../utils/pricing'
+import DynamicPromos, { type PromoCategory } from './DynamicPromos'
 
 type DomainResult = {
   domain: string
@@ -14,6 +15,7 @@ type DomainResult = {
   is_premium: boolean
   price?: { currency: string; amount: number }
   resellerPrice?: { currency: string; amount: number }
+  isHot?: boolean
 }
 
 type ApiResponse = {
@@ -29,6 +31,17 @@ function formatMoney(currency: string, amount: number) {
   }
 }
 
+function classifyIntent(q: string): PromoCategory {
+  const s = q.toLowerCase()
+
+  const tech = ['ai', 'dev', 'cloud', 'saas', 'app', 'api', 'labs', 'infra', 'data']
+  const creative = ['design', 'creative', 'art', 'music', 'photo', 'writer', 'portfolio', 'blog']
+
+  if (creative.some((k) => s.includes(k))) return 'Creative'
+  if (tech.some((k) => s.includes(k))) return 'Business'
+  return 'Business'
+}
+
 export default function DomainSearch() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -36,6 +49,8 @@ export default function DomainSearch() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [results, setResults] = React.useState<DomainResult[]>([])
+
+  const promoCategory = React.useMemo(() => classifyIntent(query || ''), [query])
 
   const [alphaStats, setAlphaStats] = React.useState<{ remaining: number; limit: number } | null>(null)
   const [alphaUnlocked, setAlphaUnlocked] = React.useState(false)
@@ -229,6 +244,7 @@ export default function DomainSearch() {
 
   return (
     <div className="w-full">
+      <DynamicPromos category={promoCategory} />
       <Card>
         <CardHeader>
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -322,7 +338,14 @@ export default function DomainSearch() {
                   <div key={r.domain} className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="text-base font-semibold tracking-tight">{r.domain}</div>
+                        <div className="flex items-center gap-2 text-base font-semibold tracking-tight">
+                          <span>{r.domain}</span>
+                          {r.isHot ? (
+                            <span className="rounded-full border border-amber-800/40 bg-amber-950/20 px-2 py-0.5 text-[10px] font-medium text-amber-200">
+                              HOT
+                            </span>
+                          ) : null}
+                        </div>
                         <div className="mt-1 text-xs text-zinc-400">
                           {isFree ? 'Available' : r.status === 'reserved' ? 'Reserved' : 'Taken'}
                         </div>
