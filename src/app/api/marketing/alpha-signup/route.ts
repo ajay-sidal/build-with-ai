@@ -48,13 +48,13 @@ export async function GET() {
   try {
     if (STORE === 'postgres') {
       const stats = await getAlphaStatsPg(LIMIT)
-      return NextResponse.json(stats)
+      return NextResponse.json({ ...stats, store: STORE })
     }
 
     const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
     const stats = await getAlphaStats(dataDir)
-    return NextResponse.json(stats)
+    return NextResponse.json({ ...stats, store: STORE })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load alpha stats'
     return NextResponse.json({ error: message }, { status: 500 })
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
         return NextResponse.json(result, { status })
       }
 
-      return NextResponse.json(result)
+      return NextResponse.json({ ...result, store: STORE })
     }
 
     const dataDir = getDataDir()
@@ -125,7 +125,7 @@ export async function POST(req: Request) {
     }
 
     const stats = await getAlphaStats(dataDir)
-    return NextResponse.json({ ok: true, already, ...stats })
+    return NextResponse.json({ ok: true, already, ...stats, store: STORE })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Signup failed'
     return NextResponse.json({ error: message }, { status: 500 })
