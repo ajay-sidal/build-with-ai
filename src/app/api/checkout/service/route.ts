@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../../utils/affiliate'
 
 export const runtime = 'nodejs'
 
@@ -58,6 +59,8 @@ export async function POST(req: Request) {
 
   try {
     const origin = req.headers.get('origin') || 'http://localhost:3000'
+    const cookies = parseCookieHeader(req.headers.get('cookie'))
+    const partnerId = cookies[AFFILIATE_COOKIE_NAME] || ''
     const proposal = await loadProposal(slug)
 
     const clientName = proposal?.clientName || slug
@@ -85,6 +88,10 @@ export async function POST(req: Request) {
         lead_name: clientName,
         lead_email: email,
         deposit_amount: String(deposit),
+        partner_id: partnerId,
+        currency: 'USD',
+        customer_amount: String(deposit),
+        markup_amount: String(deposit),
       },
     })
 

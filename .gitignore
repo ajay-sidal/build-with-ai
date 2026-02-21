@@ -29,6 +29,8 @@ data/*.jsonl
 data/lead-statuses.json
 data/proposals.json
 data/projects/
+data/affiliate_sales.jsonl
+data/partners.json
 
 # misc
 .DS_Store

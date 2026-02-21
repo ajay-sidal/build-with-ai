@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { calculateCustomerPrice } from '../../../utils/pricing'
+import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../utils/affiliate'
 
 export const runtime = 'nodejs'
 
@@ -48,11 +49,14 @@ export async function POST(req: Request) {
 
   try {
     const origin = req.headers.get('origin') || 'http://localhost:3000'
+    const cookies = parseCookieHeader(req.headers.get('cookie'))
+    const partnerId = cookies[AFFILIATE_COOKIE_NAME] || ''
 
     if (body.cart.kind === 'domain') {
       const item = body.cart
       const currency = item.resellerPrice.currency
       const finalAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'DOMAIN'))
+      const resellerAmount = roundMoney(item.resellerPrice.amount)
 
       const session = await stripe.checkout.sessions.create({
         mode: 'payment',
@@ -71,10 +75,15 @@ export async function POST(req: Request) {
           },
         ],
         metadata: {
+          kind: 'domain',
           domain_name: item.name,
           tld: item.tld,
           owner_handle: item.owner_handle,
           fqdn: item.domain,
+          partner_id: partnerId,
+          currency,
+          reseller_amount: String(resellerAmount),
+          customer_amount: String(finalAmount),
         },
       })
 
@@ -85,6 +94,7 @@ export async function POST(req: Request) {
     const item = body.cart
     const currency = item.resellerPrice.currency
     const finalAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'SSL'))
+    const resellerAmount = roundMoney(item.resellerPrice.amount)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -106,6 +116,10 @@ export async function POST(req: Request) {
         kind: 'ssl',
         product_id: String(item.product_id),
         period: String(item.period),
+        partner_id: partnerId,
+        currency,
+        reseller_amount: String(resellerAmount),
+        customer_amount: String(finalAmount),
       },
     })
 

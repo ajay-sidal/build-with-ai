@@ -1,10 +1,66 @@
 import Stripe from 'stripe'
 import { NextResponse } from 'next/server'
 import { opClient } from '../../../../lib/openprovider'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 export const runtime = 'nodejs'
+
+function parseNum(value: unknown): number | null {
+  if (value == null) return null
+  const n = typeof value === 'number' ? value : Number(String(value))
+  return Number.isFinite(n) ? n : null
+}
+
+async function recordAffiliateSale(args: {
+  session: Stripe.Checkout.Session
+  metadata: Record<string, string>
+  eventId: string
+}) {
+  const partnerId = (args.metadata.partner_id || '').toString().trim()
+  if (!partnerId) return
+
+  const currency = (args.metadata.currency || args.session.currency || '').toString().toUpperCase()
+
+  const customerAmount = parseNum(args.metadata.customer_amount)
+  const resellerAmount = parseNum(args.metadata.reseller_amount)
+  const explicitMarkup = parseNum(args.metadata.markup_amount)
+
+  const markupAmount =
+    explicitMarkup ??
+    (customerAmount != null && resellerAmount != null ? Math.max(0, customerAmount - resellerAmount) : null)
+
+  const commissionAmount = markupAmount != null ? Math.round(markupAmount * 0.05 * 100) / 100 : 0
+
+  const record = {
+    createdAt: new Date().toISOString(),
+    eventId: args.eventId,
+    partnerId,
+    kind: (args.metadata.kind || args.metadata.payment_type || 'unknown').toString(),
+    stripe: {
+      sessionId: args.session.id,
+      paymentStatus: args.session.payment_status,
+      amountTotal: args.session.amount_total,
+      currency: args.session.currency,
+    },
+    meta: {
+      currency,
+      customerAmount,
+      resellerAmount,
+      markupAmount,
+      commissionAmount,
+      fqdn: args.metadata.fqdn || undefined,
+      sku: args.metadata.sku || undefined,
+      proposalSlug: args.metadata.proposal_slug || undefined,
+    },
+  }
+
+  const dataDir = join(process.cwd(), 'data')
+  await mkdir(dataDir, { recursive: true })
+  const outFile = join(dataDir, 'affiliate_sales.jsonl')
+
+  await appendFile(outFile, JSON.stringify(record) + '\n', { encoding: 'utf8' })
+}
 
 export async function POST(req: Request) {
   const secretKey = process.env.STRIPE_SECRET_KEY
@@ -31,6 +87,13 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const md = session.metadata || {}
+
+    // Best-effort affiliate attribution (does not affect provisioning flow)
+    try {
+      await recordAffiliateSale({ session, metadata: md as any, eventId: event.id })
+    } catch {
+      // ignore
+    }
 
     if (md.payment_type === 'SERVICE_DEPOSIT') {
       const slug = (md.proposal_slug || 'unknown').toString()

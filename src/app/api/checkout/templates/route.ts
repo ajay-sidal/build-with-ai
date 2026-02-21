@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../../utils/affiliate'
 
 export const runtime = 'nodejs'
 
@@ -27,6 +28,9 @@ export async function POST(req: Request) {
   try {
     const origin = req.headers.get('origin') || 'http://localhost:3000'
     const product = PRODUCTS[sku]
+    const cookies = parseCookieHeader(req.headers.get('cookie'))
+    const partnerId = cookies[AFFILIATE_COOKIE_NAME] || ''
+    const amountUsd = Math.round(product.amountUsd * 100) / 100
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -45,6 +49,10 @@ export async function POST(req: Request) {
       metadata: {
         kind: 'template',
         sku,
+        partner_id: partnerId,
+        currency: 'USD',
+        customer_amount: String(amountUsd),
+        markup_amount: String(amountUsd),
       },
     })
 
