@@ -4,6 +4,8 @@ import { join } from 'node:path'
 import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../../utils/affiliate'
 import { getDataDir } from '../../../../lib/dataDir'
 import { getAlphaStatsPg, signupAlphaPg } from '../../../../lib/alphaStore'
+import { dbRateLimit } from '../../../../lib/opsStore'
+import { randomUUID } from 'node:crypto'
 
 export const runtime = 'nodejs'
 
@@ -45,26 +47,42 @@ async function getAlphaStats(dataDir: string) {
 }
 
 export async function GET() {
+  const requestId = randomUUID()
   try {
     if (STORE === 'postgres') {
       const stats = await getAlphaStatsPg(LIMIT)
-      return NextResponse.json({ ...stats, store: STORE })
+      return NextResponse.json({ ...stats, store: STORE }, { headers: { 'x-request-id': requestId } })
     }
 
     const dataDir = getDataDir()
     await mkdir(dataDir, { recursive: true })
     const stats = await getAlphaStats(dataDir)
-    return NextResponse.json({ ...stats, store: STORE })
+    return NextResponse.json({ ...stats, store: STORE }, { headers: { 'x-request-id': requestId } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load alpha stats'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500, headers: { 'x-request-id': requestId } })
   }
 }
 
 type Body = { email?: string }
 
 export async function POST(req: Request) {
+  const requestId = randomUUID()
   try {
+    // Basic rate limit (per-IP-ish). If DB is down, fail open.
+    try {
+      const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0]?.trim() || 'unknown'
+      const rl = await dbRateLimit({ key: `alpha:${ip}`, limit: 20, windowSeconds: 60 })
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: 'Too many requests' },
+          { status: 429, headers: { 'x-request-id': requestId } },
+        )
+      }
+    } catch {
+      // ignore
+    }
+
     const body = (await req.json().catch(() => null)) as Body | null
     const email = normalizeEmail(body?.email || '')
     if (!email) return NextResponse.json({ error: 'Missing email' }, { status: 400 })
@@ -83,10 +101,10 @@ export async function POST(req: Request) {
 
       if (!result.ok) {
         const status = result.error === 'Alpha list is full' ? 403 : 500
-        return NextResponse.json(result, { status })
+        return NextResponse.json({ ...result, store: STORE }, { status, headers: { 'x-request-id': requestId } })
       }
 
-      return NextResponse.json({ ...result, store: STORE })
+      return NextResponse.json({ ...result, store: STORE }, { headers: { 'x-request-id': requestId } })
     }
 
     const dataDir = getDataDir()
@@ -125,9 +143,9 @@ export async function POST(req: Request) {
     }
 
     const stats = await getAlphaStats(dataDir)
-    return NextResponse.json({ ok: true, already, ...stats, store: STORE })
+    return NextResponse.json({ ok: true, already, ...stats, store: STORE }, { headers: { 'x-request-id': requestId } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Signup failed'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500, headers: { 'x-request-id': requestId } })
   }
 }

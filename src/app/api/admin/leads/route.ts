@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { randomUUID } from 'node:crypto'
+import { dbAudit } from '../../../../lib/opsStore'
+import { getDataDir } from '../../../../lib/dataDir'
 
 export const runtime = 'nodejs'
 
@@ -21,17 +24,33 @@ function getLeadTimestamp(lead: AdminLead): string {
 }
 
 export async function GET(req: Request) {
+  const requestId = randomUUID()
   const adminSecret = process.env.ADMIN_SECRET
-  if (!adminSecret) return NextResponse.json({ error: 'Missing ADMIN_SECRET on server' }, { status: 500 })
+  if (!adminSecret) return NextResponse.json({ error: 'Missing ADMIN_SECRET on server' }, { status: 500, headers: { 'x-request-id': requestId } })
 
   const headerSecret = req.headers.get('x-admin-secret') || req.headers.get('authorization')
   if (!headerSecret || headerSecret !== adminSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: { 'x-request-id': requestId } })
   }
 
   try {
-    const file = join(process.cwd(), 'data', 'leads.jsonl')
-    const statusFile = join(process.cwd(), 'data', 'lead-statuses.json')
+    const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0]?.trim() || 'unknown'
+    await dbAudit({
+      actorType: 'admin',
+      actorId: 'admin',
+      action: 'admin_leads_list',
+      resource: 'lead',
+      resourceId: 'list',
+      metadata: { ip },
+    })
+  } catch {
+    // ignore
+  }
+
+  try {
+    const dataDir = getDataDir()
+    const file = join(dataDir, 'leads.jsonl')
+    const statusFile = join(dataDir, 'lead-statuses.json')
 
     const statusText = await readFile(statusFile, { encoding: 'utf8' }).catch((err: any) => {
       if (err?.code === 'ENOENT') return '{}'
@@ -70,9 +89,9 @@ export async function GET(req: Request) {
       })
       .sort((a, b) => (getLeadTimestamp(a) < getLeadTimestamp(b) ? 1 : -1))
 
-    return NextResponse.json({ results: leads })
+    return NextResponse.json({ results: leads }, { headers: { 'x-request-id': requestId } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to read leads'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500, headers: { 'x-request-id': requestId } })
   }
 }

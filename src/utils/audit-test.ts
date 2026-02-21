@@ -26,14 +26,14 @@ function bad(name: string, detail?: string): Check {
   return { name, ok: false, detail }
 }
 
-async function fetchText(url: string): Promise<{ status: number; text: string }> {
-  const res = await fetch(url, { cache: 'no-store' })
+async function fetchText(url: string, init?: RequestInit): Promise<{ status: number; text: string }> {
+  const res = await fetch(url, { cache: 'no-store', ...init })
   const text = await res.text()
   return { status: res.status, text }
 }
 
-async function fetchJson(url: string): Promise<{ status: number; json: any; raw: string }> {
-  const res = await fetch(url, { cache: 'no-store' })
+async function fetchJson(url: string, init?: RequestInit): Promise<{ status: number; json: any; raw: string }> {
+  const res = await fetch(url, { cache: 'no-store', ...init })
   const raw = await res.text()
   let json: any = null
   try {
@@ -59,6 +59,20 @@ async function run(): Promise<number> {
   const checks: Check[] = []
 
   const site = (process.env.AUDIT_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.buildwithai.digital').replace(/\/$/, '')
+  const adminSecret = (process.env.ADMIN_SECRET || '').trim()
+
+  // --- Health (admin-gated) ---
+  if (adminSecret) {
+    const { status, json, raw } = await fetchJson(`${site}/api/health`, {
+      headers: { Accept: 'application/json', Authorization: adminSecret },
+      cache: 'no-store',
+    }).catch((e) => ({ status: 0, json: null, raw: String(e) }))
+
+    if (status === 200 && json?.ok === true) checks.push(ok('health endpoint (authorized) ok'))
+    else checks.push(bad('health endpoint (authorized) ok', `status=${status}, body=${raw.slice(0, 200)}`))
+  } else {
+    checks.push(ok('health endpoint check skipped (missing ADMIN_SECRET)'))
+  }
 
   // --- SEO endpoints ---
   {

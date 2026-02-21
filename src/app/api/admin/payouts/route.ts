@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { getDataDir } from '../../../../lib/dataDir'
+import { randomUUID } from 'node:crypto'
+import { dbAudit } from '../../../../lib/opsStore'
 
 export const runtime = 'nodejs'
 
@@ -20,12 +22,27 @@ function round2(n: number) {
 }
 
 export async function GET(req: Request) {
+  const requestId = randomUUID()
   const adminSecret = process.env.ADMIN_SECRET
-  if (!adminSecret) return NextResponse.json({ error: 'Missing ADMIN_SECRET on server' }, { status: 500 })
+  if (!adminSecret) return NextResponse.json({ error: 'Missing ADMIN_SECRET on server' }, { status: 500, headers: { 'x-request-id': requestId } })
 
   const headerSecret = req.headers.get('x-admin-secret') || req.headers.get('authorization')
   if (!headerSecret || headerSecret !== adminSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: { 'x-request-id': requestId } })
+  }
+
+  try {
+    const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0]?.trim() || 'unknown'
+    await dbAudit({
+      actorType: 'admin',
+      actorId: 'admin',
+      action: 'admin_payouts_list',
+      resource: 'payout_request',
+      resourceId: 'list',
+      metadata: { ip },
+    })
+  } catch {
+    // ignore
   }
 
   const dataDir = getDataDir()
@@ -74,5 +91,5 @@ export async function GET(req: Request) {
 
   results.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
 
-  return NextResponse.json({ results })
+  return NextResponse.json({ results }, { headers: { 'x-request-id': requestId } })
 }

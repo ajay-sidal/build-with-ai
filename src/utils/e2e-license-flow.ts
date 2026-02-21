@@ -32,6 +32,29 @@ async function fetchJson(url: string, init?: RequestInit) {
   return { res, json }
 }
 
+async function runWorker(baseUrl: string) {
+  const secret = (process.env.CRON_SECRET || process.env.JOB_SECRET || '').trim()
+  if (!secret) {
+    console.log('Worker run skipped (missing CRON_SECRET/JOB_SECRET)')
+    return
+  }
+
+  const { res, json } = await fetchJson(`${baseUrl}/api/jobs/process`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${secret}`,
+    },
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    throw new Error(`Worker run failed: ${res.status} ${JSON.stringify(json)}`)
+  }
+
+  console.log(`OK worker invoked (claimed=${json?.claimed ?? 'n/a'})`)
+}
+
 async function main() {
   const baseUrl = getEnv('E2E_BASE_URL', 'http://localhost:3000').replace(/\/$/, '')
   const domainName = getEnv('E2E_DOMAIN', 'www.buildwithai.digital').trim()
@@ -160,6 +183,9 @@ async function main() {
     if (!res.ok) throw new Error(`Webhook POST failed: ${res.status} ${JSON.stringify(json)}`)
     console.log('OK webhook accepted')
   }
+
+  // Step 4b: Process queued provisioning jobs (local runs won't have Vercel Cron).
+  await runWorker(baseUrl)
 
   // Step 5: Verify license shows up on Infrastructure dashboard.
   {

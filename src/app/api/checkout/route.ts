@@ -3,6 +3,8 @@ import Stripe from 'stripe'
 import { calculateCustomerPrice } from '../../../utils/pricing'
 import { AFFILIATE_COOKIE_NAME, parseCookieHeader } from '../../../utils/affiliate'
 import { applyDiscountToCustomerPrice } from '../../../utils/discounts'
+import { dbRateLimit } from '../../../lib/opsStore'
+import { randomUUID } from 'node:crypto'
 
 export const runtime = 'nodejs'
 
@@ -41,6 +43,18 @@ function toStripeUnitAmount(currency: string, amount: number) {
 }
 
 export async function POST(req: Request) {
+  const requestId = randomUUID()
+  // Basic rate limit (per-IP-ish). Fail open if DB unavailable.
+  try {
+    const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0]?.trim() || 'unknown'
+    const rl = await dbRateLimit({ key: `checkout:${ip}`, limit: 30, windowSeconds: 60 })
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: { 'x-request-id': requestId } })
+    }
+  } catch {
+    // ignore
+  }
+
   const body = (await req.json().catch(() => null)) as RequestBody | null
   if (!body?.cart) return NextResponse.json({ error: 'Missing cart' }, { status: 400 })
 
@@ -112,7 +126,7 @@ export async function POST(req: Request) {
         metadata,
       })
 
-      return NextResponse.json({ url: session.url })
+      return NextResponse.json({ url: session.url }, { headers: { 'x-request-id': requestId } })
     }
 
     // SSL cart: session + metadata (provisioning handled elsewhere)
@@ -163,9 +177,9 @@ export async function POST(req: Request) {
       metadata,
     })
 
-    return NextResponse.json({ url: session.url })
+    return NextResponse.json({ url: session.url }, { headers: { 'x-request-id': requestId } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Checkout failed'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500, headers: { 'x-request-id': requestId } })
   }
 }
