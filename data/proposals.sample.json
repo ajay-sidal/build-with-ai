@@ -1,0 +1,18 @@
+{
+  "verde": {
+    "clientName": "Verde",
+    "email": "founder@example.com",
+    "scope": {
+      "aiDesign": true,
+      "domain": {
+        "fqdn": "verde.digital",
+        "resellerPrice": 12.0
+      },
+      "ssl": {
+        "resellerPrice": 29.0
+      }
+    },
+    "depositAmount": 999,
+    "totalPrice": 999
+  }
+}

@@ -1,6 +1,8 @@
 import Stripe from 'stripe'
 import { NextResponse } from 'next/server'
 import { opClient } from '../../../../lib/openprovider'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 
 export const runtime = 'nodejs'
 
@@ -29,6 +31,53 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const md = session.metadata || {}
+
+    if (md.payment_type === 'SERVICE_DEPOSIT') {
+      const slug = (md.proposal_slug || 'unknown').toString()
+      const email = (md.lead_email || '').toString().trim().toLowerCase()
+      const name = (md.lead_name || '').toString()
+
+      const dataDir = join(process.cwd(), 'data')
+      await mkdir(dataDir, { recursive: true })
+
+      // Project folder
+      const projectDir = join(dataDir, 'projects', slug)
+      await mkdir(projectDir, { recursive: true })
+      await writeFile(
+        join(projectDir, 'project.json'),
+        JSON.stringify(
+          {
+            slug,
+            lead: { name, email },
+            stripe: { sessionId: session.id, paymentStatus: session.payment_status },
+            createdAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+        { encoding: 'utf8' },
+      )
+
+      // Mark lead as Closed in CRM (persisted)
+      if (email) {
+        const statusFile = join(dataDir, 'lead-statuses.json')
+        const statusText = await readFile(statusFile, { encoding: 'utf8' }).catch((err: any) => {
+          if (err?.code === 'ENOENT') return '{}'
+          throw err
+        })
+        const map = (() => {
+          try {
+            return JSON.parse(statusText) as Record<string, 'New' | 'Contacted' | 'Closed'>
+          } catch {
+            return {} as Record<string, 'New' | 'Contacted' | 'Closed'>
+          }
+        })()
+        map[email] = 'Closed'
+        await writeFile(statusFile, JSON.stringify(map, null, 2), { encoding: 'utf8' })
+      }
+
+      return NextResponse.json({ received: true })
+    }
 
     const domainName = md.domain_name
     const tld = md.tld

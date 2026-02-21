@@ -16,6 +16,7 @@ type Lead = {
   message?: string
   timestamp?: string
   createdAt?: string
+  status?: LeadStatus
 }
 
 type LeadStatus = 'New' | 'Contacted' | 'Closed'
@@ -150,7 +151,7 @@ export default function LeadsClient() {
         const next = { ...prev }
         for (const l of list) {
           const id = leadId(l)
-          if (!next[id]) next[id] = 'New'
+          if (!next[id]) next[id] = l.status || 'New'
         }
         return next
       })
@@ -162,8 +163,23 @@ export default function LeadsClient() {
     }
   }
 
-  function setStatus(id: string, s: LeadStatus) {
+  async function setStatus(id: string, email: string, s: LeadStatus) {
     setStatuses((prev) => ({ ...prev, [id]: s }))
+
+    // persist when admin secret is available
+    if (!adminSecret.trim()) return
+    try {
+      await fetch('/api/admin/leads/status', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': adminSecret.trim(),
+        },
+        body: JSON.stringify({ email, status: s }),
+      })
+    } catch {
+      // best-effort
+    }
   }
 
   const query = search.trim().toLowerCase()
@@ -306,7 +322,7 @@ export default function LeadsClient() {
                             <select
                               className={`h-9 rounded-md px-3 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/20 ${badgeClasses(status)}`}
                               value={status}
-                              onChange={(e) => setStatus(id, e.target.value as LeadStatus)}
+                              onChange={(e) => setStatus(id, l.email, e.target.value as LeadStatus)}
                             >
                               <option value="New">New</option>
                               <option value="Contacted">Contacted</option>

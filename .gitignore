@@ -26,6 +26,9 @@ env.local
 
 # local lead capture (runtime)
 data/*.jsonl
+data/lead-statuses.json
+data/proposals.json
+data/projects/
 
 # misc
 .DS_Store

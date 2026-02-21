@@ -13,6 +13,7 @@ export type AdminLead = {
   message?: string
   timestamp?: string
   createdAt?: string
+  status?: 'New' | 'Contacted' | 'Closed'
 }
 
 function getLeadTimestamp(lead: AdminLead): string {
@@ -30,6 +31,21 @@ export async function GET(req: Request) {
 
   try {
     const file = join(process.cwd(), 'data', 'leads.jsonl')
+    const statusFile = join(process.cwd(), 'data', 'lead-statuses.json')
+
+    const statusText = await readFile(statusFile, { encoding: 'utf8' }).catch((err: any) => {
+      if (err?.code === 'ENOENT') return '{}'
+      throw err
+    })
+
+    const persistedStatuses = (() => {
+      try {
+        return JSON.parse(statusText) as Record<string, 'New' | 'Contacted' | 'Closed'>
+      } catch {
+        return {} as Record<string, 'New' | 'Contacted' | 'Closed'>
+      }
+    })()
+
     const text = await readFile(file, { encoding: 'utf8' }).catch((err: any) => {
       if (err?.code === 'ENOENT') return ''
       throw err
@@ -47,6 +63,11 @@ export async function GET(req: Request) {
         }
       })
       .filter((x): x is AdminLead => Boolean(x))
+      .map((l) => {
+        const key = (l.email || '').trim().toLowerCase()
+        const status = key ? persistedStatuses[key] : undefined
+        return status ? { ...l, status } : l
+      })
       .sort((a, b) => (getLeadTimestamp(a) < getLeadTimestamp(b) ? 1 : -1))
 
     return NextResponse.json({ results: leads })
