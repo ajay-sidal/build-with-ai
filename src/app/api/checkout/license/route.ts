@@ -21,9 +21,9 @@ function toStripeUnitAmount(currency: string, amount: number) {
 }
 
 function getDefaultConfig() {
-  const item = process.env.PLESK_DEFAULT_ITEM || 'PLESK-12-VPS-WEB-HOST-1M'
-  const currency = (process.env.PLESK_DEFAULT_CURRENCY || 'USD').toUpperCase()
-  const resellerAmount = Number(process.env.PLESK_DEFAULT_RESELLER_PRICE || '')
+  const item = (process.env.PLESK_DEFAULT_ITEM || 'PLESK-12-VPS-WEB-HOST-1M').trim()
+  const currency = (process.env.PLESK_DEFAULT_CURRENCY || 'USD').trim().toUpperCase()
+  const resellerAmount = Number((process.env.PLESK_DEFAULT_RESELLER_PRICE || '').trim())
 
   if (!Number.isFinite(resellerAmount) || resellerAmount <= 0) {
     throw new Error('Missing/invalid PLESK_DEFAULT_RESELLER_PRICE')

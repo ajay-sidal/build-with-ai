@@ -16,9 +16,9 @@ function round2(n: number) {
 
 export async function GET() {
   try {
-    const item = process.env.PLESK_DEFAULT_ITEM || 'PLESK-12-VPS-WEB-HOST-1M'
-    const currency = (process.env.PLESK_DEFAULT_CURRENCY || 'USD').toUpperCase()
-    const resellerAmount = Number(process.env.PLESK_DEFAULT_RESELLER_PRICE || '')
+    const item = (process.env.PLESK_DEFAULT_ITEM || 'PLESK-12-VPS-WEB-HOST-1M').trim()
+    const currency = (process.env.PLESK_DEFAULT_CURRENCY || 'USD').trim().toUpperCase()
+    const resellerAmount = Number((process.env.PLESK_DEFAULT_RESELLER_PRICE || '').trim())
 
     if (!Number.isFinite(resellerAmount) || resellerAmount <= 0) {
       return NextResponse.json({ error: 'Missing/invalid PLESK_DEFAULT_RESELLER_PRICE' }, { status: 500 })
