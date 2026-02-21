@@ -13,12 +13,21 @@ type SignupResponse =
   | ({ ok: true; already: boolean } & AlphaStats)
   | ({ error: string } & Partial<AlphaStats>)
 
-export default function LaunchMagnet() {
-  const [open, setOpen] = React.useState(true)
+export default function LaunchMagnet({ defaultOpen = true }: { defaultOpen?: boolean }) {
+  const [open, setOpen] = React.useState(Boolean(defaultOpen))
   const [email, setEmail] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
   const [done, setDone] = React.useState<{ already: boolean } | null>(null)
   const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    function onOpen() {
+      setOpen(true)
+    }
+
+    window.addEventListener('bwai:open-alpha-magnet', onOpen as any)
+    return () => window.removeEventListener('bwai:open-alpha-magnet', onOpen as any)
+  }, [])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
