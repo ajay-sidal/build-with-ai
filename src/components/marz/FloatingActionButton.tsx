@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Bot } from 'lucide-react'
+import { MessageCircle, X, Sparkles } from 'lucide-react'
 
 interface FloatingActionButtonProps {
   isOpen: boolean
@@ -28,7 +28,7 @@ export default function FloatingActionButton({
         e.preventDefault()
         onVoiceIntroduce?.()
       }}
-      className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl ${
+      className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 text-white shadow-lg shadow-cyan-500/30 transition-all hover:shadow-xl hover:shadow-cyan-500/50 ${
         isProactive ? 'marz-pulse' : ''
       }`}
       aria-label={isOpen ? 'Close chat' : 'Open chat'}
@@ -38,20 +38,24 @@ export default function FloatingActionButton({
         {isOpen ? (
           <motion.div
             key="close"
-            initial={{ rotate: -90, opacity: 0 }}
-            animate={{ rotate: 0, opacity: 1 }}
-            exit={{ rotate: 90, opacity: 0 }}
+            initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
           >
             <X size={24} />
           </motion.div>
         ) : (
           <motion.div
             key="open"
-            initial={{ rotate: 90, opacity: 0 }}
-            animate={{ rotate: 0, opacity: 1 }}
-            exit={{ rotate: -90, opacity: 0 }}
+            initial={{ rotate: 90, opacity: 0, scale: 0.5 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
+            className="relative"
           >
-            <Bot size={24} />
+            <MessageCircle size={22} />
+            <Sparkles size={12} className="absolute -right-1 -top-1 text-cyan-300" />
           </motion.div>
         )}
       </AnimatePresence>

@@ -15,6 +15,11 @@ export const metadata: Metadata = {
   },
   description:
     "The world's first AI-driven domain registrar and security vault. Search, secure, and scale your digital assets with zero-knowledge SSL and instant DNS.",
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
+  },
   openGraph: {
     title: 'BUILD WITH AI | Futuristic AI Domain & Infrastructure Hub',
     description:
@@ -22,12 +27,21 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'BUILD WITH AI',
     type: 'website',
+    images: [
+      {
+        url: '/icon.png',
+        width: 512,
+        height: 512,
+        alt: 'BUILD WITH AI',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'BUILD WITH AI | Futuristic AI Domain & Infrastructure Hub',
     description:
       "The world's first AI-driven domain registrar and security vault. Search, secure, and scale your digital assets with zero-knowledge SSL and instant DNS.",
+    images: ['/icon.png'],
   },
 }
 

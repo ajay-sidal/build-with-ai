@@ -12,7 +12,6 @@ const mainNavItems = [
   { href: '/products', label: 'Products' },
   { href: '/services', label: 'Services' },
   { href: '/developers', label: 'Developers' },
-  { href: '/partners', label: 'Partners' },
   { href: '/about', label: 'About' },
 ]
 
@@ -105,18 +104,18 @@ export default function Navbar() {
         <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/35">
           <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
             {/* Logo */}
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-zinc-50">
+            <Link href="/" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-zinc-50">
               <img src="/icon.png" alt="BUILD WITH AI" className="h-6 w-6 rounded-lg" />
-              BUILD WITH AI
+              <span className="whitespace-nowrap">BUILD WITH AI</span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden items-center gap-1 lg:flex">
+            <nav className="hidden items-center gap-0.5 lg:flex">
               {mainNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
+                  className="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors whitespace-nowrap"
                 >
                   {item.label}
                 </Link>

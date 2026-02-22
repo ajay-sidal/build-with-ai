@@ -8,7 +8,7 @@ const footerColumns = [
     title: 'Platform',
     links: [
       { href: '/', label: 'Domain Search' },
-      { href: '/products', label: 'All Products' },
+      { href: '/products', label: 'Products' },
       { href: '/services', label: 'Services' },
       { href: '/ssl', label: 'SSL Vault' },
     ],
@@ -19,33 +19,15 @@ const footerColumns = [
       { href: '/products/domains/registration', label: 'Domain Registration' },
       { href: '/products/ssl', label: 'SSL Certificates' },
       { href: '/products/dns/hosting', label: 'DNS Hosting' },
-      { href: '/products/spam-experts', label: 'Spam Experts' },
       { href: '/products/licenses/plesk', label: 'Plesk Licenses' },
-    ],
-  },
-  {
-    title: 'Services',
-    links: [
-      { href: '/services', label: 'Overview' },
-      { href: '/services/customer-management', label: 'Customer Management' },
-      { href: '/services/ai-design', label: 'AI Design' },
-      { href: '/services/domain-management', label: 'Domain Management' },
-    ],
-  },
-  {
-    title: 'Developers',
-    links: [
-      { href: '/developers', label: 'Documentation' },
-      { href: '/api/health', label: 'API Status' },
-      { href: '/partners', label: 'Partner Program' },
-      { href: '/affiliate', label: 'Affiliate Program' },
     ],
   },
   {
     title: 'Company',
     links: [
-      { href: '/about', label: 'About Us' },
-      { href: '/membership', label: 'Membership' },
+      { href: '/about', label: 'About' },
+      { href: '/partners', label: 'Partners' },
+      { href: '/developers', label: 'Developers' },
       { href: '/login', label: 'Login' },
       { href: '/signup', label: 'Sign Up' },
     ],
@@ -54,9 +36,8 @@ const footerColumns = [
     title: 'Support',
     links: [
       { href: '/dashboard/billing', label: 'Dashboard' },
-      { href: '/admin/dashboard', label: 'Admin' },
-      { href: '/privacy', label: 'Privacy Policy' },
-      { href: '/terms', label: 'Terms of Service' },
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/terms', label: 'Terms' },
     ],
   },
 ]
@@ -81,11 +62,11 @@ export default function Footer() {
               </div>
 
               {/* Footer Columns */}
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4">
                 {footerColumns.map((col) => (
                   <div key={col.title}>
                     <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{col.title}</div>
-                    <div className="mt-3 grid gap-2">
+                    <div className="mt-3 flex flex-col gap-2">
                       {col.links.map((link) => (
                         <Link
                           key={link.href}
@@ -102,28 +83,26 @@ export default function Footer() {
             </div>
 
             {/* Bottom Section: Copyright + Social */}
-            <div className="mt-8 flex flex-col gap-4 border-t border-zinc-800/80 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-8 flex flex-col gap-3 border-t border-zinc-800/80 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
               <div>© {new Date().getFullYear()} BUILD WITH AI. All rights reserved.</div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <a
                   href="https://www.linkedin.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                  className="text-zinc-400 hover:text-zinc-200 transition-colors"
                   aria-label="LinkedIn"
                 >
                   <Linkedin size={16} />
-                  <span>LinkedIn</span>
                 </a>
                 <a
                   href="https://x.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                  className="text-zinc-400 hover:text-zinc-200 transition-colors"
                   aria-label="X (Twitter)"
                 >
                   <Twitter size={16} />
-                  <span>X</span>
                 </a>
               </div>
             </div>
