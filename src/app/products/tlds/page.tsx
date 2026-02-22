@@ -46,7 +46,7 @@ export default function TLDsPage() {
                 >
                   <span className="font-mono text-sm text-zinc-200">{ext}</span>
                   <a
-                    href="/"
+                    href="/#tld-search"
                     className="text-xs text-zinc-500 hover:text-zinc-300"
                   >
                     Register →

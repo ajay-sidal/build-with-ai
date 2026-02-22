@@ -8,6 +8,10 @@
     {
       "path": "/api/jobs/process",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/admin/sync-promos",
+      "schedule": "0 4 * * *"
     }
   ]
 }

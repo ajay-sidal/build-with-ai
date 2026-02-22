@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import SessionProvider from '../components/providers/SessionProvider'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import AffiliateRefTracker from '../components/AffiliateRefTracker'
+import MarzChatWidget from '../components/marz/MarzChatWidget'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -37,12 +39,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
-        <Navbar />
-        <Suspense fallback={null}>
-          <AffiliateRefTracker />
-        </Suspense>
-        <div className="flex-1">{children}</div>
-        <Footer />
+        <SessionProvider>
+          <Navbar />
+          <Suspense fallback={null}>
+            <AffiliateRefTracker />
+          </Suspense>
+          <div className="flex-1">{children}</div>
+          <Footer />
+          <MarzChatWidget />
+        </SessionProvider>
       </body>
     </html>
   )

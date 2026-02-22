@@ -4,12 +4,16 @@ import { opClient } from '../../../../lib/openprovider'
 import { calculateCustomerPrice } from '../../../../utils/pricing'
 import { getHotTlds } from '../../../../lib/promoStore'
 import { getCurrentUserTier } from '../../../../lib/entitlements'
+import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
-type RequestBody = {
-  query: string
-}
+// Input validation schema
+const SearchQuerySchema = z.object({
+  query: z.string().min(1).max(100).trim(),
+})
+
+type RequestBody = z.infer<typeof SearchQuerySchema>
 
 function normalizeSearchLabel(raw: string): string {
   const q = (raw || '').trim()
@@ -78,12 +82,19 @@ function roundMoney(amount: number) {
 
 export async function POST(req: Request) {
   const requestId = randomUUID()
-  const body = (await req.json().catch(() => null)) as RequestBody | null
-  const query = body?.query?.trim()
-
-  if (!query) {
-    return NextResponse.json({ error: 'Missing query', requestId }, { status: 400, headers: { 'x-request-id': requestId } })
+  
+  // Parse and validate request body
+  const body = await req.json().catch(() => null)
+  const parsed = SearchQuerySchema.safeParse(body)
+  
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid request', details: parsed.error.errors, requestId },
+      { status: 400, headers: { 'x-request-id': requestId } }
+    )
   }
+  
+  const query = parsed.data.query
 
   const tlds = ['com', 'digital', 'ai', 'app', 'tech', 'blog', 'biz', 'horse', 'me']
 

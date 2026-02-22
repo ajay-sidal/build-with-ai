@@ -2,23 +2,27 @@ import { NextResponse } from 'next/server'
 import { opClient, type CustomerCreateCustomerRequest } from '../../../../lib/openprovider'
 import { upsertUserTier } from '../../../../lib/userStore'
 import { USER_ID_COOKIE, USER_TIER_COOKIE } from '../../../../utils/membership'
+import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
-type RequestBody = {
-  email: string
-  first_name: string
-  last_name: string
-  street: string
-  number: string
-  zipcode: string
-  city: string
-  country: string
-  state?: string
-  phone_country_code: string
-  phone_area_code?: string
-  phone_subscriber_number: string
-}
+// Input validation schema
+const CustomerCreateSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  first_name: z.string().min(1).max(50),
+  last_name: z.string().min(1).max(50),
+  street: z.string().min(1).max(100),
+  number: z.string().min(1).max(20),
+  zipcode: z.string().min(1).max(20),
+  city: z.string().min(1).max(100),
+  country: z.string().length(2),
+  state: z.string().max(50).optional(),
+  phone_country_code: z.string().min(1).max(5),
+  phone_area_code: z.string().max(10).optional(),
+  phone_subscriber_number: z.string().min(1).max(20),
+})
+
+type RequestBody = z.infer<typeof CustomerCreateSchema>
 
 function initials(firstName: string, lastName: string) {
   const a = (firstName.trim()[0] || '').toUpperCase()
@@ -27,19 +31,21 @@ function initials(firstName: string, lastName: string) {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as RequestBody | null
+  // Parse and validate request body
+  const body = await req.json().catch(() => null)
+  const parsed = CustomerCreateSchema.safeParse(body)
 
-  if (!body?.email || !body.first_name || !body.last_name) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid request', details: parsed.error.errors }, { status: 400 })
   }
 
   try {
     // Avoid duplicate handles for the same user
-    const existing = await opClient.searchCustomers(body.email)
+    const existing = await opClient.searchCustomers(parsed.data.email)
     if (existing.length > 0 && existing[0]?.handle) {
       const handle = existing[0].handle
       try {
-        await upsertUserTier({ userId: handle, tier: 'AI_EXPLORER', email: body.email || null, renewalDate: null })
+        await upsertUserTier({ userId: handle, tier: 'AI_EXPLORER', email: parsed.data.email || null, renewalDate: null })
       } catch {
         // ignore
       }
@@ -51,32 +57,32 @@ export async function POST(req: Request) {
     }
 
     const reqBody: CustomerCreateCustomerRequest = {
-      email: body.email,
+      email: parsed.data.email,
       name: {
-        initials: initials(body.first_name, body.last_name),
-        first_name: body.first_name,
-        last_name: body.last_name,
-        full_name: `${body.first_name} ${body.last_name}`.trim(),
+        initials: initials(parsed.data.first_name, parsed.data.last_name),
+        first_name: parsed.data.first_name,
+        last_name: parsed.data.last_name,
+        full_name: `${parsed.data.first_name} ${parsed.data.last_name}`.trim(),
       },
       address: {
-        street: body.street,
-        number: body.number,
-        zipcode: body.zipcode,
-        city: body.city,
-        country: body.country,
-        state: body.state,
+        street: parsed.data.street,
+        number: parsed.data.number,
+        zipcode: parsed.data.zipcode,
+        city: parsed.data.city,
+        country: parsed.data.country,
+        state: parsed.data.state,
       },
       phone: {
-        country_code: body.phone_country_code,
-        area_code: body.phone_area_code,
-        subscriber_number: body.phone_subscriber_number,
+        country_code: parsed.data.phone_country_code,
+        area_code: parsed.data.phone_area_code,
+        subscriber_number: parsed.data.phone_subscriber_number,
       },
     }
 
     const handle = await opClient.createCustomer(reqBody)
 
     try {
-      await upsertUserTier({ userId: handle, tier: 'AI_EXPLORER', email: body.email || null, renewalDate: null })
+      await upsertUserTier({ userId: handle, tier: 'AI_EXPLORER', email: parsed.data.email || null, renewalDate: null })
     } catch {
       // ignore
     }

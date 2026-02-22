@@ -88,7 +88,7 @@ export const domainProducts: Product[] = [
     cta: {
       primary: 'Search Domains',
       secondary: 'View All Extensions',
-      url: '/products/domains',
+      url: '/',
     },
     icon: 'globe',
     popular: true,
@@ -125,7 +125,7 @@ export const domainProducts: Product[] = [
     cta: {
       primary: 'Transfer Domain',
       secondary: 'Learn More',
-      url: '/products/domains/transfer',
+      url: '/',
     },
     icon: 'arrow-right-left',
   },
@@ -160,7 +160,7 @@ export const domainProducts: Product[] = [
     cta: {
       primary: 'Renew Now',
       secondary: 'Manage Renewals',
-      url: '/products/domains/renewal',
+      url: '/dashboard/billing',
     },
     icon: 'refresh-cw',
   },
@@ -197,7 +197,7 @@ export const domainProducts: Product[] = [
     cta: {
       primary: 'Enable Premium DNS',
       secondary: 'View Features',
-      url: '/products/premium-dns',
+      url: '/products/dns/hosting',
     },
     icon: 'shield',
     new: true,
@@ -244,7 +244,7 @@ export const sslProducts: Product[] = [
     cta: {
       primary: 'Get SSL',
       secondary: 'Compare Options',
-      url: '/products/ssl/domain-validation',
+      url: '/ssl',
     },
     icon: 'lock',
     popular: true,
@@ -287,7 +287,7 @@ export const sslProducts: Product[] = [
     cta: {
       primary: 'Get OV SSL',
       secondary: 'Learn More',
-      url: '/products/ssl/organization-validation',
+      url: '/ssl',
     },
     icon: 'building',
   },
@@ -329,7 +329,7 @@ export const sslProducts: Product[] = [
     cta: {
       primary: 'Get EV SSL',
       secondary: 'Compare EV Options',
-      url: '/products/ssl/extended-validation',
+      url: '/ssl',
     },
     icon: 'shield-check',
   },
@@ -370,7 +370,7 @@ export const sslProducts: Product[] = [
     cta: {
       primary: 'Get Wildcard SSL',
       secondary: 'View Pricing',
-      url: '/products/ssl/wildcard',
+      url: '/ssl',
     },
     icon: 'asterisk',
   },
@@ -411,7 +411,7 @@ export const sslProducts: Product[] = [
     cta: {
       primary: 'Get Multi-Domain SSL',
       secondary: 'Compare Plans',
-      url: '/products/ssl/multi-domain',
+      url: '/ssl',
     },
     icon: 'layers',
   },
@@ -452,7 +452,7 @@ export const sslProducts: Product[] = [
     cta: {
       primary: 'Get Code Signing',
       secondary: 'Learn More',
-      url: '/products/ssl/code-signing',
+      url: '/ssl',
     },
     icon: 'file-code',
   },
@@ -488,7 +488,7 @@ export const sslProducts: Product[] = [
     cta: {
       primary: 'Get Email Certificate',
       secondary: 'View Features',
-      url: '/products/ssl/email-signing',
+      url: '/ssl',
     },
     icon: 'mail',
   },
@@ -715,7 +715,7 @@ export const spamExpertsProducts: Product[] = [
     cta: {
       primary: 'Enable Filtering',
       secondary: 'View Demo',
-      url: '/products/spam-experts/incoming',
+      url: '/products/spam-experts',
     },
     icon: 'shield-alert',
     popular: true,
@@ -752,7 +752,7 @@ export const spamExpertsProducts: Product[] = [
     cta: {
       primary: 'Enable Outbound',
       secondary: 'Learn More',
-      url: '/products/spam-experts/outgoing',
+      url: '/products/spam-experts',
     },
     icon: 'send',
   },
@@ -788,7 +788,7 @@ export const spamExpertsProducts: Product[] = [
     cta: {
       primary: 'Start Archiving',
       secondary: 'View Features',
-      url: '/products/spam-experts/archiving',
+      url: '/products/spam-experts',
     },
     icon: 'archive',
   },
@@ -998,7 +998,7 @@ export const services: Service[] = [
     ],
     cta: {
       primary: 'Get Started',
-      url: '/services/domain-management',
+      url: '/services',
     },
   },
   {
@@ -1030,7 +1030,7 @@ export const services: Service[] = [
     ],
     cta: {
       primary: 'Learn More',
-      url: '/services/ssl-management',
+      url: '/ssl',
     },
   },
   {

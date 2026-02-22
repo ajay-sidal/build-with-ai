@@ -250,8 +250,8 @@ export default function ServicesOverviewClient() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <a href="/contact" className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
-                  Contact Sales
+                <a href="/products" className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+                  Browse Products
                   <ArrowRight size={16} className="ml-2" />
                 </a>
                 <a href="/partners" className="inline-flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800">

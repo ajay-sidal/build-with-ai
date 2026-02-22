@@ -6,31 +6,45 @@ import { applyDiscountToCustomerPrice } from '../../../utils/discounts'
 import { dbRateLimit } from '../../../lib/opsStore'
 import { randomUUID } from 'node:crypto'
 import { getCurrentUserTier } from '../../../lib/entitlements'
+import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
-type Money = { currency: string; amount: number }
+// Money schema for reuse
+const MoneySchema = z.object({
+  currency: z.string().min(1).max(3),
+  amount: z.number().positive(),
+})
 
-type DomainCartItem = {
-  kind: 'domain'
-  domain: string
-  name: string
-  tld: string
-  owner_handle: string
-  resellerPrice: Money
-}
+// Cart item schemas
+const DomainCartItemSchema = z.object({
+  kind: z.literal('domain'),
+  domain: z.string().min(1).max(253),
+  name: z.string().min(1).max(63),
+  tld: z.string().min(1).max(20),
+  owner_handle: z.string().min(1).max(20),
+  resellerPrice: MoneySchema,
+})
 
-type SslCartItem = {
-  kind: 'ssl'
-  product_id: string | number
-  period: number
-  resellerPrice: Money
-}
+const SslCartItemSchema = z.object({
+  kind: z.literal('ssl'),
+  product_id: z.union([z.string(), z.number()]),
+  period: z.number().positive(),
+  resellerPrice: MoneySchema,
+})
 
-type RequestBody = {
-  cart: DomainCartItem | SslCartItem
-  discountCode?: string
-}
+const CartItemSchema = z.discriminatedUnion('kind', [
+  DomainCartItemSchema,
+  SslCartItemSchema,
+])
+
+// Request body schema
+const CheckoutRequestSchema = z.object({
+  cart: CartItemSchema,
+  discountCode: z.string().max(20).optional(),
+})
+
+type RequestBody = z.infer<typeof CheckoutRequestSchema>
 
 function roundMoney(amount: number) {
   return Math.round(amount * 100) / 100
@@ -56,8 +70,16 @@ export async function POST(req: Request) {
     // ignore
   }
 
-  const body = (await req.json().catch(() => null)) as RequestBody | null
-  if (!body?.cart) return NextResponse.json({ error: 'Missing cart' }, { status: 400 })
+  // Parse and validate request body
+  const body = await req.json().catch(() => null)
+  const parsed = CheckoutRequestSchema.safeParse(body)
+  
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid request', details: parsed.error.errors },
+      { status: 400, headers: { 'x-request-id': requestId } }
+    )
+  }
 
   const secretKey = process.env.STRIPE_SECRET_KEY
   if (!secretKey) return NextResponse.json({ error: 'Missing STRIPE_SECRET_KEY' }, { status: 500 })
@@ -69,10 +91,10 @@ export async function POST(req: Request) {
     const cookies = parseCookieHeader(req.headers.get('cookie'))
     const partnerId = cookies[AFFILIATE_COOKIE_NAME] || ''
     const userTier = await getCurrentUserTier()
-    const discountCode = (body.discountCode || '').toString().trim().toUpperCase()
+    const discountCode = (parsed.data.discountCode || '').toString().trim().toUpperCase()
 
-    if (body.cart.kind === 'domain') {
-      const item = body.cart
+    if (parsed.data.cart.kind === 'domain') {
+      const item = parsed.data.cart
       const currency = item.resellerPrice.currency
       const originalCustomerAmount = roundMoney(
         calculateCustomerPrice(item.resellerPrice.amount, 'DOMAIN', { userTier }),
@@ -134,7 +156,7 @@ export async function POST(req: Request) {
     }
 
     // SSL cart: session + metadata (provisioning handled elsewhere)
-    const item = body.cart
+    const item = parsed.data.cart
     const currency = item.resellerPrice.currency
     const originalCustomerAmount = roundMoney(calculateCustomerPrice(item.resellerPrice.amount, 'SSL'))
     const resellerAmount = roundMoney(item.resellerPrice.amount)
