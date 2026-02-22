@@ -19,7 +19,7 @@ interface KnowledgeItem {
   cta?: string
 }
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+// const groq = new Groq({ apiKey: process.env.GROQ_API_KEY }) // Moved to POST handler
 
 // Initialize Upstash Vector client lazily
 let vectorIndex: Index | null = null
@@ -77,6 +77,13 @@ async function semanticSearch(query: string, topK: number = 3): Promise<Knowledg
 
 export async function POST(req: Request) {
   try {
+    // Instantiate Groq client inside the handler to access env vars at runtime
+    if (!process.env.GROQ_API_KEY) {
+      // This will be caught by the catch block and return a 500 error.
+      throw new Error('The GROQ_API_KEY environment variable is missing or empty.')
+    }
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+
     // Vercel AI SDK reads the body
     const { messages } = await req.json()
     const userQuery = messages[messages.length - 1]?.content
