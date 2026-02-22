@@ -21,6 +21,8 @@ type DomainResult = {
 type ApiResponse = {
   query: string
   results: DomainResult[]
+  warning?: string
+  requestId?: string
 }
 
 function formatMoney(currency: string, amount: number) {
@@ -139,13 +141,19 @@ export default function DomainSearch() {
         body: JSON.stringify({ query: trimmed }),
       })
 
+      const requestId = res.headers.get('x-request-id') || undefined
+      const data = (await res.json().catch(() => null)) as (ApiResponse & { error?: string }) | null
+
       if (!res.ok) {
-        const data = (await res.json().catch(() => null)) as { error?: string } | null
-        throw new Error(data?.error || 'Search failed')
+        const msg = data?.error || 'Search failed'
+        const ref = requestId || data?.requestId
+        throw new Error(ref ? `${msg} (ref: ${ref})` : msg)
       }
 
-      const data = (await res.json()) as ApiResponse
-      setResults(data.results)
+      setResults(Array.isArray(data?.results) ? data!.results : [])
+      const warning = data?.warning
+      const ref = requestId || data?.requestId
+      setError(warning ? (ref ? `${warning} (ref: ${ref})` : warning) : null)
     } catch (err) {
       setResults([])
       setError(err instanceof Error ? err.message : 'Search failed')
