@@ -18,6 +18,25 @@ type ProductsResponse = { results: SslProduct[] } | { error: string }
 
 type ApproverEmailsResponse = { results: string[] } | { error: string }
 
+function isValidFqdn(value: string): boolean {
+  const v = value.trim().toLowerCase()
+  if (!v) return false
+  if (v.includes('@')) return false
+  if (v.includes(' ')) return false
+  if (v.length > 253) return false
+  if (!v.includes('.')) return false
+  if (!/^[a-z0-9.-]+$/.test(v)) return false
+  if (v.startsWith('.') || v.endsWith('.')) return false
+  const labels = v.split('.').filter(Boolean)
+  if (labels.length < 2) return false
+  for (const label of labels) {
+    if (label.length < 1 || label.length > 63) return false
+    if (label.startsWith('-') || label.endsWith('-')) return false
+    if (!/^[a-z0-9-]+$/.test(label)) return false
+  }
+  return true
+}
+
 function formatMoney(currency: string, amount: number) {
   try {
     return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount)
@@ -73,6 +92,10 @@ export default function SslVaultClient() {
   async function loadApproverEmails() {
     const trimmed = domain.trim().toLowerCase()
     if (!trimmed) return
+    if (!isValidFqdn(trimmed)) {
+      setError('Enter a valid domain like example.com (not an email address).')
+      return
+    }
 
     setIsLoadingEmails(true)
     setError(null)
@@ -97,6 +120,10 @@ export default function SslVaultClient() {
     const cn = domain.trim().toLowerCase()
     if (!cn) {
       setError('Enter a domain (Common Name) before generating')
+      return
+    }
+    if (!isValidFqdn(cn)) {
+      setError('Enter a valid domain like example.com (not an email address).')
       return
     }
 
