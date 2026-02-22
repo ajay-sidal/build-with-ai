@@ -52,16 +52,13 @@ export default function LoginClient() {
 
     try {
       // Set admin secret cookie for admin dashboard access
-      document.cookie = `admin_secret=${encodeURIComponent(adminSecret)}; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Strict`
+      document.cookie = `admin_secret=${encodeURIComponent(adminSecret)}; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Lax; Secure`
       
-      // Verify by fetching admin dashboard
-      const res = await fetch('/admin/dashboard', { method: 'HEAD' })
-      if (res.ok || res.status === 307) {
-        // Redirect to admin dashboard
-        router.push('/admin/dashboard')
-      } else {
-        setError('Invalid admin secret')
-      }
+      // Give cookie time to set, then redirect
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Redirect to admin dashboard - the page will validate the cookie
+      router.push('/admin/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {

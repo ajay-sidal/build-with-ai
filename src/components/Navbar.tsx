@@ -116,20 +116,20 @@ export default function Navbar() {
         <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/35">
           <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
             {/* Logo */}
-            <Link href="/" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-zinc-50">
-              <img src="/icon.png" alt="BUILD WITH AI" className="h-6 w-6 rounded-lg" />
+            <Link href="/" className="inline-flex shrink-0 items-center gap-2.5 text-base font-semibold tracking-tight text-zinc-50">
+              <img src="/icon.png" alt="BUILD WITH AI" className="h-8 w-8 rounded-lg" />
               <span className="whitespace-nowrap">BUILD WITH AI</span>
             </Link>
 
             {/* Desktop Navigation - Centered with even spacing */}
-            <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+            <nav className="hidden flex-1 items-center justify-center gap-1.5 lg:flex">
               {/* Center group: Home, Products, Services, Developers, About */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 {mainNavItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors whitespace-nowrap"
+                    className="rounded-lg px-3.5 py-2 text-base text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors whitespace-nowrap"
                   >
                     {item.label}
                   </Link>
@@ -140,10 +140,10 @@ export default function Navbar() {
                   <button
                     onMouseEnter={() => setProductsOpen(true)}
                     onMouseLeave={() => setProductsOpen(false)}
-                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
+                    className="inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-base text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
                   >
                     Products
-                    <ChevronDown size={14} className={`transition-transform ${productsOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={16} className={`transition-transform ${productsOpen ? 'rotate-180' : ''}`} />
                   </button>
                   <AnimatePresence>
                     {productsOpen && (
@@ -187,10 +187,10 @@ export default function Navbar() {
                   <button
                     onMouseEnter={() => setServicesOpen(true)}
                     onMouseLeave={() => setServicesOpen(false)}
-                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
+                    className="inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-base text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
                   >
                     Services
-                    <ChevronDown size={14} className={`transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={16} className={`transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
                   </button>
                   <AnimatePresence>
                     {servicesOpen && (
@@ -237,29 +237,29 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-base font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
                   >
                     Dashboard
                   </Link>
                   <button
                     onClick={() => signOut({ callbackUrl: '/' })}
-                    className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm text-zinc-300 hover:text-red-400 hover:bg-zinc-900/60 transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-base text-zinc-300 hover:text-red-400 hover:bg-zinc-900/60 transition-colors"
                     title="Logout"
                   >
-                    <LogOut size={18} />
+                    <LogOut size={20} />
                   </button>
                 </>
               ) : (
                 <>
                   <Link
                     href="/login"
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-300 hover:text-zinc-50 hover:bg-zinc-900/60 transition-colors"
+                    className="rounded-lg px-3 py-2 text-base font-medium text-zinc-300 hover:text-zinc-50 hover:bg-zinc-900/60 transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-base font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
                   >
                     Sign Up
                   </Link>
