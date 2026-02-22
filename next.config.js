@@ -4,13 +4,14 @@ const nextConfig = {
   poweredByHeader: false,
   async headers() {
     const allowVercelLive = process.env.VERCEL === '1'
+    const allowUnsafeEval = allowVercelLive && process.env.VERCEL_ENV !== 'production'
 
     // CSP is intentionally permissive to avoid breaking Next.js hydration and Stripe.
     // On Vercel deployments, allow Vercel Live Feedback / Toolbar script.
     const scriptSrc = [
       "'self'",
       "'unsafe-inline'",
-      ...(allowVercelLive ? ["'unsafe-eval'"] : []),
+      ...(allowUnsafeEval ? ["'unsafe-eval'"] : []),
       'https://js.stripe.com',
       'https://*.stripe.com',
       ...(allowVercelLive ? ['https://vercel.live'] : []),
