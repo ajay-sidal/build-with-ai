@@ -6,20 +6,21 @@ import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
-// Input validation schema
+// Input validation schema (simplified - address optional)
 const CustomerCreateSchema = z.object({
   email: z.string().email('Invalid email address'),
   first_name: z.string().min(1).max(50),
   last_name: z.string().min(1).max(50),
-  street: z.string().min(1).max(100),
-  number: z.string().min(1).max(20),
-  zipcode: z.string().min(1).max(20),
-  city: z.string().min(1).max(100),
-  country: z.string().length(2),
+  // Address fields are now optional - will use defaults if not provided
+  street: z.string().min(1).max(100).optional(),
+  number: z.string().min(1).max(20).optional(),
+  zipcode: z.string().min(1).max(20).optional(),
+  city: z.string().min(1).max(100).optional(),
+  country: z.string().length(2).optional(),
   state: z.string().max(50).optional(),
-  phone_country_code: z.string().min(1).max(5),
+  phone_country_code: z.string().min(1).max(5).optional(),
   phone_area_code: z.string().max(10).optional(),
-  phone_subscriber_number: z.string().min(1).max(20),
+  phone_subscriber_number: z.string().min(1).max(20).optional(),
 })
 
 type RequestBody = z.infer<typeof CustomerCreateSchema>
@@ -39,6 +40,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid request', details: parsed.error.errors }, { status: 400 })
   }
 
+  // Validate required fields
+  if (!parsed.data.email || !parsed.data.first_name || !parsed.data.last_name) {
+    return NextResponse.json({ error: 'Email, first name, and last name are required' }, { status: 400 })
+  }
+
   try {
     // Avoid duplicate handles for the same user
     const existing = await opClient.searchCustomers(parsed.data.email)
@@ -56,6 +62,7 @@ export async function POST(req: Request) {
       return res
     }
 
+    // Use default address values if not provided (not location-based)
     const reqBody: CustomerCreateCustomerRequest = {
       email: parsed.data.email,
       name: {
@@ -65,17 +72,17 @@ export async function POST(req: Request) {
         full_name: `${parsed.data.first_name} ${parsed.data.last_name}`.trim(),
       },
       address: {
-        street: parsed.data.street,
-        number: parsed.data.number,
-        zipcode: parsed.data.zipcode,
-        city: parsed.data.city,
-        country: parsed.data.country,
+        street: parsed.data.street || 'Not provided',
+        number: parsed.data.number || 'N/A',
+        zipcode: parsed.data.zipcode || '00000',
+        city: parsed.data.city || 'Not provided',
+        country: parsed.data.country || 'US',
         state: parsed.data.state,
       },
       phone: {
-        country_code: parsed.data.phone_country_code,
+        country_code: parsed.data.phone_country_code || '1',
         area_code: parsed.data.phone_area_code,
-        subscriber_number: parsed.data.phone_subscriber_number,
+        subscriber_number: parsed.data.phone_subscriber_number || '0000000',
       },
     }
 
