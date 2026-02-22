@@ -1,7 +1,6 @@
 import type { NextAuthOptions } from 'next-auth'
 import GitHubProvider from 'next-auth/providers/github'
 import GoogleProvider from 'next-auth/providers/google'
-import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from './prisma'
 
@@ -9,35 +8,13 @@ function optionalProvider<T>(provider: T, enabled: boolean): T | null {
   return enabled ? provider : null
 }
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET || ''
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'database',
   },
   providers: [
-    // Admin secret login (internal only) - using 'credentials' as the provider type
-    CredentialsProvider({
-      name: 'Admin Secret',
-      credentials: {
-        adminSecret: { label: 'Admin Secret', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.adminSecret) {
-          throw new Error('Admin secret required')
-        }
-        if (credentials.adminSecret === ADMIN_SECRET && ADMIN_SECRET) {
-          return {
-            id: 'admin',
-            email: 'admin@buildwithai.digital',
-            name: 'Admin User',
-          }
-        }
-        throw new Error('Invalid admin secret')
-      },
-    }),
-    // OAuth Providers
+    // OAuth Providers for regular user signup/signin
     optionalProvider(
       GitHubProvider({
         clientId: (process.env.GITHUB_ID || '').trim(),
@@ -63,17 +40,6 @@ export const authOptions: NextAuthOptions = {
         ;(session.user as any).id = user.id
       }
       return session
-    },
-    async signIn({ user, account }) {
-      // Allow credentials (admin secret) sign in
-      if (account?.provider === 'credentials') {
-        return true
-      }
-      // Allow OAuth sign ins
-      if (account?.provider === 'google' || account?.provider === 'github') {
-        return true
-      }
-      return false
     },
   },
 }

@@ -20,7 +20,6 @@ export default function LoginClient() {
   const [error, setError] = React.useState<string | null>(null)
   const [adminSecret, setAdminSecret] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
-  const [loaded, setLoaded] = React.useState(false)
 
   React.useEffect(() => {
     let cancelled = false
@@ -31,15 +30,11 @@ export default function LoginClient() {
         const json = (await res.json().catch(() => null)) as ProviderMap | null
         if (!res.ok || !json) throw new Error('Failed to load providers')
         const list = Object.values(json).map((p) => ({ id: p.id, name: p.name }))
-        if (!cancelled) {
-          setProviders(list)
-          setLoaded(true)
-        }
+        if (!cancelled) setProviders(list)
       } catch (err) {
         if (!cancelled) {
-          // Don't show error for provider loading - just continue without OAuth
+          // Don't show error - just continue without OAuth
           setProviders([])
-          setLoaded(true)
         }
       }
     }
@@ -56,15 +51,16 @@ export default function LoginClient() {
     setError(null)
 
     try {
-      const result = await signIn('credentials', {
-        adminSecret,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError('Invalid admin secret')
+      // Set admin secret cookie for admin dashboard access
+      document.cookie = `admin_secret=${encodeURIComponent(adminSecret)}; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Strict`
+      
+      // Verify by fetching admin dashboard
+      const res = await fetch('/admin/dashboard', { method: 'HEAD' })
+      if (res.ok || res.status === 307) {
+        // Redirect to admin dashboard
+        router.push('/admin/dashboard')
       } else {
-        router.push(next)
+        setError('Invalid admin secret')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
@@ -73,7 +69,7 @@ export default function LoginClient() {
     }
   }
 
-  const oauthProviders = providers.filter((p) => p.id !== 'credentials' && p.id !== 'admin-secret')
+  const oauthProviders = providers.filter((p) => p.id !== 'credentials')
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-6 py-16">
@@ -91,37 +87,39 @@ export default function LoginClient() {
         </CardHeader>
         <CardContent className="grid gap-4">
           {/* Admin Secret Login - Always show for admin access */}
-          <form onSubmit={handleAdminLogin} className="grid gap-3">
-            <div className="space-y-2">
-              <label htmlFor="admin-secret" className="text-sm font-medium text-zinc-200">
-                Admin Secret
-              </label>
-              <Input
-                id="admin-secret"
-                type="password"
-                placeholder="Enter admin secret"
-                value={adminSecret}
-                onChange={(e) => setAdminSecret(e.target.value)}
-                className="h-12"
-                autoComplete="off"
-              />
-            </div>
-            <Button type="submit" disabled={isLoading || !adminSecret} className="h-12">
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <Shield className="mr-2 h-4 w-4" />
-                  {isAdmin ? 'Access Dashboard' : 'Sign in as Admin'}
-                </>
-              )}
-            </Button>
-          </form>
+          {isAdmin && (
+            <form onSubmit={handleAdminLogin} className="grid gap-3">
+              <div className="space-y-2">
+                <label htmlFor="admin-secret" className="text-sm font-medium text-zinc-200">
+                  Admin Secret
+                </label>
+                <Input
+                  id="admin-secret"
+                  type="password"
+                  placeholder="Enter admin secret"
+                  value={adminSecret}
+                  onChange={(e) => setAdminSecret(e.target.value)}
+                  className="h-12"
+                  autoComplete="off"
+                />
+              </div>
+              <Button type="submit" disabled={isLoading || !adminSecret} className="h-12">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Access Dashboard
+                  </>
+                )}
+              </Button>
+            </form>
+          )}
 
-          {/* OAuth Providers (if configured) */}
+          {/* OAuth Providers for regular users (if configured) */}
           {!isAdmin && oauthProviders.length > 0 && (
             <>
               <div className="relative">
@@ -129,7 +127,7 @@ export default function LoginClient() {
                   <div className="w-full border-t border-zinc-800" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-zinc-950 px-2 text-zinc-500">Or continue with</span>
+                  <span className="bg-zinc-950 px-2 text-zinc-500">Continue with</span>
                 </div>
               </div>
 
@@ -147,12 +145,12 @@ export default function LoginClient() {
             </>
           )}
 
-          {/* Sign up link */}
+          {/* Admin access link */}
           {!isAdmin && (
             <p className="text-center text-sm text-zinc-400">
-              Don't have an account?{' '}
-              <a href="/signup" className="text-zinc-200 underline hover:text-zinc-100">
-                Sign up
+              Admin access?{' '}
+              <a href="/login?admin=1" className="text-zinc-200 underline hover:text-zinc-100">
+                Sign in with admin secret
               </a>
             </p>
           )}
