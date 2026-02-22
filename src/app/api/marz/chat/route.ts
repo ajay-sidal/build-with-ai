@@ -95,14 +95,10 @@ export async function POST(req: Request) {
     if (!process.env.UPSTASH_VECTOR_REST_URL || !process.env.UPSTASH_VECTOR_REST_TOKEN) {
       // Fallback to basic keyword matching if no vector DB
       console.warn('[MARZ] Vector DB credentials not found. Returning setup message.')
-      const stream = new ReadableStream({
-        start(controller) {
-            const errorMessage = 'MARZ is in setup mode. Vector DB credentials are not configured. SUGGESTIONS:["What products do you offer?","Tell me about domains","What is SSL?"]';
-            controller.enqueue(new TextEncoder().encode(errorMessage));
-            controller.close();
-        }
-      });
-      return new StreamingTextResponse(stream);
+      return NextResponse.json({
+        response: 'MARZ is in setup mode. Vector DB credentials are not configured.',
+        suggestions: ['What products do you offer?', 'Tell me about domains', 'What is SSL?'],
+      })
     }
 
     // 1. Retrieval: Perform semantic search to get relevant context
@@ -132,19 +128,46 @@ export async function POST(req: Request) {
       ...messages,
     ]
 
-    // 3. Generation: Call the LLM with the complete prompt and stream the response
-    const response = await groq.chat.completions.create({
+    // 3. Generation: Call the LLM with the complete prompt
+    const completion = await groq.chat.completions.create({
       model: 'llama3-8b-8192',
-      stream: true,
       messages: finalMessages,
+      max_tokens: 1024,
     })
 
-    const stream = OpenAIStream(response)
-    return new StreamingTextResponse(stream)
+    const aiResponse = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
+
+    // Parse suggestions from response
+    let suggestions: string[] = []
+    const suggestionMatch = aiResponse.match(/SUGGESTIONS:(\[.*\])/)
+    if (suggestionMatch) {
+      try {
+        suggestions = JSON.parse(suggestionMatch[1])
+      } catch {
+        suggestions = []
+      }
+    }
+
+    // Clean response text (remove SUGGESTIONS: part)
+    const cleanResponse = aiResponse.replace(/SUGGESTIONS:\[.*\]/, '').trim()
+
+    return NextResponse.json({
+      response: cleanResponse,
+      suggestions,
+      matches: contextItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+      })),
+    })
   } catch (error) {
     console.error('[MARZ API Error]:', error)
-    return new Response(
-      `Failed to process request: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    return NextResponse.json(
+      { 
+        error: 'Failed to process request',
+        response: "I apologize, but I'm experiencing technical difficulties. Please try again.",
+        suggestions: ['Tell me about domains', 'What SSL options are available?', 'Help me choose a product'],
+      },
       { status: 500 }
     )
   }

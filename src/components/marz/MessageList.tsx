@@ -3,9 +3,14 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import type { Message } from 'ai/react'
 import CodeBlock from './CodeBlock'
 import ChatHistorySkeleton from './ChatHistorySkeleton'
+
+interface Message {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+}
 
 interface MessageListProps {
   messages: Message[]
