@@ -373,8 +373,12 @@ export default function DomainSearch() {
                         {r.price ? formatMoney(r.price.currency, r.price.amount) : '—'}
                       </div>
 
-                      <Button variant={isFree ? 'primary' : 'secondary'} disabled={!isFree} onClick={() => onBuyNow(r)}>
-                        Buy Now
+                      <Button
+                        variant={isFree ? 'primary' : 'secondary'}
+                        disabled={!isFree}
+                        onClick={isFree ? () => onBuyNow(r) : undefined}
+                      >
+                        {isFree ? 'Buy Now' : 'Unavailable'}
                       </Button>
                     </div>
                   </div>
