@@ -23,11 +23,14 @@ function getPepper(): string {
   const pepper = (process.env.DEVELOPER_KEY_PEPPER || '').trim()
   if (pepper) return pepper
 
-  // In production we require an explicit pepper so hashes remain stable and secret.
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Missing DEVELOPER_KEY_PEPPER')
+  // If not explicitly set, derive a stable secret from DATABASE_URL.
+  // This keeps hashes secret in production without requiring additional env wiring.
+  const dbUrl = (process.env.DATABASE_URL || '').trim()
+  if (dbUrl) {
+    return createHmac('sha256', 'bwai:developer-key-pepper').update(dbUrl).digest('hex')
   }
 
+  if (process.env.NODE_ENV === 'production') throw new Error('Missing DATABASE_URL')
   return 'dev-pepper'
 }
 
