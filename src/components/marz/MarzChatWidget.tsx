@@ -13,7 +13,13 @@ import {
   Sparkles,
   Loader2,
   Bot,
+  Copy,
+  Check,
+  Code2,
 } from 'lucide-react'
+
+// Storage key for chat persistence
+const MARZ_CHAT_HISTORY_KEY = 'marz_chat_history'
 
 interface SuggestionData {
   suggestions?: string[]
@@ -43,6 +49,137 @@ declare global {
   }
 }
 
+// Phase 1.1: CodeBlock Component with Copy to Clipboard
+interface CodeBlockProps {
+  language: string
+  code: string
+}
+
+const CodeBlock: React.FC<CodeBlockProps> = ({ language, code }) => {
+  const [isCopied, setIsCopied] = React.useState(false)
+
+  const handleCopy = React.useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy code:', err)
+    }
+  }, [code])
+
+  return (
+    <div className="my-3 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900">
+      <div className="flex items-center justify-between border-b border-zinc-700 bg-zinc-800/50 px-3 py-2">
+        <span className="text-xs font-medium text-zinc-400">
+          {language || 'code'}
+        </span>
+        <button
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-600 bg-zinc-700 px-2 py-1 text-xs text-zinc-300 transition-colors hover:bg-zinc-600 hover:text-zinc-100"
+          title={isCopied ? 'Copied!' : 'Copy code'}
+        >
+          {isCopied ? (
+            <>
+              <Check size={12} className="text-emerald-400" />
+              <span className="text-emerald-400">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy size={12} />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      <pre className="overflow-x-auto p-3 text-xs text-zinc-100">
+        <code>{code}</code>
+      </pre>
+    </div>
+  )
+}
+
+// Phase 1.2: Updated formatMessage with CodeBlock support
+const formatMessage = (content: string) => {
+  // Split content by code blocks using regex
+  const parts = content.split(/```(\w*)\n([\s\S]*?)```/g)
+  
+  const elements: React.ReactNode[] = []
+  let key = 0
+
+  for (let i = 0; i < parts.length; i += 3) {
+    // Text part (before code block)
+    const textPart = parts[i]
+    if (textPart) {
+      const textElements = textPart.split('\n').map((line, lineIdx) => (
+        <p key={`${key}-text-${lineIdx}`} className="mb-1 last:mb-0">
+          {line.split('**').map((part, partIdx) =>
+            partIdx % 2 === 1 ? (
+              <strong key={partIdx} className="font-semibold text-zinc-100">
+                {part}
+              </strong>
+            ) : (
+              <span key={partIdx}>{part}</span>
+            )
+          )}
+        </p>
+      ))
+      elements.push(...textElements)
+    }
+
+    // Code block (if exists)
+    if (i + 2 < parts.length) {
+      const language = parts[i + 1]
+      const code = parts[i + 2].trim()
+      elements.push(
+        <CodeBlock
+          key={`${key}-code`}
+          language={language}
+          code={code}
+        />
+      )
+      key++
+    }
+  }
+
+  return <>{elements}</>
+}
+
+// Phase 2.1: Helper function to load initial messages from localStorage
+function getInitialMessages() {
+  // Check if we're in browser environment
+  if (typeof window === 'undefined') {
+    return [
+      {
+        id: 'welcome',
+        role: 'assistant',
+        content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
+      },
+    ]
+  }
+
+  try {
+    const stored = localStorage.getItem(MARZ_CHAT_HISTORY_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+    }
+  } catch (error) {
+    console.error('[MARZ] Failed to load chat history:', error)
+  }
+
+  // Default welcome message
+  return [
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
+    },
+  ]
+}
+
 export default function MarzChatWidget() {
   const [isOpen, setIsOpen] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
@@ -57,6 +194,7 @@ export default function MarzChatWidget() {
 
     const cleanText = text
       .replace(/\*\*/g, '')
+      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
       .replace(/\n/g, ' ')
       .trim()
@@ -77,18 +215,24 @@ export default function MarzChatWidget() {
     window.speechSynthesis.speak(utterance)
   }, [speechEnabled])
 
-  // Vercel AI SDK useChat hook
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, data } = useChat({
+  // Vercel AI SDK useChat hook with persisted initial messages
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, data, setMessages } = useChat({
     api: '/api/marz/chat',
-    initialMessages: [
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
-      },
-    ],
+    initialMessages: getInitialMessages(),
     initialInput: '',
   })
+
+  // Phase 2.2: Save messages to localStorage on update
+  React.useEffect(() => {
+    // Only save if we have more than just the welcome message
+    if (messages.length > 1 && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(MARZ_CHAT_HISTORY_KEY, JSON.stringify(messages))
+      } catch (error) {
+        console.error('[MARZ] Failed to save chat history:', error)
+      }
+    }
+  }, [messages])
 
   // Extract suggestions from response data
   React.useEffect(() => {
@@ -176,22 +320,20 @@ export default function MarzChatWidget() {
     }
   }
 
-  // Format message with markdown
-  const formatMessage = (content: string) => {
-    return content.split('\n').map((line, i) => (
-      <p key={i} className="mb-1 last:mb-0">
-        {line.split('**').map((part, j) =>
-          j % 2 === 1 ? (
-            <strong key={j} className="font-semibold text-zinc-100">
-              {part}
-            </strong>
-          ) : (
-            <span key={j}>{part}</span>
-          )
-        )}
-      </p>
-    ))
-  }
+  // Clear chat history helper
+  const handleClearChat = React.useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(MARZ_CHAT_HISTORY_KEY)
+      setMessages([
+        {
+          id: 'welcome',
+          role: 'assistant',
+          content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
+        },
+      ])
+      setSuggestions([])
+    }
+  }, [setMessages])
 
   return (
     <>
@@ -250,6 +392,13 @@ export default function MarzChatWidget() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={handleClearChat}
+                  className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                  title="Clear chat history"
+                >
+                  <Code2 size={16} />
+                </button>
                 <button
                   onClick={() => setSpeechEnabled(!speechEnabled)}
                   className={`rounded-lg p-2 transition-colors ${
