@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Sparkles, Linkedin, Twitter } from 'lucide-react'
+import { Linkedin, Twitter, LayoutDashboard, Globe } from 'lucide-react'
 
 const footerColumns = [
   {
@@ -23,6 +23,24 @@ const footerColumns = [
     ],
   },
   {
+    title: 'Management Hub',
+    links: [
+      { href: '/dashboard', label: 'Website Dashboard' },
+      { href: '/dashboard/infrastructure', label: 'Infrastructure' },
+      { href: '/dashboard/billing', label: 'Billing & Assets' },
+      { href: '/dashboard/api', label: 'API Management' },
+    ],
+  },
+  {
+    title: 'Admin',
+    links: [
+      { href: '/admin/dashboard', label: 'Admin Dashboard' },
+      { href: '/admin/leads', label: 'Leads Management' },
+      { href: '/admin/payouts', label: 'Payout Requests' },
+      { href: '/admin/errors', label: 'Error Logs' },
+    ],
+  },
+  {
     title: 'Company',
     links: [
       { href: '/about', label: 'About' },
@@ -35,7 +53,9 @@ const footerColumns = [
   {
     title: 'Support',
     links: [
-      { href: '/dashboard/billing', label: 'Dashboard' },
+      { href: '/services/customer-management', label: 'Customer Management' },
+      { href: '/services/domain-management', label: 'Domain Management' },
+      { href: '/services/ssl-management', label: 'SSL Management' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
     ],
@@ -59,10 +79,28 @@ export default function Footer() {
                 <p className="mt-3 text-xs text-zinc-500">
                   Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
                 </p>
+                
+                {/* Admin Quick Access */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link
+                    href="/admin/dashboard"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800/50 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-zinc-800"
+                  >
+                    <LayoutDashboard size={12} />
+                    Admin
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800/50 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-zinc-800"
+                  >
+                    <Globe size={12} />
+                    Website Hub
+                  </Link>
+                </div>
               </div>
 
               {/* Footer Columns */}
-              <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-3">
                 {footerColumns.map((col) => (
                   <div key={col.title}>
                     <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{col.title}</div>

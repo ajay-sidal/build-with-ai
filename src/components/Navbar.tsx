@@ -4,18 +4,16 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { Menu, X, Sparkles, ChevronDown, Globe, Shield, Server, Mail, Box, Key, LogOut } from 'lucide-react'
+import { Menu, X, Sparkles, ChevronDown, Globe, Shield, Server, Mail, Box, Key, LogOut, Layers, Palette, Zap } from 'lucide-react'
 
-// Main navigation items (always visible)
+// Main navigation items (centered) - Products and Services are now dropdown-only
 const mainNavItems = [
   { href: '/', label: 'Home' },
-  { href: '/products', label: 'Products' },
-  { href: '/services', label: 'Services' },
   { href: '/developers', label: 'Developers' },
   { href: '/about', label: 'About' },
 ]
 
-// Products dropdown menu
+// Merged Products dropdown - all product categories in one cohesive menu
 const productDropdown = [
   {
     category: 'Domains',
@@ -61,27 +59,41 @@ const productDropdown = [
     ],
   },
   {
-    category: 'Templates',
+    category: 'Templates & Licenses',
     icon: <Box size={16} />,
-    items: [{ href: '/products/templates', label: 'Templates Storefront' }],
-  },
-  {
-    category: 'Licenses',
-    icon: <Key size={16} />,
     items: [
+      { href: '/products/templates', label: 'Templates Storefront' },
       { href: '/products/licenses/plesk', label: 'Plesk Licenses' },
       { href: '/products/licenses/virtuozzo', label: 'Virtuozzo Licenses' },
     ],
   },
 ]
 
-// Services dropdown menu
+// Merged Services dropdown - all service categories in one cohesive menu
 const serviceItems = [
-  { href: '/services', label: 'Services Overview' },
-  { href: '/services/customer-management', label: 'Customer Management' },
-  { href: '/services/ai-design', label: 'AI Design' },
-  { href: '/services/domain-management', label: 'Domain Management' },
-  { href: '/services/ssl-management', label: 'SSL Management' },
+  {
+    category: 'Overview',
+    icon: <Layers size={16} />,
+    items: [
+      { href: '/services', label: 'Services Overview' },
+    ],
+  },
+  {
+    category: 'Management Services',
+    icon: <Zap size={16} />,
+    items: [
+      { href: '/services/customer-management', label: 'Customer Management' },
+      { href: '/services/domain-management', label: 'Domain Management' },
+      { href: '/services/ssl-management', label: 'SSL Management' },
+    ],
+  },
+  {
+    category: 'Design Services',
+    icon: <Palette size={16} />,
+    items: [
+      { href: '/services/ai-design', label: 'AI Design' },
+    ],
+  },
 ]
 
 export default function Navbar() {
@@ -100,7 +112,7 @@ export default function Navbar() {
       transition={{ duration: 0.35 }}
       className="sticky top-0 z-50"
     >
-      <div className="mx-auto w-full max-w-7xl px-6 pt-6">
+      <div className="mx-auto w-full max-w-[1600px] px-6 pt-6">
         <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/35">
           <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
             {/* Logo */}
@@ -109,132 +121,151 @@ export default function Navbar() {
               <span className="whitespace-nowrap">BUILD WITH AI</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden items-center gap-0.5 lg:flex">
-              {mainNavItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors whitespace-nowrap"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            {/* Desktop Navigation - Centered with even spacing */}
+            <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+              {/* Center group: Home, Products, Services, Developers, About */}
+              <div className="flex items-center gap-1">
+                {mainNavItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors whitespace-nowrap"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
 
-              {/* Products Dropdown */}
-              <div className="relative">
-                <button
-                  onMouseEnter={() => setProductsOpen(true)}
-                  onMouseLeave={() => setProductsOpen(false)}
-                  className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
-                >
-                  Products
-                  <ChevronDown size={14} className={`transition-transform ${productsOpen ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {productsOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      onMouseEnter={() => setProductsOpen(true)}
-                      onMouseLeave={() => setProductsOpen(false)}
-                      className="absolute left-0 top-full z-50 mt-2 w-[700px] rounded-xl border border-zinc-800 bg-zinc-950 p-5 shadow-2xl"
-                    >
-                      <div className="grid grid-cols-3 gap-5">
-                        {productDropdown.map((group) => (
-                          <div key={group.category}>
-                            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                              {group.icon}
-                              {group.category}
+                {/* Products Dropdown */}
+                <div className="relative">
+                  <button
+                    onMouseEnter={() => setProductsOpen(true)}
+                    onMouseLeave={() => setProductsOpen(false)}
+                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
+                  >
+                    Products
+                    <ChevronDown size={14} className={`transition-transform ${productsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <AnimatePresence>
+                    {productsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        onMouseEnter={() => setProductsOpen(true)}
+                        onMouseLeave={() => setProductsOpen(false)}
+                        className="absolute left-1/2 top-full z-50 mt-2 w-[700px] -translate-x-1/2 rounded-xl border border-zinc-800 bg-zinc-950 p-5 shadow-2xl"
+                        style={{ maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}
+                      >
+                        <div className="grid grid-cols-3 gap-5">
+                          {productDropdown.map((group) => (
+                            <div key={group.category}>
+                              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                                {group.icon}
+                                {group.category}
+                              </div>
+                              <div className="space-y-1.5">
+                                {group.items.map((item) => (
+                                  <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className="block rounded-md px-2 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-zinc-50 transition-colors"
+                                  >
+                                    {item.label}
+                                  </Link>
+                                ))}
+                              </div>
                             </div>
-                            <div className="space-y-2">
-                              {group.items.map((item) => (
-                                <Link
-                                  key={item.href}
-                                  href={item.href}
-                                  className="block rounded-md px-2 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-zinc-50 transition-colors"
-                                >
-                                  {item.label}
-                                </Link>
-                              ))}
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Services Dropdown */}
+                <div className="relative">
+                  <button
+                    onMouseEnter={() => setServicesOpen(true)}
+                    onMouseLeave={() => setServicesOpen(false)}
+                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
+                  >
+                    Services
+                    <ChevronDown size={14} className={`transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <AnimatePresence>
+                    {servicesOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        onMouseEnter={() => setServicesOpen(true)}
+                        onMouseLeave={() => setServicesOpen(false)}
+                        className="absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-2xl"
+                        style={{ maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}
+                      >
+                        <div className="space-y-4">
+                          {serviceItems.map((group) => (
+                            <div key={group.category}>
+                              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                                {group.icon}
+                                {group.category}
+                              </div>
+                              <div className="space-y-1">
+                                {group.items.map((item) => (
+                                  <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className="block rounded-md px-2 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-zinc-50 transition-colors"
+                                  >
+                                    {item.label}
+                                  </Link>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
+            </nav>
 
-              {/* Services Dropdown */}
-              <div className="relative">
-                <button
-                  onMouseEnter={() => setServicesOpen(true)}
-                  onMouseLeave={() => setServicesOpen(false)}
-                  className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
-                >
-                  Services
-                  <ChevronDown size={14} className={`transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {servicesOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      onMouseEnter={() => setServicesOpen(true)}
-                      onMouseLeave={() => setServicesOpen(false)}
-                      className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl"
-                    >
-                      {serviceItems.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className="block rounded-md px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-zinc-50 transition-colors"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Authentication Buttons */}
+            {/* Authentication Buttons - Right side */}
+            <div className="hidden items-center gap-2 lg:flex">
               {!isLoading && isAuthenticated ? (
                 <>
                   <Link
                     href="/dashboard"
-                    className="ml-2 inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
                   >
                     Dashboard
                   </Link>
                   <button
                     onClick={() => signOut({ callbackUrl: '/' })}
-                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-zinc-300 hover:text-red-400 transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm text-zinc-300 hover:text-red-400 hover:bg-zinc-900/60 transition-colors"
                     title="Logout"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={18} />
                   </button>
                 </>
               ) : (
                 <>
                   <Link
                     href="/login"
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-300 hover:text-zinc-50 hover:bg-zinc-900/60 transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="ml-2 inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
                   >
                     Sign Up
                   </Link>
                 </>
               )}
-            </nav>
+            </div>
 
             {/* Mobile Menu Button */}
             <button
@@ -272,40 +303,58 @@ export default function Navbar() {
                     ))}
 
                     {/* Products Section */}
-                    <div className="border-t border-zinc-800 pt-2">
-                      <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">Products</div>
+                    <div className="border-t border-zinc-800 pt-2 mt-2">
+                      <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                        <Globe size={14} />
+                        Products
+                      </div>
                       {productDropdown.map((group) => (
                         <div key={group.category} className="mb-3">
                           <div className="flex items-center gap-2 px-3 py-1 text-xs font-medium text-zinc-500">
                             {group.icon}
                             {group.category}
                           </div>
-                          {group.items.map((item) => (
-                            <Link
-                              key={item.href}
-                              href={item.href}
-                              className="block rounded-lg px-6 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
-                              onClick={() => setOpen(false)}
-                            >
-                              {item.label}
-                            </Link>
-                          ))}
+                          <div className="ml-5 space-y-1">
+                            {group.items.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block rounded-lg px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
+                                onClick={() => setOpen(false)}
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>
 
                     {/* Services Section */}
                     <div className="border-t border-zinc-800 pt-2">
-                      <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">Services</div>
-                      {serviceItems.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className="block rounded-lg px-6 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
-                          onClick={() => setOpen(false)}
-                        >
-                          {item.label}
-                        </Link>
+                      <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                        <Layers size={14} />
+                        Services
+                      </div>
+                      {serviceItems.map((group) => (
+                        <div key={group.category} className="mb-3">
+                          <div className="flex items-center gap-2 px-3 py-1 text-xs font-medium text-zinc-500">
+                            {group.icon}
+                            {group.category}
+                          </div>
+                          <div className="ml-5 space-y-1">
+                            {group.items.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block rounded-lg px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-zinc-50 transition-colors"
+                                onClick={() => setOpen(false)}
+                              >
+                                {item.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
 
