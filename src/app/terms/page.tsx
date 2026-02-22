@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service',
-  description: 'Terms of Service for BuildWithAI.digital - Read our terms and conditions for using our services.',
+  title: 'Terms of Service | BUILD WITH AI',
+  description: 'Terms of Service for BUILD WITH AI - Read our terms and conditions for using our services.',
 }
 
 export default function TermsOfServicePage() {

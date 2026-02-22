@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
-  description: 'Privacy Policy for BuildWithAI.digital - Learn how we collect, use, and protect your personal information.',
+  title: 'Privacy Policy | BUILD WITH AI',
+  description: 'Privacy Policy for BUILD WITH AI - Learn how we collect, use, and protect your personal information.',
 }
 
 export default function PrivacyPolicyPage() {
