@@ -31,7 +31,7 @@ interface KnowledgeItem {
   searchText: string
 }
 
-// Initialize Upstash Vector client
+// Initialize Upstash Vector client (singleton)
 let vectorIndex: Index | null = null
 
 function getVectorIndex(): Index | null {
@@ -47,7 +47,7 @@ function getVectorIndex(): Index | null {
   return vectorIndex
 }
 
-// Embedding model singleton
+// Embedding model singleton (lazy loading)
 let embeddingModel: any = null
 
 async function getEmbeddingModel() {
@@ -77,14 +77,11 @@ async function generateEmbedding(text: string): Promise<number[]> {
   }
 }
 
-// Semantic search with fallback to keyword matching
-async function searchKnowledge(query: string, topK: number = 3): Promise<KnowledgeItem[]> {
+// Semantic search with vector similarity
+async function semanticSearch(query: string, topK: number = 3): Promise<KnowledgeItem[]> {
   try {
     const index = getVectorIndex()
-    if (!index) {
-      console.warn('[MARZ] Vector DB not configured, using fallback')
-      return []
-    }
+    if (!index) return []
 
     const queryVector = await generateEmbedding(query)
     if (queryVector.length === 0) return []
@@ -131,53 +128,110 @@ function extractContextFromHistory(history: Message[]): string {
   return ''
 }
 
-// Generate system prompt with RAG context
-function buildSystemPrompt(matches: KnowledgeItem[], history: Message[], query: string): string {
-  const context = matches.length > 0 
-    ? matches.map(m => `
-**${m.name}** (${m.type}${m.category ? ` - ${m.category}` : ''})
-Description: ${m.description}
-${m.price ? `Price: ${m.price}` : ''}
-Features: ${m.features.slice(0, 5).join(', ')}
-Benefits: ${m.benefits.slice(0, 3).join(', ')}
-`).join('\n---\n')
-    : 'No specific product information available.'
+// Generate response with conversation context
+function generateResponse(query: string, history: Message[], matches: KnowledgeItem[]): { response: string; suggestions: string[] } {
+  // Check if this is a follow-up query
+  if (isFollowUpQuery(query) && history.length > 0) {
+    const context = extractContextFromHistory(history)
+    
+    if (context && matches.length > 0) {
+      const item = matches[0]
+      const queryLower = query.toLowerCase()
+      
+      // Handle specific follow-up questions
+      if (queryLower.includes('feature') || queryLower.includes('include') || queryLower.includes('offer')) {
+        return {
+          response: `📋 **${item.name}** includes:\n• ${item.features.slice(0, 5).join('\n• ')}\n\n${item.benefits.length > 0 ? `✨ Key benefits: ${item.benefits.slice(0, 2).join(', ')}.` : ''}`,
+          suggestions: [
+            `How much does ${item.name} cost?`,
+            `What are the benefits of ${item.name}?`,
+            `How do I get started with ${item.name}?`,
+          ],
+        }
+      }
+      
+      if (queryLower.includes('price') || queryLower.includes('cost') || queryLower.includes('how much')) {
+        if (item.price) {
+          return {
+            response: `💰 **${item.name}** starts from **${item.price}**. ${item.description.split('.')[0]}. Would you like to know about its features?`,
+            suggestions: [
+              `What features are included?`,
+              `How does it compare to alternatives?`,
+              `Can I upgrade later?`,
+            ],
+          }
+        }
+        return {
+          response: `Pricing for **${item.name}** is available on the product page. ${item.description}`,
+          suggestions: [
+            `Tell me about features`,
+            `What are the benefits?`,
+            `How do I purchase?`,
+          ],
+        }
+      }
+      
+      if (queryLower.includes('benefit') || queryLower.includes('why')) {
+        return {
+          response: `✨ **${item.name}** benefits:\n• ${item.benefits.slice(0, 4).join('\n• ')}\n\n${item.description}`,
+          suggestions: [
+            `What features does it have?`,
+            `How much does it cost?`,
+            `How do I get started?`,
+          ],
+        }
+      }
+      
+      if (queryLower.includes('tell me more') || queryLower.includes('what about') || queryLower.includes('what else')) {
+        return {
+          response: `🤖 **${item.name}**\n\n${item.description}\n\n${item.price ? `💵 Starting from: ${item.price}\n\n` : ''}✨ Key features:\n• ${item.features.slice(0, 3).join('\n• ')}`,
+          suggestions: [
+            `What are the key features?`,
+            `How much does it cost?`,
+            `Show me related products`,
+          ],
+        }
+      }
+    }
+  }
 
-  const contextLabel = isFollowUpQuery(query) 
-    ? `Previous context: ${extractContextFromHistory(history)}`
-    : ''
+  // Not a follow-up, use semantic search results
+  if (matches.length === 0) {
+    return {
+      response: "I'm here to help you with questions about our products and services! I can assist with:\n\n• **Domain Registration** - Find and register your perfect domain\n• **SSL Certificates** - Secure your website with DV, OV, EV, or Wildcard SSL\n• **DNS Services** - Free DNS hosting with global anycast network\n• **Email Security** - Spam Experts and EasyDMARC solutions\n• **Licenses** - Plesk and Virtuozzo control panel licenses\n\nWhat would you like to know?",
+      suggestions: [
+        "What domains do you offer?",
+        "Tell me about SSL certificates",
+        "How much does DNS hosting cost?",
+      ],
+    }
+  }
 
-  return `You are MARZ, a friendly and knowledgeable AI assistant for BuildWithAI.digital, a modern AI-native domain registrar and digital infrastructure platform.
+  // General product info response
+  const [topMatch, ...relatedMatches] = matches
+  const queryLower = query.toLowerCase()
 
-Your role is to help users understand our products and services. Base your responses on the following context:
+  let response = `🤖 **${topMatch.name}**\n\n${topMatch.description}`
+  
+  if (topMatch.price) {
+    response += `\n\n💵 Starting from: ${topMatch.price}`
+  }
 
-## Product/Service Context:
-${context}
-${contextLabel}
+  if (queryLower.includes('feature') || queryLower.includes('include')) {
+    response += `\n\n📋 Key features:\n• ${topMatch.features.slice(0, 5).join('\n• ')}`
+  }
 
-## Response Guidelines:
-1. Be conversational, friendly, and helpful
-2. Keep responses concise (2-4 sentences max)
-3. Use emojis sparingly (🤖 💰 ✨ 📋)
-4. Highlight key info with **bold** text
-5. If you don't know something, admit it and suggest contacting support
-6. Always stay on topic - only discuss domains, SSL, DNS, email security, licenses, and related services
-7. If the query is unrelated to our products, politely redirect
+  if (topMatch.benefits.length > 0) {
+    response += `\n\n✨ Benefits:\n• ${topMatch.benefits.slice(0, 3).join('\n• ')}`
+  }
 
-## Follow-up Handling:
-- If the user asks a follow-up question, use the previous context to provide a specific answer
-- For "tell me more", expand on features and benefits
-- For "how much" or "price", provide pricing if available
+  const suggestions = [
+    `What are the features of ${topMatch.name}?`,
+    `How much does ${topMatch.name} cost?`,
+    relatedMatches.length > 0 ? `Tell me about ${relatedMatches[0].name}` : `Show me related products`,
+  ]
 
-## Suggestion Chips:
-At the END of your response, add exactly 3 follow-up question suggestions in this exact format:
-SUGGESTIONS:["Question 1?","Question 2?","Question 3?"]
-
-Choose suggestions that:
-- Are relevant to the current topic
-- Help users discover related products/services
-- Are short and actionable (5-8 words each)
-`
+  return { response, suggestions }
 }
 
 export async function POST(req: Request) {
@@ -190,114 +244,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing query' }, { status: 400 })
     }
 
-    // Check if Groq API key is configured
-    if (!process.env.GROQ_API_KEY) {
-      // Fallback to basic response
-      const matches = await searchKnowledge(query)
-      if (matches.length === 0) {
-        return NextResponse.json({
-          response: "🤖 MARZ is in setup mode. Please configure GROQ_API_KEY in your environment variables to enable LLM-powered responses. For now, I can help with basic questions about Domains, SSL, DNS, and Licenses.",
-          matches: [],
-          setupRequired: true,
-        })
-      }
-    }
-
-    // Search for relevant products/services (RAG retrieval)
-    const matches = await searchKnowledge(query)
-
-    // Build system prompt with context
-    const systemPrompt = buildSystemPrompt(matches, history, query)
-
-    // If Groq is configured, use LLM for response generation
-    if (process.env.GROQ_API_KEY) {
-      try {
-        const { Groq } = await import('groq-sdk')
-        
-        const groq = new Groq({
-          apiKey: process.env.GROQ_API_KEY,
-        })
-
-        const chatCompletion = await groq.chat.completions.create({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...history.map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: query },
-          ],
-          model: 'llama3-8b-8192',
-          temperature: 0.7,
-          max_tokens: 500,
-          top_p: 1,
-          stream: false,
-        })
-
-        const response = chatCompletion.choices[0]?.message?.content || ''
-
-        // Parse suggestions from response
-        let suggestions: string[] = []
-        const suggestionMatch = response.match(/SUGGESTIONS:(\[.*\])/)
-        if (suggestionMatch) {
-          try {
-            suggestions = JSON.parse(suggestionMatch[1])
-          } catch {
-            suggestions = []
-          }
-        }
-
-        // Remove suggestions from response text
-        const cleanResponse = response.replace(/SUGGESTIONS:\[.*\]/, '').trim()
-
-        return NextResponse.json({
-          response: cleanResponse,
-          matches: matches.map(m => ({ id: m.id, name: m.name, type: m.type })),
-          suggestions,
-        })
-      } catch (groqError) {
-        console.error('[MARZ] Groq API error:', groqError)
-        // Fall through to fallback response
-      }
-    }
-
-    // Fallback: Generate response without LLM
-    if (matches.length === 0) {
+    // Check if we have Upstash Vector credentials
+    if (!process.env.UPSTASH_VECTOR_REST_URL || !process.env.UPSTASH_VECTOR_REST_TOKEN) {
+      console.warn('[MARZ] Using fallback keyword search (no Upstash Vector credentials)')
       return NextResponse.json({
-        response: "I'm here to help you with questions about our products and services! I can assist with:\n\n• **Domain Registration** - Find and register your perfect domain\n• **SSL Certificates** - Secure your website with DV, OV, EV, or Wildcard SSL\n• **DNS Services** - Free DNS hosting with global anycast network\n• **Email Security** - Spam Experts and EasyDMARC solutions\n• **Licenses** - Plesk and Virtuozzo control panel licenses\n\nWhat would you like to know?",
-        matches: [],
-        suggestions: [
-          "What domains do you offer?",
-          "Tell me about SSL certificates",
-          "How much does DNS hosting cost?",
-        ],
-      })
+        response: 'MARZ is in setup mode. Vector DB credentials are not configured.',
+        suggestions: ['What products do you offer?', 'Tell me about domains', 'What is SSL?'],
+      }, { status: 500 })
     }
 
-    // Simple template-based response for fallback
-    const [topMatch] = matches
-    const queryLower = query.toLowerCase()
+    // 1. Retrieval: Perform semantic search to get relevant context
+    const contextItems = await semanticSearch(query, 3)
 
-    let response = `🤖 **${topMatch.name}**\n\n${topMatch.description}`
-    
-    if (topMatch.price) {
-      response += `\n\n💵 Starting from: ${topMatch.price}`
-    }
-
-    if (queryLower.includes('feature') || queryLower.includes('include')) {
-      response += `\n\n📋 Key features:\n• ${topMatch.features.slice(0, 5).join('\n• ')}`
-    }
-
-    if (topMatch.benefits.length > 0) {
-      response += `\n\n✨ Benefits:\n• ${topMatch.benefits.slice(0, 3).join('\n• ')}`
-    }
-
-    const suggestions = [
-      `What are the features of ${topMatch.name}?`,
-      `How much does ${topMatch.name} cost?`,
-      `Tell me about related products`,
-    ]
+    // 2. Generation: Create response using conversation context
+    const { response, suggestions } = generateResponse(query, history, contextItems)
 
     return NextResponse.json({
       response,
-      matches: matches.map(m => ({ id: m.id, name: m.name, type: m.type })),
+      matches: contextItems.map(m => ({ id: m.id, name: m.name, type: m.type })),
       suggestions,
     })
 

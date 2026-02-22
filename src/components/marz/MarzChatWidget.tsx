@@ -15,13 +15,6 @@ import {
   Bot,
 } from 'lucide-react'
 
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp?: string
-}
-
 interface SuggestionData {
   suggestions?: string[]
 }
@@ -56,10 +49,9 @@ export default function MarzChatWidget() {
   const [speechEnabled, setSpeechEnabled] = React.useState(false)
   const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
   const [suggestions, setSuggestions] = React.useState<string[]>([])
-  const [lastMessageId, setLastMessageId] = React.useState<string | null>(null)
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
 
-  // Text-to-speech (defined early for use in other hooks)
+  // Text-to-speech
   const speakResponse = React.useCallback((text: string) => {
     if (!speechEnabled || !window.speechSynthesis) return
 
@@ -86,7 +78,7 @@ export default function MarzChatWidget() {
   }, [speechEnabled])
 
   // Vercel AI SDK useChat hook
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages, data } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, data } = useChat({
     api: '/api/marz/chat',
     initialMessages: [
       {
@@ -105,12 +97,8 @@ export default function MarzChatWidget() {
       if (lastData?.suggestions && lastData.suggestions.length > 0) {
         setSuggestions(lastData.suggestions)
         const lastMsg = messages[messages.length - 1]
-        if (lastMsg) {
-          setLastMessageId(lastMsg.id)
-          // Speak response if enabled
-          if (speechEnabled) {
-            setTimeout(() => speakResponse(lastMsg.content), 300)
-          }
+        if (lastMsg && speechEnabled) {
+          setTimeout(() => speakResponse(lastMsg.content), 300)
         }
       }
     }
@@ -173,7 +161,7 @@ export default function MarzChatWidget() {
 
   // Handle suggestion chip click
   const handleSuggestionClick = (suggestion: string) => {
-    setSuggestions([]) // Hide suggestions after click
+    setSuggestions([])
     append({
       role: 'user',
       content: suggestion,
@@ -190,21 +178,19 @@ export default function MarzChatWidget() {
 
   // Format message with markdown
   const formatMessage = (content: string) => {
-    return content
-      .split('\n')
-      .map((line, i) => (
-        <p key={i} className="mb-1 last:mb-0">
-          {line.split('**').map((part, j) =>
-            j % 2 === 1 ? (
-              <strong key={j} className="font-semibold text-zinc-100">
-                {part}
-              </strong>
-            ) : (
-              <span key={j}>{part}</span>
-            )
-          )}
-        </p>
-      ))
+    return content.split('\n').map((line, i) => (
+      <p key={i} className="mb-1 last:mb-0">
+        {line.split('**').map((part, j) =>
+          j % 2 === 1 ? (
+            <strong key={j} className="font-semibold text-zinc-100">
+              {part}
+            </strong>
+          ) : (
+            <span key={j}>{part}</span>
+          )
+        )}
+      </p>
+    ))
   }
 
   return (
@@ -264,7 +250,6 @@ export default function MarzChatWidget() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {/* Voice Output Toggle */}
                 <button
                   onClick={() => setSpeechEnabled(!speechEnabled)}
                   className={`rounded-lg p-2 transition-colors ${
@@ -276,7 +261,6 @@ export default function MarzChatWidget() {
                 >
                   {speechEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                 </button>
-                {/* Close Button */}
                 <button
                   onClick={() => setIsOpen(false)}
                   className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
@@ -325,7 +309,7 @@ export default function MarzChatWidget() {
 
             {/* Suggestion Chips */}
             <AnimatePresence>
-              {suggestions.length > 0 && (
+              {suggestions.length > 0 && !isLoading && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -356,7 +340,6 @@ export default function MarzChatWidget() {
                 onSubmit={handleSubmit}
                 className="flex items-end gap-2"
               >
-                {/* Voice Input Button */}
                 <button
                   type="button"
                   onClick={toggleVoiceInput}
@@ -370,7 +353,6 @@ export default function MarzChatWidget() {
                   {isListening ? <MicOff size={18} /> : <Mic size={18} />}
                 </button>
 
-                {/* Text Input */}
                 <div className="flex-1">
                   <textarea
                     value={input}
@@ -383,7 +365,6 @@ export default function MarzChatWidget() {
                   />
                 </div>
 
-                {/* Send Button */}
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
@@ -393,7 +374,6 @@ export default function MarzChatWidget() {
                 </button>
               </form>
 
-              {/* Voice Status */}
               {isListening && (
                 <motion.p
                   initial={{ opacity: 0, y: -5 }}
