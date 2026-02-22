@@ -16,16 +16,16 @@ function normalizeSearchLabel(raw: string): string {
   const q = (raw || '').trim()
   if (!q) return ''
 
-  // Prefer text inside quotes: called 'Verde'
-  const quoteMatch = q.match(/["'“”‘’]([^"'“”‘’]{1,80})["'“”‘’]/)
+  // Heuristic: if sentence contains "called" or "named", take the following label token.
+  // This avoids false quote detection for contractions like "I'm".
+  const called = q.match(/\b(?:called|named)\b\s+(?:a|an|the)?\s*["“”‘’]?([\p{L}\p{N}][\p{L}\p{N}\-]{1,62})/iu)
+  const calledWord = (called?.[1] || '').trim()
+
+  // Prefer text inside *double* quotes if present (less likely to conflict with contractions).
+  const quoteMatch = q.match(/["“”]([^"“”]{1,80})["“”]/)
   const fromQuotes = (quoteMatch?.[1] || '').trim()
-  const candidate = fromQuotes || q
 
-  // Heuristic: if sentence contains "called" or "named", take following word
-  const called = candidate.match(/\b(?:called|named)\b\s+([\p{L}\p{N}\-]{2,63})/iu)
-  const namedWord = (called?.[1] || '').trim()
-
-  const base = namedWord || candidate
+  const base = calledWord || fromQuotes || q
 
   // Extract last token-ish word
   const tokens = base
