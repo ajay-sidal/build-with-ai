@@ -3,7 +3,24 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production'
+
     // CSP is intentionally permissive to avoid breaking Next.js hydration and Stripe.
+    // In Preview/Dev on Vercel, allow Vercel Live Feedback script.
+    const scriptSrc = [
+      "'self'",
+      "'unsafe-inline'",
+      'https://js.stripe.com',
+      'https://*.stripe.com',
+      ...(isProd ? [] : ['https://vercel.live']),
+    ].join(' ')
+
+    const connectSrc = [
+      "'self'",
+      'https:',
+      ...(isProd ? [] : ['https://vercel.live']),
+    ].join(' ')
+
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
@@ -12,8 +29,9 @@ const nextConfig = {
       "frame-src https://checkout.stripe.com https://*.stripe.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https:",
-      "connect-src 'self' https:",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.stripe.com",
+      `connect-src ${connectSrc}`,
+      `script-src ${scriptSrc}`,
+      `script-src-elem ${scriptSrc}`,
       "style-src 'self' 'unsafe-inline' https:",
       "object-src 'none'",
       'upgrade-insecure-requests',
