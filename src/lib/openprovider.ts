@@ -478,9 +478,12 @@ class OpenProviderClient {
           continue;
         }
 
-        throw new OpenProviderError(extractAxiosMessage(axiosErr) || 'OpenProvider request failed', {
+        throw new OpenProviderError(
+          normalizeOpenProviderApiErrorMessage(extractAxiosMessage(axiosErr) || 'OpenProvider request failed'),
+          {
           cause: axiosErr,
-        });
+          },
+        );
       }
     }
 
@@ -537,9 +540,12 @@ class OpenProviderClient {
           continue;
         }
 
-        throw new OpenProviderError(extractAxiosMessage(axiosErr) || 'OpenProvider request failed', {
+        throw new OpenProviderError(
+          normalizeOpenProviderApiErrorMessage(extractAxiosMessage(axiosErr) || 'OpenProvider request failed'),
+          {
           cause: axiosErr,
-        });
+          },
+        );
       }
     }
 

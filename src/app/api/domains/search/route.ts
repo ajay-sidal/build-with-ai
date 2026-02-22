@@ -12,6 +12,56 @@ type RequestBody = {
   query: string
 }
 
+function normalizeSearchLabel(raw: string): string {
+  const q = (raw || '').trim()
+  if (!q) return ''
+
+  // Prefer text inside quotes: called 'Verde'
+  const quoteMatch = q.match(/["'“”‘’]([^"'“”‘’]{1,80})["'“”‘’]/)
+  const fromQuotes = (quoteMatch?.[1] || '').trim()
+  const candidate = fromQuotes || q
+
+  // Heuristic: if sentence contains "called" or "named", take following word
+  const called = candidate.match(/\b(?:called|named)\b\s+([\p{L}\p{N}\-]{2,63})/iu)
+  const namedWord = (called?.[1] || '').trim()
+
+  const base = namedWord || candidate
+
+  // Extract last token-ish word
+  const tokens = base
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\-\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+
+  const last = tokens[tokens.length - 1] || ''
+  const cleaned = last
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 63)
+
+  return cleaned || q.replace(/\s+/g, '').slice(0, 63)
+}
+
+function pickPublicWarning(warnings: string[], resultsCount: number): string | undefined {
+  const safe = warnings
+    .map((w) => (w || '').trim())
+    .filter(Boolean)
+
+  // If we still have results, avoid showing provider-internal/transient errors.
+  if (resultsCount > 0) {
+    const pricing = safe.find((w) => w.toLowerCase().includes('pricing temporarily unavailable'))
+    return pricing || undefined
+  }
+
+  // No results: show something actionable.
+  const providerDown = safe.find((w) => w.toLowerCase().includes('temporarily unavailable'))
+  return providerDown || safe[0]
+}
+
 function toDomainParts(domain: string): { name: string; extension: string } | null {
   const trimmed = domain.trim().toLowerCase()
   if (!trimmed.includes('.')) return null
@@ -38,6 +88,8 @@ export async function POST(req: Request) {
 
   const tlds = ['com', 'digital', 'ai', 'app', 'tech', 'blog', 'biz', 'horse', 'me']
 
+  const searchName = normalizeSearchLabel(query)
+
   const cookies = parseCookieHeader(req.headers.get('cookie'))
   const userTier = normalizeUserTier(cookies[USER_TIER_COOKIE])
 
@@ -48,19 +100,19 @@ export async function POST(req: Request) {
 
     // Step 1: run suggestion + base checks in parallel
     const [suggestions, baseChecks] = await Promise.all([
-      opClient.suggestNames(query, 10, tlds).catch((err) => {
+      opClient.suggestNames(searchName, 10, tlds).catch((err) => {
         const message = err instanceof Error ? err.message : 'Suggestion lookup failed'
         warnings.push(message)
         return [] as { domain: string }[]
       }),
-      opClient.checkDomains(query, tlds, true).catch(async (err) => {
+      opClient.checkDomains(searchName, tlds, true).catch(async (err) => {
         const message = err instanceof Error ? err.message : 'Availability lookup failed'
         warnings.push(message)
 
         // Fallback: availability without price.
         try {
           warnings.push('Pricing temporarily unavailable; returning availability only')
-          return await opClient.checkDomains(query, tlds, false)
+          return await opClient.checkDomains(searchName, tlds, false)
         } catch {
           return [] as any[]
         }
@@ -121,16 +173,18 @@ export async function POST(req: Request) {
       })
       .sort((a, b) => (a.domain > b.domain ? 1 : -1))
 
-    if (results.length === 0 && warnings.length > 0) {
+    const publicWarning = pickPublicWarning(warnings, results.length)
+
+    if (results.length === 0 && publicWarning) {
       // Provider was reachable but couldn't return usable data.
       return NextResponse.json(
-        { query, results: [], warning: warnings[0], requestId },
+        { query, results: [], warning: publicWarning, requestId },
         { status: 503, headers: { 'x-request-id': requestId } },
       )
     }
 
     return NextResponse.json(
-      { query, results, warning: warnings.length > 0 ? warnings[0] : undefined, requestId },
+      { query, results, warning: publicWarning, requestId },
       { headers: { 'x-request-id': requestId } },
     )
   } catch (err) {
