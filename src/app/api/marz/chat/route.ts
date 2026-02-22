@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { OpenAIStream, StreamingTextResponse } from 'ai'
 import Groq from 'groq-sdk'
 import { Index } from '@upstash/vector'
 import { pipeline } from '@xenova/transformers'
@@ -95,11 +94,15 @@ export async function POST(req: Request) {
     // Check if we have Upstash Vector credentials
     if (!process.env.UPSTASH_VECTOR_REST_URL || !process.env.UPSTASH_VECTOR_REST_TOKEN) {
       // Fallback to basic keyword matching if no vector DB
-      console.warn('[MARZ] Using fallback keyword search (no Upstash Vector credentials)')
-      return NextResponse.json({
-        response: 'MARZ is in setup mode. Vector DB credentials are not configured.',
-        suggestions: ['What products do you offer?', 'Tell me about domains', 'What is SSL?'],
-      }, { status: 500 })
+      console.warn('[MARZ] Vector DB credentials not found. Returning setup message.')
+      const stream = new ReadableStream({
+        start(controller) {
+            const errorMessage = 'MARZ is in setup mode. Vector DB credentials are not configured. SUGGESTIONS:["What products do you offer?","Tell me about domains","What is SSL?"]';
+            controller.enqueue(new TextEncoder().encode(errorMessage));
+            controller.close();
+        }
+      });
+      return new StreamingTextResponse(stream);
     }
 
     // 1. Retrieval: Perform semantic search to get relevant context
