@@ -83,10 +83,13 @@ export default function MarzChatWidget() {
   const [isHistoryLoading, setIsHistoryLoading] = React.useState(true)
   const [suggestions, setSuggestions] = React.useState<string[]>([])
   const [hasWelcomed, setHasWelcomed] = React.useState(false)
+  const [isVoiceChatActive, setIsVoiceChatActive] = React.useState(false)
+  const [isSpeaking, setIsSpeaking] = React.useState(false)
 
   // Refs
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
+  const synthRef = React.useRef<SpeechSynthesis | null>(null)
 
   // Vercel AI SDK useChat hook
   const {
@@ -139,9 +142,21 @@ export default function MarzChatWidget() {
     }
   }, [])
 
-  // Text-to-speech
-  const speakResponse = React.useCallback((text: string) => {
-    if (!speechEnabled || !window.speechSynthesis) return
+  // Initialize speech synthesis ref
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      synthRef.current = window.speechSynthesis
+    }
+  }, [])
+
+  // Text-to-speech with enhanced control
+  const speakResponse = React.useCallback((text: string, onEnd?: () => void) => {
+    if (!speechEnabled || !synthRef.current) return
+
+    // Stop any currently speaking utterance before starting a new one
+    if (synthRef.current.speaking) {
+      synthRef.current.cancel()
+    }
 
     const cleanText = text
       .replace(/\*\*/g, '')
@@ -155,7 +170,7 @@ export default function MarzChatWidget() {
     utterance.pitch = 1.0
     utterance.volume = 1.0
 
-    const voices = window.speechSynthesis.getVoices()
+    const voices = synthRef.current.getVoices()
     const preferredVoice = voices.find(
       (v) => v.name.includes('Female') || v.name.includes('Google US English')
     )
@@ -163,8 +178,43 @@ export default function MarzChatWidget() {
       utterance.voice = preferredVoice
     }
 
-    window.speechSynthesis.speak(utterance)
+    utterance.onstart = () => setIsSpeaking(true)
+    utterance.onend = () => {
+      setIsSpeaking(false)
+      onEnd?.()
+    }
+    utterance.onerror = () => setIsSpeaking(false)
+
+    synthRef.current.speak(utterance)
   }, [speechEnabled])
+
+  // Voice Introduction - MARZ introduces herself
+  const handleVoiceIntroduction = React.useCallback(() => {
+    // Open chat if closed
+    if (!isOpen) {
+      setIsOpen(true)
+    }
+
+    // Set voice chat active
+    setIsVoiceChatActive(true)
+    setSpeechEnabled(true)
+
+    // MARZ introduction text
+    const introductionText = "Hello! I'm MARZ, your personal AI assistant for BUILD WITH AI. I can help you register domains, secure your website with SSL certificates, set up DNS hosting, and much more. What would you like to work on today?"
+
+    // Speak introduction
+    speakResponse(introductionText, () => {
+      // After introduction, enable continuous listening if supported
+      if (recognition) {
+        try {
+          recognition.start()
+          setIsListening(true)
+        } catch (error) {
+          console.log('Recognition already started')
+        }
+      }
+    })
+  }, [isOpen, speakResponse, recognition])
 
   // Save messages to localStorage on update
   React.useEffect(() => {
@@ -275,8 +325,23 @@ export default function MarzChatWidget() {
 
   // Toggle speech output
   const handleSpeechToggle = React.useCallback(() => {
-    setSpeechEnabled((prev) => !prev)
-  }, [])
+    setSpeechEnabled((prev) => {
+      const isEnabling = !prev
+      if (isEnabling) {
+        // When enabling speech, speak the last message if it's from the assistant
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage && lastMessage.role === 'assistant') {
+          speakResponse(lastMessage.content)
+        }
+      } else {
+        // If disabling, stop any ongoing speech
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel()
+        }
+      }
+      return isEnabling
+    })
+  }, [messages, speakResponse])
 
   // Close chat
   const handleClose = React.useCallback(() => {
@@ -290,6 +355,7 @@ export default function MarzChatWidget() {
         isOpen={isOpen} 
         onToggle={handleToggle}
         isProactive={!hasWelcomed}
+        onVoiceIntroduce={handleVoiceIntroduction}
       />
 
       {/* Chat Window */}
@@ -308,6 +374,7 @@ export default function MarzChatWidget() {
               onSpeechToggle={handleSpeechToggle}
               onClose={handleClose}
               onClearChat={handleClearChat}
+              onVoiceIntroduce={handleVoiceIntroduction}
             />
 
             {/* Messages */}

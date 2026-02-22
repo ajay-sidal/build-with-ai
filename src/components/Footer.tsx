@@ -72,9 +72,7 @@ export default function Footer() {
               {/* Logo */}
               <div className="md:w-48">
                 <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-zinc-50">
-                  <span className="rounded-lg border border-zinc-800 bg-zinc-950 p-2">
-                    <Sparkles size={16} />
-                  </span>
+                  <img src="/icon.png" alt="BUILD WITH AI" className="h-6 w-6 rounded-lg" />
                   BUILD WITH AI
                 </Link>
                 <p className="mt-3 text-xs text-zinc-500">

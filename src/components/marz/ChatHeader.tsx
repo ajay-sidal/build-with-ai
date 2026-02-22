@@ -1,13 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { X, Volume2, VolumeX, Code2 } from 'lucide-react'
+import { X, Volume2, VolumeX, Trash2, Sparkles, Mic } from 'lucide-react'
 
 interface ChatHeaderProps {
   speechEnabled: boolean
   onSpeechToggle: () => void
   onClose: () => void
   onClearChat: () => void
+  onVoiceIntroduce?: () => void
 }
 
 export default function ChatHeader({
@@ -15,27 +16,35 @@ export default function ChatHeader({
   onSpeechToggle,
   onClose,
   onClearChat,
+  onVoiceIntroduce,
 }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between border-b border-zinc-800 bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-4 py-3">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600">
-          <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-          </svg>
+          <Sparkles size={20} className="text-white" />
         </div>
         <div>
           <h3 className="text-sm font-semibold text-zinc-100">MARZ</h3>
-          <p className="text-xs text-zinc-400">AI Assistant</p>
+          <p className="text-xs text-zinc-400">AI Assistant {speechEnabled && '• Voice Active'}</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
+        {onVoiceIntroduce && (
+          <button
+            onClick={onVoiceIntroduce}
+            className="rounded-lg p-2 text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors"
+            title="Activate voice chat - MARZ will speak and listen"
+          >
+            <Mic size={16} />
+          </button>
+        )}
         <button
           onClick={onClearChat}
           className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
           title="Clear chat history"
         >
-          <Code2 size={16} />
+          <Trash2 size={16} />
         </button>
         <button
           onClick={onSpeechToggle}
