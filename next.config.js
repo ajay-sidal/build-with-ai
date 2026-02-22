@@ -21,12 +21,18 @@ const nextConfig = {
       ...(allowVercelLive ? ['https://vercel.live'] : []),
     ].join(' ')
 
+    const frameSrc = [
+      'https://checkout.stripe.com',
+      'https://*.stripe.com',
+      ...(allowVercelLive ? ['https://vercel.live'] : []),
+    ].join(' ')
+
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
       "form-action 'self' https://checkout.stripe.com https://*.stripe.com",
       "frame-ancestors 'none'",
-      "frame-src https://checkout.stripe.com https://*.stripe.com",
+      `frame-src ${frameSrc}`,
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https:",
       `connect-src ${connectSrc}`,
