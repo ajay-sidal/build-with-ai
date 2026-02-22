@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader } from '../../components/ui/card'
 import { Input } from '../../components/ui/input'
-import { Loader2, Shield, Globe } from 'lucide-react'
+import { Loader2, Shield } from 'lucide-react'
 
 type ProviderMap = Record<string, { id: string; name: string }>
 
@@ -20,6 +20,7 @@ export default function LoginClient() {
   const [error, setError] = React.useState<string | null>(null)
   const [adminSecret, setAdminSecret] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
+  const [loaded, setLoaded] = React.useState(false)
 
   React.useEffect(() => {
     let cancelled = false
@@ -30,9 +31,16 @@ export default function LoginClient() {
         const json = (await res.json().catch(() => null)) as ProviderMap | null
         if (!res.ok || !json) throw new Error('Failed to load providers')
         const list = Object.values(json).map((p) => ({ id: p.id, name: p.name }))
-        if (!cancelled) setProviders(list)
+        if (!cancelled) {
+          setProviders(list)
+          setLoaded(true)
+        }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load providers')
+        if (!cancelled) {
+          // Don't show error for provider loading - just continue without OAuth
+          setProviders([])
+          setLoaded(true)
+        }
       }
     }
 
@@ -48,7 +56,7 @@ export default function LoginClient() {
     setError(null)
 
     try {
-      const result = await signIn('admin-secret', {
+      const result = await signIn('credentials', {
         adminSecret,
         redirect: false,
       })
@@ -65,7 +73,7 @@ export default function LoginClient() {
     }
   }
 
-  const oauthProviders = providers.filter((p) => p.id !== 'admin-secret')
+  const oauthProviders = providers.filter((p) => p.id !== 'credentials' && p.id !== 'admin-secret')
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-6 py-16">
@@ -75,47 +83,46 @@ export default function LoginClient() {
             {isAdmin ? 'Admin Access' : 'Sign in'}
           </h1>
           <p className="mt-1 text-sm text-zinc-400">
-            {isAdmin 
-              ? 'Enter your admin secret to access the dashboard.' 
+            {isAdmin
+              ? 'Enter your admin secret to access the dashboard.'
               : 'Sign in to BuildWithAI.digital'}
           </p>
           {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
         </CardHeader>
         <CardContent className="grid gap-4">
-          {/* Admin Secret Login */}
-          {(isAdmin || providers.some((p) => p.id === 'admin-secret')) && (
-            <form onSubmit={handleAdminLogin} className="grid gap-3">
-              <div className="space-y-2">
-                <label htmlFor="admin-secret" className="text-sm font-medium text-zinc-200">
-                  Admin Secret
-                </label>
-                <Input
-                  id="admin-secret"
-                  type="password"
-                  placeholder="Enter admin secret"
-                  value={adminSecret}
-                  onChange={(e) => setAdminSecret(e.target.value)}
-                  className="h-12"
-                />
-              </div>
-              <Button type="submit" disabled={isLoading || !adminSecret} className="h-12">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    <Shield className="mr-2 h-4 w-4" />
-                    {isAdmin ? 'Access Dashboard' : 'Sign in as Admin'}
-                  </>
-                )}
-              </Button>
-            </form>
-          )}
+          {/* Admin Secret Login - Always show for admin access */}
+          <form onSubmit={handleAdminLogin} className="grid gap-3">
+            <div className="space-y-2">
+              <label htmlFor="admin-secret" className="text-sm font-medium text-zinc-200">
+                Admin Secret
+              </label>
+              <Input
+                id="admin-secret"
+                type="password"
+                placeholder="Enter admin secret"
+                value={adminSecret}
+                onChange={(e) => setAdminSecret(e.target.value)}
+                className="h-12"
+                autoComplete="off"
+              />
+            </div>
+            <Button type="submit" disabled={isLoading || !adminSecret} className="h-12">
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  <Shield className="mr-2 h-4 w-4" />
+                  {isAdmin ? 'Access Dashboard' : 'Sign in as Admin'}
+                </>
+              )}
+            </Button>
+          </form>
 
-          {/* Divider */}
-          {oauthProviders.length > 0 && (
+          {/* OAuth Providers (if configured) */}
+          {!isAdmin && oauthProviders.length > 0 && (
             <>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -126,26 +133,18 @@ export default function LoginClient() {
                 </div>
               </div>
 
-              {/* OAuth Providers */}
               {oauthProviders.map((p) => (
-                <Button 
-                  key={p.id} 
-                  type="button" 
-                  className="h-12" 
+                <Button
+                  key={p.id}
+                  type="button"
+                  className="h-12"
                   variant="secondary"
                   onClick={() => signIn(p.id, { callbackUrl: next })}
                 >
-                  {p.id === 'google' && <Globe className="mr-2 h-4 w-4" />}
                   Continue with {p.name}
                 </Button>
               ))}
             </>
-          )}
-
-          {oauthProviders.length === 0 && !isAdmin && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-sm text-zinc-400">
-              OAuth providers not configured. Use admin secret or contact support.
-            </div>
           )}
 
           {/* Sign up link */}

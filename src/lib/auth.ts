@@ -17,9 +17,8 @@ export const authOptions: NextAuthOptions = {
     strategy: 'database',
   },
   providers: [
-    // Admin secret login (internal only)
+    // Admin secret login (internal only) - using 'credentials' as the provider type
     CredentialsProvider({
-      id: 'admin-secret',
       name: 'Admin Secret',
       credentials: {
         adminSecret: { label: 'Admin Secret', type: 'password' },
@@ -33,7 +32,6 @@ export const authOptions: NextAuthOptions = {
             id: 'admin',
             email: 'admin@buildwithai.digital',
             name: 'Admin User',
-            role: 'admin',
           }
         }
         throw new Error('Invalid admin secret')
@@ -67,8 +65,8 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async signIn({ user, account }) {
-      // Allow admin secret sign in
-      if (account?.provider === 'admin-secret') {
+      // Allow credentials (admin secret) sign in
+      if (account?.provider === 'credentials') {
         return true
       }
       // Allow OAuth sign ins

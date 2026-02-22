@@ -1,16 +1,17 @@
-import { NextRequest } from 'next/server'
-import { cookies } from 'next/headers'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../../../lib/auth'
 import { redirect } from 'next/navigation'
 
 export const runtime = 'nodejs'
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET || ''
-
 export default async function AdminDashboardPage() {
-  // Gate access by ADMIN_SECRET cookie or header
-  const cookieStore = await cookies()
-  const adminCookie = cookieStore.get('admin_secret')?.value || ''
-  if (!adminCookie || adminCookie !== ADMIN_SECRET) {
+  // Get session using NextAuth
+  const session = await getServerSession(authOptions)
+  
+  // Check if user is authenticated as admin
+  const isAdmin = session?.user?.email === 'admin@buildwithai.digital'
+  
+  if (!session || !isAdmin) {
     redirect('/login?admin=1')
   }
 
