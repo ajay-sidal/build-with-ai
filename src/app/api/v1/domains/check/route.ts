@@ -33,7 +33,10 @@ export async function GET(req: Request) {
     : ['com', 'digital', 'ai', 'app', 'tech', 'blog', 'biz', 'horse', 'me']
 
   try {
-    const results = await opClient.checkDomains(query, tlds, true)
+    const results = await opClient.checkDomains(query, tlds, true).catch(async () => {
+      // Fallback: availability without price.
+      return await opClient.checkDomains(query, tlds, false)
+    })
 
     const priced = (results || []).map((r) => {
       if (!r?.price) return r

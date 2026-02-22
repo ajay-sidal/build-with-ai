@@ -53,10 +53,17 @@ export async function POST(req: Request) {
         warnings.push(message)
         return [] as { domain: string }[]
       }),
-      opClient.checkDomains(query, tlds, true).catch((err) => {
+      opClient.checkDomains(query, tlds, true).catch(async (err) => {
         const message = err instanceof Error ? err.message : 'Availability lookup failed'
         warnings.push(message)
-        return [] as any[]
+
+        // Fallback: availability without price.
+        try {
+          warnings.push('Pricing temporarily unavailable; returning availability only')
+          return await opClient.checkDomains(query, tlds, false)
+        } catch {
+          return [] as any[]
+        }
       }),
     ])
 
@@ -72,10 +79,17 @@ export async function POST(req: Request) {
 
     const suggestedChecks =
       suggestedDomainParts.length > 0
-        ? await opClient.checkDomains(suggestedDomainParts, true).catch((err) => {
+        ? await opClient.checkDomains(suggestedDomainParts, true).catch(async (err) => {
             const message = err instanceof Error ? err.message : 'Suggested availability lookup failed'
             warnings.push(message)
-            return [] as any[]
+
+            // Fallback: suggested availability without price.
+            try {
+              warnings.push('Pricing temporarily unavailable for suggestions; returning availability only')
+              return await opClient.checkDomains(suggestedDomainParts, false)
+            } catch {
+              return [] as any[]
+            }
           })
         : []
 

@@ -60,6 +60,24 @@ export class OpenProviderError extends Error {
   }
 }
 
+function normalizeOpenProviderApiErrorMessage(message: string): string {
+  const m = (message || '').trim();
+  if (!m) return 'OpenProvider request failed';
+  if (/an unknown error has occurred/i.test(m)) {
+    return 'Domain provider temporarily unavailable. Please retry.';
+  }
+  return m;
+}
+
+function isRetryableOpenProviderApiError(err: OpenProviderError): boolean {
+  const msg = (err.message || '').toLowerCase();
+  if (msg.includes('temporarily unavailable')) return true;
+  if (msg.includes('an unknown error has occurred')) return true;
+  // Treat generic server-side failures as retryable.
+  if (msg.includes('request failed')) return true;
+  return false;
+}
+
 // --- Auth ---
 export interface AuthLoginRequest {
   username: string;
@@ -421,13 +439,23 @@ class OpenProviderClient {
         const response = await this.client.post<OpenProviderApiResponse<TResponseData>>(path, body);
         if (response.data.code !== 0) {
           throw new OpenProviderError(
-            response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
+            normalizeOpenProviderApiErrorMessage(
+              response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
+            ),
             { code: response.data.code },
           );
         }
         return response.data.data;
       } catch (err) {
-        if (err instanceof OpenProviderError) throw err;
+        if (err instanceof OpenProviderError) {
+          const retryable = isRetryableOpenProviderApiError(err);
+          if (retryable && attempt < maxAttempts) {
+            const backoff = 250 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 200);
+            await sleep(backoff);
+            continue;
+          }
+          throw err;
+        }
         const axiosErr = err as AxiosError;
 
         // Token can expire; clear and re-login once on 401/403 (but never for auth/login itself).
@@ -471,13 +499,23 @@ class OpenProviderClient {
         });
         if (response.data.code !== 0) {
           throw new OpenProviderError(
-            response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
+            normalizeOpenProviderApiErrorMessage(
+              response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
+            ),
             { code: response.data.code },
           );
         }
         return response.data.data;
       } catch (err) {
-        if (err instanceof OpenProviderError) throw err;
+        if (err instanceof OpenProviderError) {
+          const retryable = isRetryableOpenProviderApiError(err);
+          if (retryable && attempt < maxAttempts) {
+            const backoff = 250 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 200);
+            await sleep(backoff);
+            continue;
+          }
+          throw err;
+        }
         const axiosErr = err as AxiosError;
 
         const status = axiosErr.response?.status;
