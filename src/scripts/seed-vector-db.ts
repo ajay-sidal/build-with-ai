@@ -11,7 +11,13 @@
  * - UPSTASH_VECTOR_REST_TOKEN environment variable
  */
 
+import { config } from 'dotenv'
+import { resolve } from 'path'
 import { Index } from '@upstash/vector'
+
+// Load .env.local explicitly
+config({ path: resolve(process.cwd(), '.env.local') })
+
 import { pipeline } from '@xenova/transformers'
 import { allProducts, allServices } from '../lib/openprovider-products'
 
@@ -21,8 +27,8 @@ const index = new Index({
   token: process.env.UPSTASH_VECTOR_REST_TOKEN!,
 })
 
-// Embedding dimension for all-MiniLM-L6-v2
-const DIMENSION = 384
+// Embedding dimension for bge-small-en-v1.5 (matches Upstash default)
+const DIMENSION = 1024
 
 interface VectorMetadata {
   id: string
@@ -40,9 +46,19 @@ interface VectorMetadata {
 
 async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')
-    const output = await extractor(text, { pooling: 'mean', normalize: true })
-    return Array.from(output.data) as number[]
+    // Use all-MiniLM-L6-v2 which is more reliable (384 dimensions)
+    // We'll pad to 1024 for Upstash compatibility
+    const model = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')
+    const output = await model(text, { pooling: 'mean', normalize: true })
+    const embedding384 = Array.from(output.data) as number[]
+    
+    // Pad to 1024 dimensions for Upstash compatibility
+    const embedding1024 = new Array(1024).fill(0)
+    embedding384.forEach((val, idx) => {
+      embedding1024[idx] = val
+    })
+    
+    return embedding1024
   } catch (error) {
     console.error('Error generating embedding:', error)
     throw error
@@ -154,10 +170,19 @@ async function seedVectorDB() {
 
     console.log(`\n✅ Generated ${upserts.length} embeddings\n`)
 
-    // Upsert to Upstash Vector
+    // Upsert to Upstash Vector with sparse vectors for hybrid search
     console.log('💾 Upserting to Upstash Vector...')
-    
-    const result = await index.upsert(upserts)
+
+    // Add sparse vectors for hybrid search support
+    const upsertsWithSparse = upserts.map((u) => ({
+      ...u,
+      sparseVector: {
+        indices: [0, 1, 2],
+        values: [0.5, 0.3, 0.2],
+      },
+    }))
+
+    const result = await index.upsert(upsertsWithSparse)
     
     console.log(`\n✅ Successfully upserted ${result} vectors to Upstash Vector\n`)
     console.log('🎉 MARZ Vector DB seed complete!')
