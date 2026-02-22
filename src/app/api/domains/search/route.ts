@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { opClient } from '../../../../lib/openprovider'
 import { calculateCustomerPrice } from '../../../../utils/pricing'
-import { parseCookieHeader } from '../../../../utils/affiliate'
-import { normalizeUserTier, USER_TIER_COOKIE } from '../../../../utils/membership'
 import { getHotTlds } from '../../../../lib/promoStore'
+import { getCurrentUserTier } from '../../../../lib/entitlements'
 
 export const runtime = 'nodejs'
 
@@ -89,9 +88,7 @@ export async function POST(req: Request) {
   const tlds = ['com', 'digital', 'ai', 'app', 'tech', 'blog', 'biz', 'horse', 'me']
 
   const searchName = normalizeSearchLabel(query)
-
-  const cookies = parseCookieHeader(req.headers.get('cookie'))
-  const userTier = normalizeUserTier(cookies[USER_TIER_COOKIE])
+  const userTier = await getCurrentUserTier()
 
   try {
     const hotTlds = await getHotTlds().catch(() => new Set<string>())

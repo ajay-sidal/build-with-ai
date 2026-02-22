@@ -1,8 +1,8 @@
 import { opClient } from '../../../lib/openprovider'
 import RenewalManagement from './RenewalManagement'
 import { unstable_cache } from 'next/cache'
-import { cookies } from 'next/headers'
-import { normalizeUserTier, tierLabel, type UserTier, USER_TIER_COOKIE } from '../../../utils/membership'
+import { getCurrentUserTier } from '../../../lib/entitlements'
+import { tierLabel } from '../../../utils/membership'
 import { calculateCustomerPrice, formatCurrency } from '../../../utils/pricing'
 
 function formatMoney(currency?: string, amount?: number) {
@@ -22,8 +22,7 @@ const getTransactionsCached = unstable_cache(async () => opClient.listTransactio
 const getDomainsCached = unstable_cache(async () => opClient.listDomains(), ['op-domains'], { revalidate: 60 })
 
 export default async function BillingPage() {
-  const cookieStore = await cookies()
-  const userTier = normalizeUserTier(cookieStore.get(USER_TIER_COOKIE)?.value)
+  const userTier = await getCurrentUserTier()
 
   let invoices: Awaited<ReturnType<typeof opClient.listInvoices>> = []
   let transactions: Awaited<ReturnType<typeof opClient.listTransactions>> = []
@@ -61,7 +60,7 @@ export default async function BillingPage() {
         <div className="px-5 pb-5 pt-4">
           <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
             <div className="text-sm text-zinc-200">
-              Current tier: <span className="font-medium text-zinc-100">{tierLabel(userTier as UserTier)}</span>
+              Current tier: <span className="font-medium text-zinc-100">{tierLabel(userTier)}</span>
             </div>
 
             <div className="mt-3 grid gap-3 md:grid-cols-3">

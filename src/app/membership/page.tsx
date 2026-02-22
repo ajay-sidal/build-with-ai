@@ -13,8 +13,8 @@ export default function MembershipPage() {
       <MembershipClient />
 
       <div className="text-xs text-zinc-500">
-        Note: Tier selection is stored in a cookie for this browser. Subscription billing automation can be
-        connected to Stripe next.
+        Note: This selection is stored in a cookie for this browser as a preview. Actual pricing entitlements
+        are managed server-side via subscription billing.
       </div>
     </main>
   )

@@ -48,13 +48,6 @@ export default function MembershipClient() {
     setCookie(USER_TIER_COOKIE, next)
     setSaved(true)
     window.setTimeout(() => setSaved(false), 1500)
-
-    // Best-effort persistence (does not block UX)
-    fetch('/api/membership/tier', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tier: next }),
-    }).catch(() => null)
   }
 
   return (

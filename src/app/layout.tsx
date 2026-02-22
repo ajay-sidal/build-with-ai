@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import AffiliateRefTracker from '../components/AffiliateRefTracker'
 import './globals.css'
 
@@ -35,12 +36,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-zinc-950 text-zinc-50">
+      <body className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
         <Navbar />
         <Suspense fallback={null}>
           <AffiliateRefTracker />
         </Suspense>
-        {children}
+        <div className="flex-1">{children}</div>
+        <Footer />
       </body>
     </html>
   )
