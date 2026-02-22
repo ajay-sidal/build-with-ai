@@ -109,7 +109,7 @@ export default function Navbar() {
               <span className="rounded-lg border border-zinc-800 bg-zinc-950 p-2">
                 <Sparkles size={16} />
               </span>
-              BuildWithAI.digital
+              BUILD WITH AI
             </Link>
 
             {/* Desktop Navigation */}

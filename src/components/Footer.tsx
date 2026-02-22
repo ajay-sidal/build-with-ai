@@ -75,7 +75,7 @@ export default function Footer() {
                   <span className="rounded-lg border border-zinc-800 bg-zinc-950 p-2">
                     <Sparkles size={16} />
                   </span>
-                  BuildWithAI.digital
+                  BUILD WITH AI
                 </Link>
                 <p className="mt-3 text-xs text-zinc-500">
                   Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
@@ -105,7 +105,7 @@ export default function Footer() {
 
             {/* Bottom Section: Copyright + Social */}
             <div className="mt-8 flex flex-col gap-4 border-t border-zinc-800/80 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
-              <div>© {new Date().getFullYear()} BuildWithAI.digital. All rights reserved.</div>
+              <div>© {new Date().getFullYear()} BUILD WITH AI. All rights reserved.</div>
               <div className="flex items-center gap-4">
                 <a
                   href="https://www.linkedin.com/"

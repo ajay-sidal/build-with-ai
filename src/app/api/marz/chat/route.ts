@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server'
 import { OpenAIStream, StreamingTextResponse } from 'ai'
 import Groq from 'groq-sdk'
 import { Index } from '@upstash/vector'
