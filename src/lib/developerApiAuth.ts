@@ -2,6 +2,15 @@ import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { dbRateLimit } from './opsStore'
 import { findDeveloperKeyByApiKey, logApiUsage } from './developerStore'
+import { getUser } from './userStore'
+import { normalizeUserTier, type UserTier } from '../utils/membership'
+
+function tierRateLimit(tier: UserTier): { limit: number; windowSeconds: number } {
+  // Per-key limits.
+  if (tier === 'ENTERPRISE_AI') return { limit: 1200, windowSeconds: 60 }
+  if (tier === 'AI_ARCHITECT') return { limit: 300, windowSeconds: 60 }
+  return { limit: 60, windowSeconds: 60 }
+}
 
 export type DeveloperAuthContext = {
   requestId: string
@@ -47,14 +56,23 @@ export async function requireDeveloperKey(req: Request): Promise<{ ok: true; ctx
     }
   }
 
+  let tier: UserTier = 'AI_EXPLORER'
+  try {
+    const u = await getUser(key.userId)
+    tier = normalizeUserTier(u?.subscription_tier)
+  } catch {
+    // default
+  }
+
   // Rate limit (best effort). If rate limiter fails, fail open.
   try {
-    const rl = await dbRateLimit({ key: `devapi:${key.id}`, limit: 60, windowSeconds: 60 })
+    const policy = tierRateLimit(tier)
+    const rl = await dbRateLimit({ key: `devapi:${key.id}`, limit: policy.limit, windowSeconds: policy.windowSeconds })
     if (!rl.allowed) {
       return {
         ok: false,
         res: NextResponse.json(
-          { error: 'Rate limit exceeded', requestId, remaining: rl.remaining },
+          { error: 'Rate limit exceeded', requestId, remaining: rl.remaining, tier, limit: policy.limit, windowSeconds: policy.windowSeconds },
           { status: 429, headers: { 'x-request-id': requestId, powered_by: 'BuildWithAI.digital' } },
         ),
       }

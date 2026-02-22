@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { opClient, type CustomerCreateCustomerRequest } from '../../../../lib/openprovider'
+import { upsertUserTier } from '../../../../lib/userStore'
+import { USER_ID_COOKIE, USER_TIER_COOKIE } from '../../../../utils/membership'
 
 export const runtime = 'nodejs'
 
@@ -35,7 +37,17 @@ export async function POST(req: Request) {
     // Avoid duplicate handles for the same user
     const existing = await opClient.searchCustomers(body.email)
     if (existing.length > 0 && existing[0]?.handle) {
-      return NextResponse.json({ handle: existing[0].handle })
+      const handle = existing[0].handle
+      try {
+        await upsertUserTier({ userId: handle, tier: 'AI_EXPLORER', email: body.email || null, renewalDate: null })
+      } catch {
+        // ignore
+      }
+
+      const res = NextResponse.json({ handle })
+      res.headers.append('Set-Cookie', `${USER_ID_COOKIE}=${encodeURIComponent(handle)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`)
+      res.headers.append('Set-Cookie', `${USER_TIER_COOKIE}=AI_EXPLORER; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`)
+      return res
     }
 
     const reqBody: CustomerCreateCustomerRequest = {
@@ -62,7 +74,17 @@ export async function POST(req: Request) {
     }
 
     const handle = await opClient.createCustomer(reqBody)
-    return NextResponse.json({ handle })
+
+    try {
+      await upsertUserTier({ userId: handle, tier: 'AI_EXPLORER', email: body.email || null, renewalDate: null })
+    } catch {
+      // ignore
+    }
+
+    const res = NextResponse.json({ handle })
+    res.headers.append('Set-Cookie', `${USER_ID_COOKIE}=${encodeURIComponent(handle)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`)
+    res.headers.append('Set-Cookie', `${USER_TIER_COOKIE}=AI_EXPLORER; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`)
+    return res
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Customer creation failed'
     return NextResponse.json({ error: message }, { status: 500 })
