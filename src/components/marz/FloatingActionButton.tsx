@@ -7,9 +7,10 @@ import { X, Bot } from 'lucide-react'
 interface FloatingActionButtonProps {
   isOpen: boolean
   onToggle: () => void
+  isProactive?: boolean
 }
 
-export default function FloatingActionButton({ isOpen, onToggle }: FloatingActionButtonProps) {
+export default function FloatingActionButton({ isOpen, onToggle, isProactive = false }: FloatingActionButtonProps) {
   return (
     <motion.button
       initial={{ scale: 0 }}
@@ -17,7 +18,9 @@ export default function FloatingActionButton({ isOpen, onToggle }: FloatingActio
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={onToggle}
-      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
+      className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl ${
+        isProactive ? 'marz-pulse' : ''
+      }`}
       aria-label={isOpen ? 'Close chat' : 'Open chat'}
     >
       <AnimatePresence mode="wait">

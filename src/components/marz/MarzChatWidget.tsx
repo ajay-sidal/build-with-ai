@@ -70,7 +70,7 @@ function getDefaultWelcomeMessage(): Message[] {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
+      content: "👋 Hi! I'm **MARZ**, your personal AI guide. Welcome to **BUILD WITH AI**! Are you looking to register a new domain or secure an existing one today?",
     },
   ]
 }
@@ -82,26 +82,62 @@ export default function MarzChatWidget() {
   const [speechEnabled, setSpeechEnabled] = React.useState(false)
   const [isHistoryLoading, setIsHistoryLoading] = React.useState(true)
   const [suggestions, setSuggestions] = React.useState<string[]>([])
-  
+  const [hasWelcomed, setHasWelcomed] = React.useState(false)
+
   // Refs
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
 
-  // Vercel AI SDK useChat hook - initialized with empty array
-  const { 
-    messages, 
-    input, 
-    handleInputChange, 
-    handleSubmit, 
-    isLoading, 
-    append, 
-    data, 
-    setMessages 
+  // Vercel AI SDK useChat hook
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    append,
+    data,
+    setMessages
   } = useChat({
     api: '/api/marz/chat',
     initialMessages: [],
     initialInput: '',
   })
+
+  // Phase 3: Proactive Welcome - Auto-open MARZ on first visit
+  React.useEffect(() => {
+    // Check if user has already been welcomed
+    const hasBeenWelcomed = localStorage.getItem('marz_has_welcomed')
+    
+    if (!hasBeenWelcomed && messages.length === 0) {
+      // Load initial messages
+      const initialMessages = getInitialMessages()
+      if (initialMessages.length > 0) {
+        setMessages(initialMessages)
+      } else {
+        setMessages(getDefaultWelcomeMessage())
+      }
+      
+      // Auto-open chat after a short delay
+      const welcomeTimer = setTimeout(() => {
+        setIsOpen(true)
+        setHasWelcomed(true)
+        localStorage.setItem('marz_has_welcomed', 'true')
+        
+        // Auto-close after 7 seconds if user doesn't interact
+        const closeTimer = setTimeout(() => {
+          if (messages.length <= 1) {
+            setIsOpen(false)
+          }
+        }, 7000)
+        
+        return () => clearTimeout(closeTimer)
+      }, 1500)
+      
+      setIsHistoryLoading(false)
+      return () => clearTimeout(welcomeTimer)
+    }
+  }, [])
 
   // Text-to-speech
   const speakResponse = React.useCallback((text: string) => {
@@ -129,24 +165,6 @@ export default function MarzChatWidget() {
 
     window.speechSynthesis.speak(utterance)
   }, [speechEnabled])
-
-  // Phase 1.1: Load chat history from localStorage on mount
-  React.useEffect(() => {
-    const initialMessages = getInitialMessages()
-    
-    if (initialMessages.length > 0) {
-      setMessages(initialMessages)
-    } else {
-      setMessages(getDefaultWelcomeMessage())
-    }
-    
-    // Simulate loading delay for better UX
-    const timer = setTimeout(() => {
-      setIsHistoryLoading(false)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [setMessages])
 
   // Save messages to localStorage on update
   React.useEffect(() => {
@@ -244,6 +262,7 @@ export default function MarzChatWidget() {
   const handleClearChat = React.useCallback(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(MARZ_CHAT_HISTORY_KEY)
+      localStorage.removeItem('marz_has_welcomed')
       setMessages(getDefaultWelcomeMessage())
       setSuggestions([])
     }
@@ -266,8 +285,12 @@ export default function MarzChatWidget() {
 
   return (
     <>
-      {/* Floating Action Button */}
-      <FloatingActionButton isOpen={isOpen} onToggle={handleToggle} />
+      {/* Floating Action Button with Pulse Animation */}
+      <FloatingActionButton 
+        isOpen={isOpen} 
+        onToggle={handleToggle}
+        isProactive={!hasWelcomed}
+      />
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -277,7 +300,7 @@ export default function MarzChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/95 backdrop-blur shadow-2xl shadow-black/50 sm:right-6"
+            className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur shadow-2xl shadow-black/50 sm:right-6"
           >
             {/* Header */}
             <ChatHeader
