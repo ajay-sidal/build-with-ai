@@ -308,6 +308,8 @@ export default function DomainSearch() {
           <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Input
+                id="domain-search-query"
+                name="query"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="I’m starting a sustainable fashion brand called ‘Verde’."

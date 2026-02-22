@@ -94,6 +94,8 @@ export default function RenewalManagement({ domains }: Props) {
                     <td className="py-3">
                       <label className="inline-flex items-center gap-2 text-zinc-300">
                         <input
+                          id={`auto-renew-${r.domain}`}
+                          name={`auto_renew_${r.domain}`}
                           type="checkbox"
                           className="h-4 w-4 accent-zinc-200"
                           checked={Boolean(r.is_auto_renew_enabled)}

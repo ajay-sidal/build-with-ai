@@ -56,11 +56,20 @@ export default function PartnersClient() {
           <form className="grid gap-4" onSubmit={onSubmit}>
             <div className="grid gap-2">
               <label className="text-sm text-zinc-300">Name</label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Partner" />
+              <Input
+                id="partner-name"
+                name="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Jane Partner"
+              />
             </div>
             <div className="grid gap-2">
               <label className="text-sm text-zinc-300">Email</label>
               <Input
+                id="partner-email"
+                name="email"
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jane@example.com"
@@ -92,7 +101,7 @@ export default function PartnersClient() {
 
               <div className="text-sm text-zinc-300 pt-3">Referral link</div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Input readOnly value={result.referralUrl} />
+                <Input id="partner-referral-url" name="referral_url" readOnly value={result.referralUrl} />
                 <Button
                   type="button"
                   variant="secondary"

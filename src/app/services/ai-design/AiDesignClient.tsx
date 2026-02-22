@@ -183,12 +183,16 @@ export default function AiDesignClient() {
               <form onSubmit={submit} className="grid gap-3">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <Input
+                    id="ai-design-name"
+                    name="name"
                     placeholder="Name"
                     value={form.name}
                     onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                     required
                   />
                   <Input
+                    id="ai-design-email"
+                    name="email"
                     placeholder="Email"
                     type="email"
                     value={form.email}
@@ -198,12 +202,16 @@ export default function AiDesignClient() {
                 </div>
 
                 <Input
+                  id="ai-design-company"
+                  name="company"
                   placeholder="Company (optional)"
                   value={form.company}
                   onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))}
                 />
 
                 <textarea
+                  id="ai-design-message"
+                  name="message"
                   className="min-h-32 w-full resize-y rounded-md border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-50 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/20"
                   placeholder="What are you building?"
                   value={form.message}

@@ -119,7 +119,13 @@ export default function PartnersDashboardClient() {
       <div className="mt-8 grid gap-6">
         <Card className="p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Input value={partnerId} onChange={(e) => setPartnerId(e.target.value)} placeholder="partner-abc123" />
+            <Input
+              id="partner-dashboard-id"
+              name="partnerId"
+              value={partnerId}
+              onChange={(e) => setPartnerId(e.target.value)}
+              placeholder="partner-abc123"
+            />
             <Button onClick={fetchStats} disabled={!canFetch || loading}>
               {loading ? 'Loading…' : 'Load stats'}
             </Button>

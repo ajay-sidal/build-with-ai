@@ -254,6 +254,8 @@ export default function LeadsClient() {
             <div className="grid gap-2">
               <label className="text-xs text-zinc-400">Admin Secret</label>
               <Input
+                id="admin-secret-leads"
+                name="adminSecret"
                 value={adminSecret}
                 onChange={(e) => setAdminSecret(e.target.value)}
                 placeholder="ADMIN_SECRET"
@@ -264,6 +266,8 @@ export default function LeadsClient() {
             <div className="grid gap-2">
               <label className="text-xs text-zinc-400">Search</label>
               <Input
+                id="admin-leads-search"
+                name="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Filter by company or email"

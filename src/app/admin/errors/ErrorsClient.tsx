@@ -91,7 +91,13 @@ export default function ErrorsClient() {
         <CardContent>
           <div className="grid gap-2">
             <label className="text-xs text-zinc-400">Admin Secret</label>
-            <Input value={adminSecret} onChange={(e) => setAdminSecret(e.target.value)} placeholder="ADMIN_SECRET" />
+            <Input
+              id="admin-secret-errors"
+              name="adminSecret"
+              value={adminSecret}
+              onChange={(e) => setAdminSecret(e.target.value)}
+              placeholder="ADMIN_SECRET"
+            />
           </div>
 
           <div className="mt-6 overflow-x-auto">

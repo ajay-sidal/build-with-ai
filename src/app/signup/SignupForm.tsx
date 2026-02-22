@@ -77,14 +77,26 @@ export default function SignupForm() {
 
         <CardContent>
           <form onSubmit={onSubmit} className="grid gap-3">
-            <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input
+              id="signup-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Input
+                id="signup-first-name"
+                name="first_name"
                 placeholder="First name"
                 value={form.first_name}
                 onChange={(e) => setForm({ ...form, first_name: e.target.value })}
               />
               <Input
+                id="signup-last-name"
+                name="last_name"
                 placeholder="Last name"
                 value={form.last_name}
                 onChange={(e) => setForm({ ...form, last_name: e.target.value })}
@@ -93,12 +105,16 @@ export default function SignupForm() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Input
+                id="signup-street"
+                name="street"
                 placeholder="Street"
                 className="sm:col-span-2"
                 value={form.street}
                 onChange={(e) => setForm({ ...form, street: e.target.value })}
               />
               <Input
+                id="signup-number"
+                name="number"
                 placeholder="No."
                 value={form.number}
                 onChange={(e) => setForm({ ...form, number: e.target.value })}
@@ -107,11 +123,15 @@ export default function SignupForm() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Input
+                id="signup-zip"
+                name="zipcode"
                 placeholder="Zip"
                 value={form.zipcode}
                 onChange={(e) => setForm({ ...form, zipcode: e.target.value })}
               />
               <Input
+                id="signup-city"
+                name="city"
                 placeholder="City"
                 className="sm:col-span-2"
                 value={form.city}
@@ -121,11 +141,15 @@ export default function SignupForm() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Input
+                id="signup-country"
+                name="country"
                 placeholder="Country (ISO2)"
                 value={form.country}
                 onChange={(e) => setForm({ ...form, country: e.target.value.toUpperCase() })}
               />
               <Input
+                id="signup-state"
+                name="state"
                 placeholder="State (optional)"
                 value={form.state}
                 onChange={(e) => setForm({ ...form, state: e.target.value })}
@@ -134,16 +158,22 @@ export default function SignupForm() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Input
+                id="signup-phone-country"
+                name="phone_country_code"
                 placeholder="Phone country"
                 value={form.phone_country_code}
                 onChange={(e) => setForm({ ...form, phone_country_code: e.target.value })}
               />
               <Input
+                id="signup-phone-area"
+                name="phone_area_code"
                 placeholder="Area (optional)"
                 value={form.phone_area_code}
                 onChange={(e) => setForm({ ...form, phone_area_code: e.target.value })}
               />
               <Input
+                id="signup-phone-subscriber"
+                name="phone_subscriber_number"
                 placeholder="Subscriber"
                 value={form.phone_subscriber_number}
                 onChange={(e) => setForm({ ...form, phone_subscriber_number: e.target.value })}

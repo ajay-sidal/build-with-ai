@@ -105,6 +105,8 @@ export default function LaunchMagnet({ defaultOpen = true }: { defaultOpen?: boo
                   <form onSubmit={submit} className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <div className="flex-1">
                       <Input
+                        id="alpha-email"
+                        name="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@company.com"

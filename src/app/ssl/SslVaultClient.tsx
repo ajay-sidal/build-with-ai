@@ -163,7 +163,13 @@ export default function SslVaultClient() {
             <div className="grid gap-2">
               <label className="text-xs text-zinc-400">Domain (Common Name)</label>
               <div className="flex gap-3">
-                <Input value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="example.com" />
+                <Input
+                  id="ssl-common-name"
+                  name="domain"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  placeholder="example.com"
+                />
                 <Button
                   type="button"
                   variant="secondary"

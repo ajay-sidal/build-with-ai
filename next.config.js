@@ -10,6 +10,7 @@ const nextConfig = {
     const scriptSrc = [
       "'self'",
       "'unsafe-inline'",
+      ...(allowVercelLive ? ["'unsafe-eval'"] : []),
       'https://js.stripe.com',
       'https://*.stripe.com',
       ...(allowVercelLive ? ['https://vercel.live'] : []),
