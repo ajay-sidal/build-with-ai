@@ -37,3 +37,6 @@ data/partners.json
 .DS_Store
 .vercel
 .env*.local
+
+# typescript
+*.tsbuildinfo
