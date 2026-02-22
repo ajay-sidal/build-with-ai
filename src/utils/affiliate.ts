@@ -37,10 +37,18 @@ export function parseCookieHeader(cookieHeader: string | null | undefined): Reco
   const out: Record<string, string> = {}
   if (!cookieHeader) return out
 
+  const safeDecode = (value: string) => {
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
+    }
+  }
+
   for (const part of cookieHeader.split(';')) {
     const [k, ...rest] = part.trim().split('=')
     if (!k) continue
-    out[k] = decodeURIComponent(rest.join('=') || '')
+    out[k] = safeDecode(rest.join('=') || '')
   }
   return out
 }
