@@ -4,6 +4,36 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function isRetryableAxiosError(err: AxiosError): boolean {
+  const status = err.response?.status;
+  const code = (err.code || '').toUpperCase();
+
+  if (status === 429) return true;
+  if (status != null && status >= 500) return true;
+
+  // Common transient network errors
+  if (code === 'ECONNRESET') return true;
+  if (code === 'ETIMEDOUT') return true;
+  if (code === 'EAI_AGAIN') return true;
+  if (code === 'ENOTFOUND') return true;
+  if (code === 'ECONNABORTED') return true;
+
+  return false;
+}
+
+function extractAxiosMessage(err: AxiosError): string | null {
+  const status = err.response?.status;
+  const data: any = err.response?.data;
+  const hinted = typeof data?.desc === 'string' ? data.desc : typeof data?.message === 'string' ? data.message : null;
+  if (hinted) return hinted;
+  if (typeof status === 'number') return `OpenProvider request failed (HTTP ${status})`;
+  return null;
+}
+
 const OPENPROVIDER_BASE_URL = (() => {
   const raw = (process.env.OPENPROVIDER_BASE_URL || 'https://api.openprovider.eu/v1beta/').trim();
   return raw.endsWith('/') ? raw : `${raw}/`;
@@ -385,46 +415,97 @@ class OpenProviderClient {
     path: string,
     body: TRequest,
   ): Promise<TResponseData> {
-    try {
-      const response = await this.client.post<OpenProviderApiResponse<TResponseData>>(path, body);
-      if (response.data.code !== 0) {
-        throw new OpenProviderError(
-          response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
-          { code: response.data.code },
-        );
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response = await this.client.post<OpenProviderApiResponse<TResponseData>>(path, body);
+        if (response.data.code !== 0) {
+          throw new OpenProviderError(
+            response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
+            { code: response.data.code },
+          );
+        }
+        return response.data.data;
+      } catch (err) {
+        if (err instanceof OpenProviderError) throw err;
+        const axiosErr = err as AxiosError;
+
+        // Token can expire; clear and re-login once on 401/403 (but never for auth/login itself).
+        const status = axiosErr.response?.status;
+        if ((status === 401 || status === 403) && path !== 'auth/login') {
+          this.token = null;
+          this.resellerId = null;
+          try {
+            await this.login();
+            continue;
+          } catch {
+            // fall through to error/ retry
+          }
+        }
+
+        const retryable = isRetryableAxiosError(axiosErr);
+        if (retryable && attempt < maxAttempts) {
+          const backoff = 250 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 200);
+          await sleep(backoff);
+          continue;
+        }
+
+        throw new OpenProviderError(extractAxiosMessage(axiosErr) || 'OpenProvider request failed', {
+          cause: axiosErr,
+        });
       }
-      return response.data.data;
-    } catch (err) {
-      if (err instanceof OpenProviderError) throw err;
-      const axiosErr = err as AxiosError;
-      throw new OpenProviderError('OpenProvider request failed', {
-        cause: axiosErr,
-      });
     }
+
+    throw new OpenProviderError('OpenProvider request failed');
   }
 
 	private async get<TResponseData>(
 		path: string,
 		params?: Record<string, unknown>,
 	): Promise<TResponseData> {
-		try {
-			const response = await this.client.get<OpenProviderApiResponse<TResponseData>>(path, {
-				params,
-			});
-			if (response.data.code !== 0) {
-				throw new OpenProviderError(
-					response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
-					{ code: response.data.code },
-				);
-			}
-			return response.data.data;
-		} catch (err) {
-			if (err instanceof OpenProviderError) throw err;
-			const axiosErr = err as AxiosError;
-			throw new OpenProviderError('OpenProvider request failed', {
-				cause: axiosErr,
-			});
-		}
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response = await this.client.get<OpenProviderApiResponse<TResponseData>>(path, {
+          params,
+        });
+        if (response.data.code !== 0) {
+          throw new OpenProviderError(
+            response.data.desc || response.data.message || `OpenProvider API error (code ${response.data.code})`,
+            { code: response.data.code },
+          );
+        }
+        return response.data.data;
+      } catch (err) {
+        if (err instanceof OpenProviderError) throw err;
+        const axiosErr = err as AxiosError;
+
+        const status = axiosErr.response?.status;
+        if ((status === 401 || status === 403) && path !== 'auth/login') {
+          this.token = null;
+          this.resellerId = null;
+          try {
+            await this.login();
+            continue;
+          } catch {
+            // fall through
+          }
+        }
+
+        const retryable = isRetryableAxiosError(axiosErr);
+        if (retryable && attempt < maxAttempts) {
+          const backoff = 250 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 200);
+          await sleep(backoff);
+          continue;
+        }
+
+        throw new OpenProviderError(extractAxiosMessage(axiosErr) || 'OpenProvider request failed', {
+          cause: axiosErr,
+        });
+      }
+    }
+
+    throw new OpenProviderError('OpenProvider request failed');
 	}
 
   private async ensureLoggedIn(): Promise<void> {
