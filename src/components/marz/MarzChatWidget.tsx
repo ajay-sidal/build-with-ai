@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  MessageCircle,
   X,
   Send,
   Mic,
@@ -19,7 +18,7 @@ interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
-  timestamp: Date
+  timestamp: string | Date
 }
 
 // Web Speech API types
@@ -106,10 +105,10 @@ export default function MarzChatWidget() {
   const speakResponse = React.useCallback((text: string) => {
     if (!speechEnabled || !window.speechSynthesis) return
 
-    // Strip markdown formatting
+    // Strip markdown formatting and emojis
     const cleanText = text
       .replace(/\*\*/g, '')
-      .replace(/💰|📋|🤖|💵|✨/g, '')
+      .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
       .replace(/\n/g, ' ')
       .trim()
 
@@ -130,7 +129,7 @@ export default function MarzChatWidget() {
     window.speechSynthesis.speak(utterance)
   }, [speechEnabled])
 
-  // Send message to MARZ API
+  // Send message to MARZ API with conversation history
   const sendMessage = React.useCallback(async (messageText: string) => {
     if (!messageText.trim()) return
 
@@ -149,7 +148,13 @@ export default function MarzChatWidget() {
       const response = await fetch('/api/marz/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: messageText }),
+        body: JSON.stringify({ 
+          query: messageText,
+          history: messages.map(m => ({
+            ...m,
+            timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : m.timestamp,
+          })),
+        }),
       })
 
       const data = await response.json()
@@ -169,7 +174,6 @@ export default function MarzChatWidget() {
 
       // Speak response if enabled
       if (speechEnabled) {
-        // Wait a bit for the message to render
         setTimeout(() => speakResponse(data.response), 300)
       }
     } catch (error) {
@@ -183,7 +187,7 @@ export default function MarzChatWidget() {
     } finally {
       setIsLoading(false)
     }
-  }, [speechEnabled, speakResponse])
+  }, [speechEnabled, speakResponse, messages])
 
   // Handle voice input toggle
   const toggleVoiceInput = React.useCallback(() => {
@@ -330,7 +334,7 @@ export default function MarzChatWidget() {
                           message.role === 'user' ? 'text-blue-100' : 'text-zinc-500'
                         }`}
                       >
-                        {message.timestamp.toLocaleTimeString([], {
+                        {new Date(message.timestamp).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
@@ -356,9 +360,16 @@ export default function MarzChatWidget() {
 
             {/* Input Area */}
             <div className="border-t border-zinc-800 p-4">
-              <div className="flex items-end gap-2">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  sendMessage(input)
+                }}
+                className="flex items-end gap-2"
+              >
                 {/* Voice Input Button */}
                 <button
+                  type="button"
                   onClick={toggleVoiceInput}
                   className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                     isListening
@@ -385,13 +396,13 @@ export default function MarzChatWidget() {
 
                 {/* Send Button */}
                 <button
-                  onClick={() => sendMessage(input)}
+                  type="submit"
                   disabled={!input.trim() || isLoading}
                   className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Send size={18} />
                 </button>
-              </div>
+              </form>
 
               {/* Voice Status */}
               {isListening && (
