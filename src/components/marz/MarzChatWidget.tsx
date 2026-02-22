@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useChat } from 'ai/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -18,7 +19,11 @@ interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
-  timestamp: string | Date
+  timestamp?: string
+}
+
+interface SuggestionData {
+  suggestions?: string[]
 }
 
 // Web Speech API types
@@ -47,20 +52,69 @@ declare global {
 
 export default function MarzChatWidget() {
   const [isOpen, setIsOpen] = React.useState(false)
-  const [messages, setMessages] = React.useState<Message[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
-      timestamp: new Date(),
-    },
-  ])
-  const [input, setInput] = React.useState('')
-  const [isLoading, setIsLoading] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
   const [speechEnabled, setSpeechEnabled] = React.useState(false)
   const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
+  const [suggestions, setSuggestions] = React.useState<string[]>([])
+  const [lastMessageId, setLastMessageId] = React.useState<string | null>(null)
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
+
+  // Text-to-speech (defined early for use in other hooks)
+  const speakResponse = React.useCallback((text: string) => {
+    if (!speechEnabled || !window.speechSynthesis) return
+
+    const cleanText = text
+      .replace(/\*\*/g, '')
+      .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
+      .replace(/\n/g, ' ')
+      .trim()
+
+    const utterance = new SpeechSynthesisUtterance(cleanText)
+    utterance.rate = 1.0
+    utterance.pitch = 1.0
+    utterance.volume = 1.0
+
+    const voices = window.speechSynthesis.getVoices()
+    const preferredVoice = voices.find(
+      (v) => v.name.includes('Female') || v.name.includes('Google US English')
+    )
+    if (preferredVoice) {
+      utterance.voice = preferredVoice
+    }
+
+    window.speechSynthesis.speak(utterance)
+  }, [speechEnabled])
+
+  // Vercel AI SDK useChat hook
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages, data } = useChat({
+    api: '/api/marz/chat',
+    initialMessages: [
+      {
+        id: 'welcome',
+        role: 'assistant',
+        content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
+      },
+    ],
+    initialInput: '',
+  })
+
+  // Extract suggestions from response data
+  React.useEffect(() => {
+    if (data && data.length > 0) {
+      const lastData = data[data.length - 1] as SuggestionData | undefined
+      if (lastData?.suggestions && lastData.suggestions.length > 0) {
+        setSuggestions(lastData.suggestions)
+        const lastMsg = messages[messages.length - 1]
+        if (lastMsg) {
+          setLastMessageId(lastMsg.id)
+          // Speak response if enabled
+          if (speechEnabled) {
+            setTimeout(() => speakResponse(lastMsg.content), 300)
+          }
+        }
+      }
+    }
+  }, [data, messages, speechEnabled, speakResponse])
 
   // Initialize speech recognition
   React.useEffect(() => {
@@ -77,7 +131,7 @@ export default function MarzChatWidget() {
           .map((result) => result.transcript)
           .join('')
 
-        setInput(transcript)
+        handleInputChange({ target: { value: transcript } } as any)
 
         if (event.results[0].isFinal) {
           setIsListening(false)
@@ -94,102 +148,14 @@ export default function MarzChatWidget() {
 
       setRecognition(recognitionInstance)
     }
-  }, [])
+  }, [handleInputChange])
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll to bottom
   React.useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Text-to-speech for responses
-  const speakResponse = React.useCallback((text: string) => {
-    if (!speechEnabled || !window.speechSynthesis) return
-
-    // Strip markdown formatting and emojis
-    const cleanText = text
-      .replace(/\*\*/g, '')
-      .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
-      .replace(/\n/g, ' ')
-      .trim()
-
-    const utterance = new SpeechSynthesisUtterance(cleanText)
-    utterance.rate = 1.0
-    utterance.pitch = 1.0
-    utterance.volume = 1.0
-
-    // Try to use a female voice if available
-    const voices = window.speechSynthesis.getVoices()
-    const preferredVoice = voices.find(
-      (v) => v.name.includes('Female') || v.name.includes('Google US English')
-    )
-    if (preferredVoice) {
-      utterance.voice = preferredVoice
-    }
-
-    window.speechSynthesis.speak(utterance)
-  }, [speechEnabled])
-
-  // Send message to MARZ API with conversation history
-  const sendMessage = React.useCallback(async (messageText: string) => {
-    if (!messageText.trim()) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: messageText,
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
-
-    try {
-      const response = await fetch('/api/marz/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          query: messageText,
-          history: messages.map(m => ({
-            ...m,
-            timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : m.timestamp,
-          })),
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.response,
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-
-      // Speak response if enabled
-      if (speechEnabled) {
-        setTimeout(() => speakResponse(data.response), 300)
-      }
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error processing your request. Please try again.",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [speechEnabled, speakResponse, messages])
-
-  // Handle voice input toggle
+  // Handle voice input
   const toggleVoiceInput = React.useCallback(() => {
     if (!recognition) {
       alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.')
@@ -205,15 +171,24 @@ export default function MarzChatWidget() {
     }
   }, [recognition, isListening])
 
-  // Handle send on Enter key
+  // Handle suggestion chip click
+  const handleSuggestionClick = (suggestion: string) => {
+    setSuggestions([]) // Hide suggestions after click
+    append({
+      role: 'user',
+      content: suggestion,
+    })
+  }
+
+  // Handle Enter key
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      sendMessage(input)
+      handleSubmit(e as any)
     }
   }
 
-  // Format message content (simple markdown)
+  // Format message with markdown
   const formatMessage = (content: string) => {
     return content
       .split('\n')
@@ -329,16 +304,6 @@ export default function MarzChatWidget() {
                       }`}
                     >
                       {formatMessage(message.content)}
-                      <p
-                        className={`mt-1 text-xs ${
-                          message.role === 'user' ? 'text-blue-100' : 'text-zinc-500'
-                        }`}
-                      >
-                        {new Date(message.timestamp).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -358,13 +323,37 @@ export default function MarzChatWidget() {
               </div>
             </div>
 
+            {/* Suggestion Chips */}
+            <AnimatePresence>
+              {suggestions.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="border-t border-zinc-800/50 px-4 py-2"
+                >
+                  <div className="flex flex-wrap gap-2">
+                    {suggestions.map((suggestion, index) => (
+                      <motion.button
+                        key={index}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="rounded-full border border-blue-600/50 bg-blue-600/10 px-3 py-1.5 text-xs text-blue-300 transition-all hover:bg-blue-600/20 hover:text-blue-200"
+                      >
+                        {suggestion}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Input Area */}
             <div className="border-t border-zinc-800 p-4">
               <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  sendMessage(input)
-                }}
+                onSubmit={handleSubmit}
                 className="flex items-end gap-2"
               >
                 {/* Voice Input Button */}
@@ -385,7 +374,7 @@ export default function MarzChatWidget() {
                 <div className="flex-1">
                   <textarea
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask me anything..."
                     rows={1}

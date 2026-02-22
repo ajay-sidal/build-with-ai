@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { Index } from '@upstash/vector'
 import { pipeline } from '@xenova/transformers'
+import { config } from 'dotenv'
+import { resolve } from 'path'
+
+// Load .env.local for server-side execution
+config({ path: resolve(process.cwd(), '.env.local') })
 
 export const runtime = 'nodejs'
 
@@ -9,10 +14,10 @@ interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
-  timestamp: string
+  timestamp?: string
 }
 
-// Knowledge item metadata from vector DB
+// Knowledge item from vector DB
 interface KnowledgeItem {
   id: string
   name: string
@@ -23,13 +28,17 @@ interface KnowledgeItem {
   features: string[]
   benefits: string[]
   cta?: string
+  searchText: string
 }
 
-// Initialize Upstash Vector client lazily
+// Initialize Upstash Vector client
 let vectorIndex: Index | null = null
 
-function getVectorIndex(): Index {
+function getVectorIndex(): Index | null {
   if (!vectorIndex) {
+    if (!process.env.UPSTASH_VECTOR_REST_URL || !process.env.UPSTASH_VECTOR_REST_TOKEN) {
+      return null
+    }
     vectorIndex = new Index({
       url: process.env.UPSTASH_VECTOR_REST_URL,
       token: process.env.UPSTASH_VECTOR_REST_TOKEN,
@@ -38,7 +47,7 @@ function getVectorIndex(): Index {
   return vectorIndex
 }
 
-// Singleton for embedding model (lazy loading)
+// Embedding model singleton
 let embeddingModel: any = null
 
 async function getEmbeddingModel() {
@@ -48,23 +57,37 @@ async function getEmbeddingModel() {
   return embeddingModel
 }
 
-// Generate embedding for a query
+// Generate embedding for search query
 async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const model = await getEmbeddingModel()
     const output = await model(text, { pooling: 'mean', normalize: true })
-    return Array.from(output.data) as number[]
+    const embedding384 = Array.from(output.data) as number[]
+    
+    // Pad to 1024 for Upstash compatibility
+    const embedding1024 = new Array(1024).fill(0)
+    embedding384.forEach((val: number, idx: number) => {
+      embedding1024[idx] = val
+    })
+    
+    return embedding1024
   } catch (error) {
-    console.error('[MARZ] Error generating embedding:', error)
-    throw error
+    console.error('[MARZ] Embedding error:', error)
+    return []
   }
 }
 
-// Semantic search using vector similarity
-async function semanticSearch(query: string, topK: number = 3): Promise<KnowledgeItem[]> {
+// Semantic search with fallback to keyword matching
+async function searchKnowledge(query: string, topK: number = 3): Promise<KnowledgeItem[]> {
   try {
     const index = getVectorIndex()
+    if (!index) {
+      console.warn('[MARZ] Vector DB not configured, using fallback')
+      return []
+    }
+
     const queryVector = await generateEmbedding(query)
+    if (queryVector.length === 0) return []
     
     const results = await index.query({
       vector: queryVector,
@@ -74,7 +97,7 @@ async function semanticSearch(query: string, topK: number = 3): Promise<Knowledg
 
     return results.map((r: any) => r.metadata as KnowledgeItem).filter(Boolean)
   } catch (error) {
-    console.error('[MARZ] Semantic search error:', error)
+    console.error('[MARZ] Search error:', error)
     return []
   }
 }
@@ -86,120 +109,75 @@ function isFollowUpQuery(query: string): boolean {
     /\bwhat (about|else)\b/i,
     /\bhow (much|many|about)\b/i,
     /\bwhat (are|is|about)\b/i,
-    /\bcan (you|i)\b/i,
-    /\bdoes (it|that)\b/i,
-    /\bis (it|that)\b/i,
     /\bfeatures\b/i,
     /\bprice\b/i,
     /\bcost\b/i,
-    /\bcheaper\b/i,
     /\bincluded\b/i,
-    /\bcomes with\b/i,
   ]
-
-  // Short queries are more likely follow-ups
-  const isShort = query.trim().split(/\s+/).length <= 4
-  
+  const isShort = query.trim().split(/\s+/).length <= 5
   return followUpPatterns.some(pattern => pattern.test(query)) && isShort
 }
 
-// Extract product/service ID from conversation history
-function extractContextFromHistory(history: Message[]): KnowledgeItem | null {
-  // Look at the last assistant message
+// Extract context from conversation history
+function extractContextFromHistory(history: Message[]): string {
   const lastAssistantMessage = history.slice().reverse().find(m => m.role === 'assistant')
+  if (!lastAssistantMessage) return ''
   
-  if (!lastAssistantMessage) return null
-
-  // Try to extract product name from the message
   const content = lastAssistantMessage.content
-  
-  // Look for bold text (product names are bolded)
   const boldMatches = content.match(/\*\*([^*]+)\*\*/g)
   if (boldMatches && boldMatches.length > 0) {
-    // The first bold text is usually the product name
-    const productName = boldMatches[0].replace(/\*\*/g, '').trim()
-    return { id: productName.toLowerCase().replace(/\s+/g, '-'), name: productName } as KnowledgeItem
+    return boldMatches[0].replace(/\*\*/g, '').trim()
   }
-
-  return null
+  return ''
 }
 
-// Generate response with conversation context
-function generateResponse(
-  query: string,
-  history: Message[],
-  matches: KnowledgeItem[]
-): string {
-  // Check if this is a follow-up query
-  if (isFollowUpQuery(query) && history.length > 0) {
-    const context = extractContextFromHistory(history)
-    
-    if (context && matches.length > 0) {
-      // Use the context from history to provide a specific answer
-      const item = matches[0]
-      
-      // Handle specific follow-up questions
-      const queryLower = query.toLowerCase()
-      
-      if (queryLower.includes('feature') || queryLower.includes('include') || queryLower.includes('offer')) {
-        const featuresList = item.features.slice(0, 5).join(', ')
-        return `📋 **${item.name}** includes:\n• ${item.features.slice(0, 5).join('\n• ')}\n\n${item.benefits.length > 0 ? `✨ Key benefits: ${item.benefits.slice(0, 2).join(', ')}.` : ''}`
-      }
-      
-      if (queryLower.includes('price') || queryLower.includes('cost') || queryLower.includes('how much') || queryLower.includes('cheaper')) {
-        if (item.price) {
-          return `💰 **${item.name}** starts from **${item.price}**. ${item.description.split('.')[0]}. Would you like to know about its features?`
-        }
-        return `Pricing for **${item.name}** is available on the product page. ${item.description}`
-      }
-      
-      if (queryLower.includes('benefit') || queryLower.includes('why')) {
-        return `✨ **${item.name}** benefits:\n• ${item.benefits.slice(0, 4).join('\n• ')}\n\n${item.description}`
-      }
-      
-      if (queryLower.includes('tell me more') || queryLower.includes('what about') || queryLower.includes('what else')) {
-        return `🤖 **${item.name}**\n\n${item.description}\n\n${item.price ? `💵 Starting from: ${item.price}\n\n` : ''}✨ Key features:\n• ${item.features.slice(0, 3).join('\n• ')}`
-      }
-    }
-  }
+// Generate system prompt with RAG context
+function buildSystemPrompt(matches: KnowledgeItem[], history: Message[], query: string): string {
+  const context = matches.length > 0 
+    ? matches.map(m => `
+**${m.name}** (${m.type}${m.category ? ` - ${m.category}` : ''})
+Description: ${m.description}
+${m.price ? `Price: ${m.price}` : ''}
+Features: ${m.features.slice(0, 5).join(', ')}
+Benefits: ${m.benefits.slice(0, 3).join(', ')}
+`).join('\n---\n')
+    : 'No specific product information available.'
 
-  // Not a follow-up, use semantic search results
-  if (matches.length === 0) {
-    return "I'm sorry, I couldn't find information on that topic. I can help you with questions about:\n\n• Domain Registration & Transfer\n• SSL Certificates (DV, OV, EV, Wildcard)\n• DNS Services & Premium DNS\n• Email Security & Spam Experts\n• EasyDMARC\n• Plesk & Virtuozzo Licenses\n\nWhat would you like to know?"
-  }
+  const contextLabel = isFollowUpQuery(query) 
+    ? `Previous context: ${extractContextFromHistory(history)}`
+    : ''
 
-  const [topMatch, ...relatedMatches] = matches
-  const queryLower = query.toLowerCase()
+  return `You are MARZ, a friendly and knowledgeable AI assistant for BuildWithAI.digital, a modern AI-native domain registrar and digital infrastructure platform.
 
-  // Price-specific response
-  if (queryLower.includes('price') || queryLower.includes('cost') || queryLower.includes('how much')) {
-    if (topMatch.price) {
-      return `💰 **${topMatch.name}** starts from **${topMatch.price}**. ${topMatch.description} Would you like to know more about its features?`
-    }
-    return `**${topMatch.name}**: ${topMatch.description}\n\nPricing information is available on the product page. Would you like me to tell you about its features?`
-  }
+Your role is to help users understand our products and services. Base your responses on the following context:
 
-  // Features question
-  if (queryLower.includes('feature') || queryLower.includes('include') || queryLower.includes('offer')) {
-    return `📋 **${topMatch.name}** includes:\n• ${topMatch.features.slice(0, 5).join('\n• ')}\n\n${topMatch.benefits.length > 0 ? `✨ Key benefits: ${topMatch.benefits.slice(0, 2).join(', ')}.` : ''}`
-  }
+## Product/Service Context:
+${context}
+${contextLabel}
 
-  // General product info
-  let response = `🤖 **${topMatch.name}**\n\n${topMatch.description}`
+## Response Guidelines:
+1. Be conversational, friendly, and helpful
+2. Keep responses concise (2-4 sentences max)
+3. Use emojis sparingly (🤖 💰 ✨ 📋)
+4. Highlight key info with **bold** text
+5. If you don't know something, admit it and suggest contacting support
+6. Always stay on topic - only discuss domains, SSL, DNS, email security, licenses, and related services
+7. If the query is unrelated to our products, politely redirect
 
-  if (topMatch.price) {
-    response += `\n\n💵 Starting from: ${topMatch.price}`
-  }
+## Follow-up Handling:
+- If the user asks a follow-up question, use the previous context to provide a specific answer
+- For "tell me more", expand on features and benefits
+- For "how much" or "price", provide pricing if available
 
-  if (topMatch.benefits.length > 0) {
-    response += `\n\n✨ Key benefits:\n• ${topMatch.benefits.slice(0, 3).join('\n• ')}`
-  }
+## Suggestion Chips:
+At the END of your response, add exactly 3 follow-up question suggestions in this exact format:
+SUGGESTIONS:["Question 1?","Question 2?","Question 3?"]
 
-  if (relatedMatches.length > 0) {
-    response += `\n\n🔍 Related: ${relatedMatches.map(m => m.name).join(', ')}. Would you like to know more about any of these?`
-  }
-
-  return response
+Choose suggestions that:
+- Are relevant to the current topic
+- Help users discover related products/services
+- Are short and actionable (5-8 words each)
+`
 }
 
 export async function POST(req: Request) {
@@ -209,42 +187,128 @@ export async function POST(req: Request) {
     const history: Message[] = body?.history || []
 
     if (!query) {
-      return NextResponse.json(
-        { error: 'Missing query' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing query' }, { status: 400 })
     }
 
-    // Check if we have Upstash Vector credentials
-    if (!process.env.UPSTASH_VECTOR_REST_URL || !process.env.UPSTASH_VECTOR_REST_TOKEN) {
-      // Fallback to basic keyword matching if no vector DB
-      console.warn('[MARZ] Using fallback keyword search (no Upstash Vector credentials)')
+    // Check if Groq API key is configured
+    if (!process.env.GROQ_API_KEY) {
+      // Fallback to basic response
+      const matches = await searchKnowledge(query)
+      if (matches.length === 0) {
+        return NextResponse.json({
+          response: "🤖 MARZ is in setup mode. Please configure GROQ_API_KEY in your environment variables to enable LLM-powered responses. For now, I can help with basic questions about Domains, SSL, DNS, and Licenses.",
+          matches: [],
+          setupRequired: true,
+        })
+      }
+    }
+
+    // Search for relevant products/services (RAG retrieval)
+    const matches = await searchKnowledge(query)
+
+    // Build system prompt with context
+    const systemPrompt = buildSystemPrompt(matches, history, query)
+
+    // If Groq is configured, use LLM for response generation
+    if (process.env.GROQ_API_KEY) {
+      try {
+        const { Groq } = await import('groq-sdk')
+        
+        const groq = new Groq({
+          apiKey: process.env.GROQ_API_KEY,
+        })
+
+        const chatCompletion = await groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...history.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: query },
+          ],
+          model: 'llama3-8b-8192',
+          temperature: 0.7,
+          max_tokens: 500,
+          top_p: 1,
+          stream: false,
+        })
+
+        const response = chatCompletion.choices[0]?.message?.content || ''
+
+        // Parse suggestions from response
+        let suggestions: string[] = []
+        const suggestionMatch = response.match(/SUGGESTIONS:(\[.*\])/)
+        if (suggestionMatch) {
+          try {
+            suggestions = JSON.parse(suggestionMatch[1])
+          } catch {
+            suggestions = []
+          }
+        }
+
+        // Remove suggestions from response text
+        const cleanResponse = response.replace(/SUGGESTIONS:\[.*\]/, '').trim()
+
+        return NextResponse.json({
+          response: cleanResponse,
+          matches: matches.map(m => ({ id: m.id, name: m.name, type: m.type })),
+          suggestions,
+        })
+      } catch (groqError) {
+        console.error('[MARZ] Groq API error:', groqError)
+        // Fall through to fallback response
+      }
+    }
+
+    // Fallback: Generate response without LLM
+    if (matches.length === 0) {
       return NextResponse.json({
-        response: "⚠️ MARZ is in setup mode. Please configure Upstash Vector credentials (UPSTASH_VECTOR_REST_URL and UPSTASH_VECTOR_REST_TOKEN) in your environment variables, then run `npm run db:seed-vectors` to enable semantic search.",
+        response: "I'm here to help you with questions about our products and services! I can assist with:\n\n• **Domain Registration** - Find and register your perfect domain\n• **SSL Certificates** - Secure your website with DV, OV, EV, or Wildcard SSL\n• **DNS Services** - Free DNS hosting with global anycast network\n• **Email Security** - Spam Experts and EasyDMARC solutions\n• **Licenses** - Plesk and Virtuozzo control panel licenses\n\nWhat would you like to know?",
         matches: [],
-        setupRequired: true,
+        suggestions: [
+          "What domains do you offer?",
+          "Tell me about SSL certificates",
+          "How much does DNS hosting cost?",
+        ],
       })
     }
 
-    // Perform semantic search
-    const matches = await semanticSearch(query, 3)
+    // Simple template-based response for fallback
+    const [topMatch] = matches
+    const queryLower = query.toLowerCase()
 
-    // Generate response with conversation context
-    const response = generateResponse(query, history, matches)
+    let response = `🤖 **${topMatch.name}**\n\n${topMatch.description}`
+    
+    if (topMatch.price) {
+      response += `\n\n💵 Starting from: ${topMatch.price}`
+    }
+
+    if (queryLower.includes('feature') || queryLower.includes('include')) {
+      response += `\n\n📋 Key features:\n• ${topMatch.features.slice(0, 5).join('\n• ')}`
+    }
+
+    if (topMatch.benefits.length > 0) {
+      response += `\n\n✨ Benefits:\n• ${topMatch.benefits.slice(0, 3).join('\n• ')}`
+    }
+
+    const suggestions = [
+      `What are the features of ${topMatch.name}?`,
+      `How much does ${topMatch.name} cost?`,
+      `Tell me about related products`,
+    ]
 
     return NextResponse.json({
       response,
-      matches: matches.map(m => ({
-        id: m.id,
-        name: m.name,
-        type: m.type,
-        category: m.category,
-      })),
+      matches: matches.map(m => ({ id: m.id, name: m.name, type: m.type })),
+      suggestions,
     })
+
   } catch (error) {
     console.error('[MARZ API Error]:', error)
     return NextResponse.json(
-      { error: 'Failed to process request', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Failed to process request', 
+        response: "I apologize, but I'm experiencing technical difficulties. Please try again in a moment.",
+        suggestions: ["Tell me about domains", "What SSL options are available?", "Help me choose a product"],
+      },
       { status: 500 }
     )
   }
