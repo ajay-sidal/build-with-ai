@@ -3,23 +3,25 @@
 import * as React from 'react'
 import { useChat } from 'ai/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  X,
-  Send,
-  Mic,
-  MicOff,
-  Volume2,
-  VolumeX,
-  Sparkles,
-  Loader2,
-  Bot,
-  Copy,
-  Check,
-  Code2,
-} from 'lucide-react'
+import type { Message } from 'ai/react'
+
+// Import sub-components
+import FloatingActionButton from './FloatingActionButton'
+import ChatHeader from './ChatHeader'
+import MessageList from './MessageList'
+import SuggestionChips from './SuggestionChips'
+import ChatInput from './ChatInput'
 
 // Storage key for chat persistence
 const MARZ_CHAT_HISTORY_KEY = 'marz_chat_history'
+const WIDGET_SIZE_KEY = 'marz_widget_size'
+const WIDGET_POSITION_KEY = 'marz_widget_position'
+const SELECTED_VOICE_KEY = 'marz_selected_voice'
+
+// Constants for resizing
+const DEFAULT_SIZE = { width: 400, height: 600 }
+const MIN_SIZE = { width: 320, height: 400 }
+const MAX_SIZE = { width: 600, height: 800 }
 
 interface SuggestionData {
   suggestions?: string[]
@@ -49,113 +51,10 @@ declare global {
   }
 }
 
-// Phase 1.1: CodeBlock Component with Copy to Clipboard
-interface CodeBlockProps {
-  language: string
-  code: string
-}
-
-const CodeBlock: React.FC<CodeBlockProps> = ({ language, code }) => {
-  const [isCopied, setIsCopied] = React.useState(false)
-
-  const handleCopy = React.useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(code)
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy code:', err)
-    }
-  }, [code])
-
-  return (
-    <div className="my-3 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900">
-      <div className="flex items-center justify-between border-b border-zinc-700 bg-zinc-800/50 px-3 py-2">
-        <span className="text-xs font-medium text-zinc-400">
-          {language || 'code'}
-        </span>
-        <button
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-600 bg-zinc-700 px-2 py-1 text-xs text-zinc-300 transition-colors hover:bg-zinc-600 hover:text-zinc-100"
-          title={isCopied ? 'Copied!' : 'Copy code'}
-        >
-          {isCopied ? (
-            <>
-              <Check size={12} className="text-emerald-400" />
-              <span className="text-emerald-400">Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy size={12} />
-              <span>Copy</span>
-            </>
-          )}
-        </button>
-      </div>
-      <pre className="overflow-x-auto p-3 text-xs text-zinc-100">
-        <code>{code}</code>
-      </pre>
-    </div>
-  )
-}
-
-// Phase 1.2: Updated formatMessage with CodeBlock support
-const formatMessage = (content: string) => {
-  // Split content by code blocks using regex
-  const parts = content.split(/```(\w*)\n([\s\S]*?)```/g)
-  
-  const elements: React.ReactNode[] = []
-  let key = 0
-
-  for (let i = 0; i < parts.length; i += 3) {
-    // Text part (before code block)
-    const textPart = parts[i]
-    if (textPart) {
-      const textElements = textPart.split('\n').map((line, lineIdx) => (
-        <p key={`${key}-text-${lineIdx}`} className="mb-1 last:mb-0">
-          {line.split('**').map((part, partIdx) =>
-            partIdx % 2 === 1 ? (
-              <strong key={partIdx} className="font-semibold text-zinc-100">
-                {part}
-              </strong>
-            ) : (
-              <span key={partIdx}>{part}</span>
-            )
-          )}
-        </p>
-      ))
-      elements.push(...textElements)
-    }
-
-    // Code block (if exists)
-    if (i + 2 < parts.length) {
-      const language = parts[i + 1]
-      const code = parts[i + 2].trim()
-      elements.push(
-        <CodeBlock
-          key={`${key}-code`}
-          language={language}
-          code={code}
-        />
-      )
-      key++
-    }
-  }
-
-  return <>{elements}</>
-}
-
-// Phase 2.1: Helper function to load initial messages from localStorage
-function getInitialMessages() {
-  // Check if we're in browser environment
+// Helper function to load initial messages from localStorage
+function getInitialMessages(): Message[] {
   if (typeof window === 'undefined') {
-    return [
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
-      },
-    ]
+    return []
   }
 
   try {
@@ -170,7 +69,11 @@ function getInitialMessages() {
     console.error('[MARZ] Failed to load chat history:', error)
   }
 
-  // Default welcome message
+  return []
+}
+
+// Helper function to get default welcome message
+function getDefaultWelcomeMessage(): Message[] {
   return [
     {
       id: 'welcome',
@@ -181,50 +84,100 @@ function getInitialMessages() {
 }
 
 export default function MarzChatWidget() {
+  // UI State
   const [isOpen, setIsOpen] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
   const [speechEnabled, setSpeechEnabled] = React.useState(false)
-  const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
+  const [size, setSize] = React.useState(DEFAULT_SIZE)
+  const [position, setPosition] = React.useState<'left' | 'right'>('right')
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
+  const [availableVoices, setAvailableVoices] = React.useState<SpeechSynthesisVoice[]>([])
+  const [selectedVoice, setSelectedVoice] = React.useState<string | null>(null)
+  const [isHistoryLoading, setIsHistoryLoading] = React.useState(true)
   const [suggestions, setSuggestions] = React.useState<string[]>([])
+  
+  // Refs
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
+  const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
 
-  // Text-to-speech
-  const speakResponse = React.useCallback((text: string) => {
-    if (!speechEnabled || !window.speechSynthesis) return
-
-    const cleanText = text
-      .replace(/\*\*/g, '')
-      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-      .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
-      .replace(/\n/g, ' ')
-      .trim()
-
-    const utterance = new SpeechSynthesisUtterance(cleanText)
-    utterance.rate = 1.0
-    utterance.pitch = 1.0
-    utterance.volume = 1.0
-
-    const voices = window.speechSynthesis.getVoices()
-    const preferredVoice = voices.find(
-      (v) => v.name.includes('Female') || v.name.includes('Google US English')
-    )
-    if (preferredVoice) {
-      utterance.voice = preferredVoice
-    }
-
-    window.speechSynthesis.speak(utterance)
-  }, [speechEnabled])
-
-  // Vercel AI SDK useChat hook with persisted initial messages
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, data, setMessages } = useChat({
+  // Vercel AI SDK useChat hook
+  const { 
+    messages, 
+    input, 
+    handleInputChange, 
+    handleSubmit, 
+    isLoading, 
+    append, 
+    data, 
+    setMessages 
+  } = useChat({
     api: '/api/marz/chat',
-    initialMessages: getInitialMessages(),
+    initialMessages: [],
     initialInput: '',
   })
 
-  // Phase 2.2: Save messages to localStorage on update
+  // Load chat history from localStorage on mount
   React.useEffect(() => {
-    // Only save if we have more than just the welcome message
+    const initialMessages = getInitialMessages()
+    
+    if (initialMessages.length > 0) {
+      setMessages(initialMessages)
+    } else {
+      setMessages(getDefaultWelcomeMessage())
+    }
+    
+    setIsHistoryLoading(false)
+  }, [setMessages])
+
+  // Load widget size from localStorage
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(WIDGET_SIZE_KEY)
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed.width && parsed.height) {
+            setSize({
+              width: Math.max(MIN_SIZE.width, Math.min(MAX_SIZE.width, parsed.width)),
+              height: Math.max(MIN_SIZE.height, Math.min(MAX_SIZE.height, parsed.height)),
+            })
+          }
+        }
+      } catch (error) {
+        console.error('[MARZ] Failed to load widget size:', error)
+      }
+    }
+  }, [])
+
+  // Load widget position from localStorage
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedPosition = localStorage.getItem(WIDGET_POSITION_KEY)
+      if (storedPosition === 'left' || storedPosition === 'right') {
+        setPosition(storedPosition)
+      }
+    }
+  }, [])
+
+  // Load and save selected voice
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedVoice = localStorage.getItem(SELECTED_VOICE_KEY)
+      if (storedVoice) {
+        setSelectedVoice(storedVoice)
+      }
+
+      const getVoices = () => {
+        const voices = window.speechSynthesis.getVoices()
+        if (voices.length > 0) setAvailableVoices(voices)
+      }
+      getVoices()
+      window.speechSynthesis.onvoiceschanged = getVoices
+    }
+  }, [])
+
+  // Save messages to localStorage on update
+  React.useEffect(() => {
     if (messages.length > 1 && typeof window !== 'undefined') {
       try {
         localStorage.setItem(MARZ_CHAT_HISTORY_KEY, JSON.stringify(messages))
@@ -233,6 +186,20 @@ export default function MarzChatWidget() {
       }
     }
   }, [messages])
+
+  // Save widget size to localStorage
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') localStorage.setItem(WIDGET_SIZE_KEY, JSON.stringify(size))
+  }, [size])
+
+  // Save widget position to localStorage
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') localStorage.setItem(WIDGET_POSITION_KEY, position)
+  }, [position])
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && selectedVoice) localStorage.setItem(SELECTED_VOICE_KEY, selectedVoice)
+  }, [selectedVoice])
 
   // Extract suggestions from response data
   React.useEffect(() => {
@@ -245,8 +212,38 @@ export default function MarzChatWidget() {
           setTimeout(() => speakResponse(lastMsg.content), 300)
         }
       }
+    } else {
+      setSuggestions([])
     }
   }, [data, messages, speechEnabled, speakResponse])
+
+  // Text-to-speech
+  const speakResponse = React.useCallback((text: string) => {
+    if (!speechEnabled || !window.speechSynthesis) return
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel()
+    }
+
+    const cleanText = text
+      .replace(/\*\*/g, '')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
+      .replace(/\n/g, ' ')
+      .trim()
+
+    const utterance = new SpeechSynthesisUtterance(cleanText)
+    utterance.rate = 1.0
+    utterance.pitch = 1.0
+    utterance.volume = 1.0
+
+    const voices = window.speechSynthesis.getVoices()
+    const preferredVoice = voices.find((v) => v.voiceURI === selectedVoice) || voices.find((v) => v.name.includes('Female') || v.name.includes('Google US English'))
+    if (preferredVoice) {
+      utterance.voice = preferredVoice
+    }
+
+    window.speechSynthesis.speak(utterance)
+  }, [speechEnabled, selectedVoice])
 
   // Initialize speech recognition
   React.useEffect(() => {
@@ -282,12 +279,7 @@ export default function MarzChatWidget() {
     }
   }, [handleInputChange])
 
-  // Auto-scroll to bottom
-  React.useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  // Handle voice input
+  // Handle voice input toggle
   const toggleVoiceInput = React.useCallback(() => {
     if (!recognition) {
       alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.')
@@ -304,71 +296,43 @@ export default function MarzChatWidget() {
   }, [recognition, isListening])
 
   // Handle suggestion chip click
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = React.useCallback((suggestion: string) => {
     setSuggestions([])
     append({
       role: 'user',
       content: suggestion,
     })
-  }
+  }, [append])
 
   // Handle Enter key
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && input.trim()) {
       e.preventDefault()
       handleSubmit(e as any)
+      setSuggestions([])
     }
-  }
+  }, [handleSubmit, input])
 
-  // Clear chat history helper
+  // Clear chat history
   const handleClearChat = React.useCallback(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(MARZ_CHAT_HISTORY_KEY)
-      setMessages([
-        {
-          id: 'welcome',
-          role: 'assistant',
-          content: "👋 Hi! I'm **MARZ**, your AI assistant. I can help you with questions about our Domains, SSL Certificates, DNS Services, Licenses, and more. What would you like to know?",
-        },
-      ])
+      setMessages(getDefaultWelcomeMessage())
       setSuggestions([])
+      setIsSettingsOpen(false)
     }
   }, [setMessages])
 
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!input.trim()) return
+    handleSubmit(e)
+    setSuggestions([])
+  }
+
   return (
     <>
-      {/* Floating Action Button */}
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
-        aria-label={isOpen ? 'Close chat' : 'Open chat'}
-      >
-        <AnimatePresence mode="wait">
-          {isOpen ? (
-            <motion.div
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-            >
-              <X size={24} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="open"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-            >
-              <Bot size={24} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.button>
+      <FloatingActionButton isOpen={isOpen} position={position} setIsOpen={setIsOpen} />
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -377,162 +341,58 @@ export default function MarzChatWidget() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            style={{ width: size.width, height: size.height }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/95 backdrop-blur shadow-2xl shadow-black/50 sm:right-6"
+            className={`fixed bottom-24 z-50 flex flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/95 backdrop-blur shadow-2xl shadow-black/50 ${position === 'right' ? 'right-6' : 'left-6'}`}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-zinc-800 bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-4 py-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600">
-                  <Sparkles size={20} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-zinc-100">MARZ</h3>
-                  <p className="text-xs text-zinc-400">AI Assistant</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleClearChat}
-                  className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-                  title="Clear chat history"
-                >
-                  <Code2 size={16} />
-                </button>
-                <button
-                  onClick={() => setSpeechEnabled(!speechEnabled)}
-                  className={`rounded-lg p-2 transition-colors ${
-                    speechEnabled
-                      ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
-                      : 'text-zinc-500 hover:text-zinc-300'
-                  }`}
-                  title={speechEnabled ? 'Disable voice output' : 'Enable voice output'}
-                >
-                  {speechEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                </button>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
+            <ChatHeader
+              handleClearChat={handleClearChat}
+              onToggleSettings={() => setIsSettingsOpen(true)}
+              position={position}
+              onTogglePosition={() => setPosition(p => p === 'right' ? 'left' : 'right')}
+              setIsOpen={setIsOpen}
+            />
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3">
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
-                        message.role === 'user'
-                          ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
-                          : 'bg-zinc-800/80 text-zinc-200'
-                      }`}
-                    >
-                      {formatMessage(message.content)}
-                    </div>
-                  </motion.div>
-                ))}
-                {isLoading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-start"
-                  >
-                    <div className="flex items-center gap-2 rounded-2xl bg-zinc-800/80 px-4 py-3 text-sm text-zinc-400">
-                      <Loader2 size={16} className="animate-spin" />
-                      <span>MARZ is thinking...</span>
-                    </div>
-                  </motion.div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
+            <MessageList
+              messages={messages}
+              isLoading={isLoading}
+              isHistoryLoading={isHistoryLoading}
+              messagesEndRef={messagesEndRef}
+            />
 
-            {/* Suggestion Chips */}
+            <SuggestionChips
+              suggestions={suggestions}
+              handleSuggestionClick={handleSuggestionClick}
+              isLoading={isLoading}
+            />
+
+            <ChatInput
+              handleSubmit={handleFormSubmit}
+              input={input}
+              handleInputChange={handleInputChange}
+              handleKeyDown={handleKeyDown}
+              isLoading={isLoading}
+              isListening={isListening}
+              toggleVoiceInput={toggleVoiceInput}
+            />
+
             <AnimatePresence>
-              {suggestions.length > 0 && !isLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="border-t border-zinc-800/50 px-4 py-2"
-                >
-                  <div className="flex flex-wrap gap-2">
-                    {suggestions.map((suggestion, index) => (
-                      <motion.button
-                        key={index}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="rounded-full border border-blue-600/50 bg-blue-600/10 px-3 py-1.5 text-xs text-blue-300 transition-all hover:bg-blue-600/20 hover:text-blue-200"
-                      >
-                        {suggestion}
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+              {isSettingsOpen && <SettingsPanel onClose={() => setIsSettingsOpen(false)} speechEnabled={speechEnabled} setSpeechEnabled={setSpeechEnabled} availableVoices={availableVoices} selectedVoice={selectedVoice} setSelectedVoice={setSelectedVoice} />}
             </AnimatePresence>
 
-            {/* Input Area */}
-            <div className="border-t border-zinc-800 p-4">
-              <form
-                onSubmit={handleSubmit}
-                className="flex items-end gap-2"
-              >
-                <button
-                  type="button"
-                  onClick={toggleVoiceInput}
-                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
-                    isListening
-                      ? 'bg-red-600 text-white animate-pulse'
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-                  }`}
-                  title={isListening ? 'Stop listening' : 'Start voice input'}
-                >
-                  {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-                </button>
-
-                <div className="flex-1">
-                  <textarea
-                    value={input}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask me anything..."
-                    rows={1}
-                    className="max-h-32 w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                    style={{ minHeight: '44px' }}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={!input.trim() || isLoading}
-                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Send size={18} />
-                </button>
-              </form>
-
-              {isListening && (
-                <motion.p
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-2 text-center text-xs text-red-400"
-                >
-                  🔴 Listening... Speak now
-                </motion.p>
-              )}
-            </div>
+            <motion.div
+              drag="x,y"
+              onDrag={(event, info) => {
+                setSize(prev => ({
+                  width: Math.max(MIN_SIZE.width, Math.min(MAX_SIZE.width, prev.width + info.delta.x)),
+                  height: Math.max(MIN_SIZE.height, Math.min(MAX_SIZE.height, prev.height + info.delta.y))
+                }))
+              }}
+              dragMomentum={false}
+              className="absolute bottom-0 right-0 z-10 h-4 w-4 cursor-se-resize"
+            >
+              <div className={`h-full w-full border-r-2 border-b-2 border-zinc-600/50 rounded-br-xl ${position === 'left' ? 'transform -scale-x-100' : ''}`}></div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

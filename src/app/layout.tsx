@@ -10,22 +10,22 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://buildwithai.digital'),
   title: {
-    template: '%s | BuildWithAI.digital',
-    default: 'Build With AI | Futuristic AI Domain & Infrastructure Hub',
+    template: '%s | BUILD WITH AI',
+    default: 'BUILD WITH AI | Futuristic AI Domain & Infrastructure Hub',
   },
   description:
     "The world's first AI-driven domain registrar and security vault. Search, secure, and scale your digital assets with zero-knowledge SSL and instant DNS.",
   openGraph: {
-    title: 'Build With AI | Futuristic AI Domain & Infrastructure Hub',
+    title: 'BUILD WITH AI | Futuristic AI Domain & Infrastructure Hub',
     description:
       "The world's first AI-driven domain registrar and security vault. Search, secure, and scale your digital assets with zero-knowledge SSL and instant DNS.",
     url: '/',
-    siteName: 'BuildWithAI.digital',
+    siteName: 'BUILD WITH AI',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Build With AI | Futuristic AI Domain & Infrastructure Hub',
+    title: 'BUILD WITH AI | Futuristic AI Domain & Infrastructure Hub',
     description:
       "The world's first AI-driven domain registrar and security vault. Search, secure, and scale your digital assets with zero-knowledge SSL and instant DNS.",
   },
