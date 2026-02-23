@@ -238,8 +238,17 @@ export default function MarzChatWidget() {
       recognitionInstance.onerror = (event: any) => {
         console.error('[MARZ] Speech recognition error:', event.error)
         setIsListening(false)
+        
+        // Provide helpful error messages
         if (event.error === 'not-allowed') {
-          alert('Microphone access denied. Please allow microphone access in your browser settings.')
+          console.warn('[MARZ] Microphone permission denied by user')
+        } else if (event.error === 'no-speech') {
+          console.warn('[MARZ] No speech detected')
+        } else if (event.error === 'audio-capture') {
+          console.warn('[MARZ] No microphone found')
+          alert('No microphone detected. Please ensure a microphone is connected to your device.')
+        } else if (event.error === 'network') {
+          console.warn('[MARZ] Network error occurred')
         }
       }
 
@@ -257,7 +266,7 @@ export default function MarzChatWidget() {
 
       setRecognition(recognitionInstance)
     } else {
-      console.warn('[MARZ] Web Speech API not supported in this browser')
+      console.warn('[MARZ] Web Speech API not supported in this browser. Please use Chrome or Edge.')
     }
   }, [])
 
@@ -272,17 +281,31 @@ export default function MarzChatWidget() {
       recognition.stop()
       setIsListening(false)
     } else {
-      // Request microphone access
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          transcriptRef.current = ''
-          setIsListening(true)
-          recognition.start()
-        })
-        .catch((error) => {
-          console.error('[MARZ] Microphone access error:', error)
-          alert('Microphone access denied. Please allow microphone access in your browser settings to use voice input.')
-        })
+      // Start recognition directly - browser will prompt for permission if needed
+      transcriptRef.current = ''
+      setIsListening(true)
+      
+      try {
+        recognition.start()
+      } catch (error: any) {
+        console.error('[MARZ] Recognition start error:', error)
+        setIsListening(false)
+        
+        // Handle specific error cases
+        if (error.message?.includes('permission') || error.message?.includes('not-allowed')) {
+          alert('Microphone access denied. Please click the microphone icon in your browser address bar and allow microphone access, then try again.')
+        } else if (error.message?.includes('already started')) {
+          // Recognition already running, stop and restart
+          recognition.stop()
+          setTimeout(() => {
+            transcriptRef.current = ''
+            setIsListening(true)
+            recognition.start()
+          }, 100)
+        } else {
+          alert('Unable to start voice recognition. Please ensure your browser supports the Web Speech API and try again.')
+        }
+      }
     }
   }, [recognition, isListening])
 
