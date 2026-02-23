@@ -3,7 +3,7 @@ import Groq from 'groq-sdk'
 
 // Force Node.js runtime for better compatibility
 export const runtime = 'nodejs'
-export const maxDuration = 30 // 30 second timeout
+export const maxDuration = 60 // 60 second timeout (increased from 30s)
 
 export async function POST(req: Request) {
   try {
@@ -16,14 +16,17 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error: 'GROQ_API_KEY not configured',
-          response: "I apologize, but MARZ is not fully configured yet. The GROQ_API_KEY environment variable is missing.",
+          response: "I apologize, but MARZ is not fully configured yet. The GROQ_API_KEY environment variable is missing. Please contact the administrator.",
           suggestions: ['What products do you offer?', 'Tell me about domains', 'What is SSL?'],
         },
         { status: 503 }
       )
     }
 
-    const groq = new Groq({ apiKey: groqApiKey })
+    const groq = new Groq({ 
+      apiKey: groqApiKey,
+      timeout: 50000, // 50 second timeout for API calls
+    })
 
     // Parse request body
     const { messages } = await req.json()
@@ -66,13 +69,35 @@ Be conversational, helpful, and use markdown formatting. Keep responses concise 
       ...messages,
     ]
 
-    // Call the LLM
+    // Call the LLM with timeout handling
     console.log('[MARZ] Calling Groq API...')
-    const completion = await groq.chat.completions.create({
-      model: 'llama3-8b-8192',
-      messages: finalMessages,
-      max_tokens: 1024,
-    })
+    
+    let completion: any
+    try {
+      completion = await Promise.race([
+        groq.chat.completions.create({
+          model: 'llama3-8b-8192',
+          messages: finalMessages,
+          max_tokens: 1024,
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('API_TIMEOUT')), 55000)
+        ),
+      ])
+    } catch (apiError: any) {
+      if (apiError.message === 'API_TIMEOUT') {
+        console.error('[MARZ] Groq API timeout')
+        return NextResponse.json(
+          {
+            error: 'API_TIMEOUT',
+            response: "I apologize, but the request is taking longer than expected. Please try again.",
+            suggestions: ['Try asking a simpler question', 'Check your internet connection', 'Contact support if this persists'],
+          },
+          { status: 504 }
+        )
+      }
+      throw apiError
+    }
 
     const aiResponse = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
     console.log('[MARZ] Got response from Groq')
@@ -93,6 +118,23 @@ Be conversational, helpful, and use markdown formatting. Keep responses concise 
   } catch (error) {
     console.error('[MARZ API Error]:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    // Log to admin dashboard
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/logs/client-error`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'MARZ API request failed',
+          details: {
+            error: errorMessage,
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch(() => {}) // Ignore logging errors
+    } catch {}
+    
     return NextResponse.json(
       {
         error: 'Failed to process request',
