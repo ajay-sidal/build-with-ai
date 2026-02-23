@@ -13,12 +13,92 @@ type SignupResponse =
   | ({ ok: true; already: boolean } & AlphaStats)
   | ({ error: string } & Partial<AlphaStats>)
 
-export default function LaunchMagnet({ defaultOpen = true }: { defaultOpen?: boolean }) {
-  const [open, setOpen] = React.useState(Boolean(defaultOpen))
+export default function LaunchMagnet({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  const [open, setOpen] = React.useState(false)
   const [email, setEmail] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
   const [done, setDone] = React.useState<{ already: boolean } | null>(null)
   const [error, setError] = React.useState<string | null>(null)
+  const [hasInteracted, setHasInteracted] = React.useState(false)
+  const [hasShown, setHasShown] = React.useState(false)
+
+  // Track user interaction
+  React.useEffect(() => {
+    function markInteracted() {
+      setHasInteracted(true)
+    }
+
+    // Mark as interacted on any user action
+    window.addEventListener('mousemove', markInteracted, { once: true })
+    window.addEventListener('keydown', markInteracted, { once: true })
+    window.addEventListener('touchstart', markInteracted, { once: true })
+    window.addEventListener('scroll', markInteracted, { once: true })
+
+    return () => {
+      window.removeEventListener('mousemove', markInteracted)
+      window.removeEventListener('keydown', markInteracted)
+      window.removeEventListener('touchstart', markInteracted)
+      window.removeEventListener('scroll', markInteracted)
+    }
+  }, [])
+
+  // Exit intent detection - show modal when user moves mouse to top of browser
+  React.useEffect(() => {
+    if (hasShown) return // Don't show again if already shown
+
+    function handleMouseLeave(e: MouseEvent) {
+      // Only trigger if mouse moves to top of viewport (closing tab/bookmark bar)
+      if (e.clientY <= 0 && !hasInteracted) {
+        setOpen(true)
+        setHasShown(true)
+      }
+    }
+
+    // Only add exit intent listener after user has interacted
+    if (hasInteracted) {
+      document.addEventListener('mouseleave', handleMouseLeave)
+    }
+
+    return () => {
+      document.removeEventListener('mouseleave', handleMouseLeave)
+    }
+  }, [hasInteracted, hasShown])
+
+  // Navigation interception - show modal when clicking links
+  React.useEffect(() => {
+    if (hasShown) return
+
+    function handleClick(e: MouseEvent) {
+      // Find closest anchor
+      const target = e.target as HTMLElement
+      const link = target.closest('a')
+
+      if (link && link.href && link.target !== '_blank' && !link.href.startsWith('tel:') && !link.href.startsWith('mailto:')) {
+        // Check if it's an internal link
+        const isInternal = link.origin === window.location.origin
+        
+        if (isInternal && !link.closest('.no-exit-modal')) {
+          e.preventDefault()
+          setOpen(true)
+          setHasShown(true)
+          
+          // After modal closes, navigate to the link
+          const href = link.href
+          setTimeout(() => {
+            window.location.href = href
+          }, 500)
+        }
+      }
+    }
+
+    if (hasInteracted) {
+      document.addEventListener('click', handleClick, true)
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClick, true)
+    }
+  }, [hasInteracted, hasShown])
 
   React.useEffect(() => {
     function onOpen() {
@@ -84,7 +164,7 @@ export default function LaunchMagnet({ defaultOpen = true }: { defaultOpen?: boo
                       Join the AI Infrastructure Alpha
                     </h2>
                     <p className="mt-2 text-sm text-zinc-300">
-                      Be one of the first 1,000. Get wholesale pricing on your first domain + a Free “AI Deployment”
+                      Be one of the first 1,000. Get wholesale pricing on your first domain + a Free "AI Deployment"
                       Template.
                     </p>
                   </div>
@@ -98,7 +178,7 @@ export default function LaunchMagnet({ defaultOpen = true }: { defaultOpen?: boo
               <CardContent>
                 {done ? (
                   <div className="rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-4 text-sm text-emerald-200">
-                    {done.already ? 'You’re already on the list.' : 'You’re in. Welcome to the Alpha.'}
+                    {done.already ? 'You&apos;re already on the list.' : 'You&apos;re in. Welcome to the Alpha.'}
                     <div className="mt-2 text-xs text-zinc-300">You can close this and continue domain search.</div>
                   </div>
                 ) : (
