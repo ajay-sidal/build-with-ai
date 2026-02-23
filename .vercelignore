@@ -1,0 +1,6 @@
+# Ignore files not needed for deployment
+coverage/
+src/tests/
+e2e/
+*.md
+scripts/

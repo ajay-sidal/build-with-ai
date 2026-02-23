@@ -178,8 +178,18 @@ export default function LeadsClient() {
         },
         body: JSON.stringify({ email, status: s }),
       })
+      addNotification({
+        type: 'success',
+        title: 'Lead Status Updated',
+        message: `Status for ${email} set to ${s}.`,
+      })
     } catch {
       // best-effort
+      addNotification({
+        type: 'error',
+        title: 'Status Update Failed',
+        message: `Could not update status for ${email}.`,
+      })
     }
   }
 
@@ -292,17 +302,31 @@ export default function LeadsClient() {
 
               <AnimatePresence initial={false}>
                 <tbody>
-                  {decorated.length === 0 ? (
+                  {isLoading ? (
+                    Array.from({ length: 5 }).map((_, idx) => (
+                      <tr key={idx}>
+                        <td colSpan={7} className="py-3">
+                          <div className="flex gap-2">
+                            <div className="w-24 h-4"><Skeleton className="w-full h-full" /></div>
+                            <div className="w-32 h-4"><Skeleton className="w-full h-full" /></div>
+                            <div className="w-40 h-4"><Skeleton className="w-full h-full" /></div>
+                            <div className="w-20 h-4"><Skeleton className="w-full h-full" /></div>
+                            <div className="w-16 h-4"><Skeleton className="w-full h-full" /></div>
+                            <div className="w-24 h-4"><Skeleton className="w-full h-full" /></div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : orderedLeads.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-10 text-center text-zinc-500">
                         No leads loaded.
                       </td>
                     </tr>
                   ) : (
-                    decorated.map(({ l, id, status }) => {
+                    orderedLeads.map(({ l, id, status }, idx) => {
                       const isPro = String(l.tier).toLowerCase() === 'pro'
                       const score = isPro ? 'High' : 'Standard'
-
                       return (
                         <motion.tr
                           key={id}
@@ -315,6 +339,12 @@ export default function LeadsClient() {
                             `border-b border-zinc-900/80 hover:bg-zinc-950 ` +
                             (isPro ? 'ring-1 ring-emerald-400/20' : '')
                           }
+                          draggable
+                          onDragStart={e => dragList.handlers.onDragStart(e, idx)}
+                          onDragOver={e => dragList.handlers.onDragOver(e, idx)}
+                          onDrop={e => dragList.handlers.onDrop(e, idx)}
+                          onDragEnd={dragList.handlers.onDragEnd}
+                          style={dragList.dragIndex === idx ? { opacity: 0.5 } : dragList.hoverIndex === idx ? { background: '#232323' } : {}}
                         >
                           <td className="py-3 pr-4 text-zinc-300">{leadDate(l)}</td>
                           <td className="py-3 pr-4 font-medium text-zinc-100">{l.name}</td>

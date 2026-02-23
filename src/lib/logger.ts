@@ -49,14 +49,12 @@ const prodFormat = winston.format.combine(
   winston.format.json()
 )
 
-// Create logger instance
+// Create logger instance with traceId support
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info'),
   levels: logLevels.levels,
-  // Don't log in test environment unless explicitly enabled
   silent: isTest && !process.env.LOG_LEVEL,
   transports: [
-    // Console transport for all environments
     new winston.transports.Console({
       format: isDevelopment ? devFormat : prodFormat,
     }),
@@ -65,8 +63,20 @@ const logger = winston.createLogger({
     service: 'build-with-ai',
     environment: process.env.NODE_ENV || 'development',
     version: process.env.npm_package_version || 'unknown',
+    traceId: getCurrentTraceId(),
   },
 })
+
+// Helper to get current traceId from OpenTelemetry context if available
+function getCurrentTraceId() {
+  try {
+    const { context, trace } = require('@opentelemetry/api')
+    const span = trace.getSpan(context.active())
+    return span ? span.context().traceId : undefined
+  } catch {
+    return undefined
+  }
+}
 
 // Add file transport in production if LOG_FILE is specified
 if (process.env.LOG_FILE && !isDevelopment) {
@@ -80,15 +90,14 @@ if (process.env.LOG_FILE && !isDevelopment) {
   )
 }
 
-// Create child loggers for different contexts
+// Create child loggers for different contexts, include traceId
 export function createLogger(context: string) {
-  return logger.child({ context })
+  return logger.child({ context, traceId: getCurrentTraceId() })
 }
 
-// HTTP request logging middleware helper
+// HTTP request logging middleware helper with traceId
 export function httpLogger(req: any, res: any, next: any) {
   const start = Date.now()
-  
   res.on('finish', () => {
     const duration = Date.now() - start
     logger.http('HTTP request', {
@@ -98,22 +107,24 @@ export function httpLogger(req: any, res: any, next: any) {
       duration: `${duration}ms`,
       ip: req.ip || req.headers['x-forwarded-for'] || 'unknown',
       userAgent: req.headers['user-agent'],
+      traceId: getCurrentTraceId(),
+      requestId: req.id || req.headers['x-request-id'],
     })
   })
-
   next()
 }
 
-// Error logging helper with context
+// Error logging helper with context and traceId
 export function logError(error: Error, context: LogMeta = {}) {
   logger.error(error.message, {
     ...context,
     stack: error.stack,
     name: error.name,
+    traceId: getCurrentTraceId(),
   })
 }
 
-// Request context logger
+// Request context logger with traceId
 export function requestLogger(requestId: string) {
   return createLogger(`request:${requestId}`)
 }
