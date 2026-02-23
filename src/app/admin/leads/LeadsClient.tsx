@@ -116,6 +116,9 @@ export default function LeadsClient() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
+  // Initialize drag-and-drop for ordered leads
+  const dragList = useDragAndDropList(orderedLeads, setOrderedLeads)
+
   React.useEffect(() => {
     const saved = window.sessionStorage.getItem('admin_secret')
     if (saved) setAdminSecret(saved)
