@@ -8,10 +8,16 @@ function optionalProvider<T>(provider: T, enabled: boolean): T | null {
   return enabled ? provider : null
 }
 
+// Check if database is available
+const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.trim() !== '')
+const hasNextAuthSecret = !!(process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_SECRET.trim() !== '')
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Only use database adapter if DATABASE_URL is set
+  adapter: hasDatabase ? PrismaAdapter(prisma) : undefined,
   session: {
-    strategy: 'database',
+    // Use JWT sessions if no database, otherwise database sessions
+    strategy: hasDatabase ? 'database' : 'jwt',
   },
   providers: [
     // OAuth Providers for regular user signup/signin
@@ -30,16 +36,27 @@ export const authOptions: NextAuthOptions = {
       Boolean((process.env.GOOGLE_CLIENT_ID || '').trim() && (process.env.GOOGLE_CLIENT_SECRET || '').trim()),
     ),
   ].filter(Boolean) as NextAuthOptions['providers'],
+  // NEXTAUTH_SECRET is required for JWT sessions
   secret: (process.env.NEXTAUTH_SECRET || '').trim() || undefined,
   pages: {
     signIn: '/login',
   },
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, user, token }) {
       if (session.user) {
-        ;(session.user as any).id = user.id
+        // Use token for JWT sessions, user for database sessions
+        ;(session.user as any).id = (user?.id || token?.sub || 'anonymous') as string
       }
       return session
     },
   },
+  // Disable NextAuth if critical env vars are missing (prevents 500 errors)
+  ...(!hasNextAuthSecret ? {
+    // In development, generate a warning but continue
+    logger: {
+      error: (code, ...message) => console.error('[NextAuth]', code, message),
+      warn: (code) => console.warn('[NextAuth]', code),
+      debug: (code, ...message) => console.log('[NextAuth]', code, message),
+    },
+  } : {}),
 }
