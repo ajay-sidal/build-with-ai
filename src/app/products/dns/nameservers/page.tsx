@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   openGraph: { title: 'Nameserver Groups | BuildWithAI', url: '/products/dns/nameservers' },
 }
 
+import Link from 'next/link'
 export default function NameserversPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-16">
@@ -27,9 +28,9 @@ export default function NameserversPage() {
         ))}
       </div>
 
-      <a href="/products/dns" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
+      <Link href="/products/dns" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
         Back to DNS Services →
-      </a>
+      </Link>
     </main>
   )
 }

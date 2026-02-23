@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Virtuozzo Licenses | Containerization & Virtualization',
@@ -29,9 +30,9 @@ export default function VirtuozzoLicensesPage() {
         ))}
       </div>
 
-      <a href="/products/licenses" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
-        Back to Licenses →
-      </a>
+          <Link href="/products/licenses" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
+            Back to Licenses
+          </Link>
     </main>
   )
 }

@@ -13,6 +13,7 @@ import {
   Users,
 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '../../components/ui/card'
 import { allServices } from '../../lib/openprovider-products'
 
@@ -32,6 +33,7 @@ const iconMap: Record<string, React.ReactNode> = {
 }
 
 export default function ServicesOverviewClient() {
+  const router = useRouter()
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-16">
       {/* Header */}
@@ -123,10 +125,14 @@ export default function ServicesOverviewClient() {
                 </div>
 
                 <div className="mt-6">
-                  <a href={service.cta.url} className="inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+                  <Button
+                    variant="primary"
+                    onClick={() => router.push(service.cta.url)}
+                    className="inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+                  >
                     {service.cta.primary}
                     <ArrowRight size={16} className="ml-2" />
-                  </a>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -167,10 +173,14 @@ export default function ServicesOverviewClient() {
               </div>
 
               <div className="mt-6">
-                <a href="/services/ai-design" className="inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+                <Button
+                  variant="primary"
+                  onClick={() => router.push('/services/ai-design')}
+                  className="inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+                >
                   Learn More
                   <ArrowRight size={16} className="ml-2" />
-                </a>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -250,13 +260,21 @@ export default function ServicesOverviewClient() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <a href="/products" className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+                <Button
+                  variant="primary"
+                  onClick={() => router.push('/products')}
+                  className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+                >
                   Browse Products
                   <ArrowRight size={16} className="ml-2" />
-                </a>
-                <a href="/partners" className="inline-flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800">
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => router.push('/partners')}
+                  className="inline-flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800"
+                >
                   Become a Partner
-                </a>
+                </Button>
               </div>
             </div>
           </CardContent>

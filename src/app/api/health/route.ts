@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
+import { logger } from '@/lib/logger'
+import { startSpan } from '@/lib/tracing'
+import { initSentry, captureException } from '@/lib/sentry'
 
 export const runtime = 'nodejs'
 
@@ -8,6 +11,8 @@ function hasEnv(name: string) {
 }
 
 export async function GET(req: Request) {
+  initSentry()
+  const span = startSpan('health.check')
   const requestId = randomUUID()
 
   const adminSecret = (process.env.ADMIN_SECRET || '').trim()
@@ -41,14 +46,31 @@ export async function GET(req: Request) {
 
   const status = requiredMissing.length === 0 ? 200 : 500
 
-  return NextResponse.json(
-    {
-      ok: status === 200,
-      requiredMissing,
-      checks,
-      region: process.env.VERCEL_REGION || null,
-      now: new Date().toISOString(),
-    },
-    { status, headers: { 'x-request-id': requestId } },
-  )
+  const payload = {
+    ok: status === 200,
+    requiredMissing,
+    checks,
+    region: process.env.VERCEL_REGION || null,
+    now: new Date().toISOString(),
+  }
+
+  try {
+    logger.info('Health check', { ok: payload.ok, missing: requiredMissing.length })
+  } catch (e) {
+    // ignore logging errors
+    // eslint-disable-next-line no-console
+    console.warn('Health logger failed', e)
+  }
+
+  span.end({ status })
+
+  if (status !== 200) {
+    try {
+      captureException(new Error('Health check failed'), { missing: requiredMissing })
+    } catch (e) {
+      // swallow
+    }
+  }
+
+  return NextResponse.json(payload, { status, headers: { 'x-request-id': requestId } })
 }

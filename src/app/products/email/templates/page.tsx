@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Email Templates | Custom Transactional Emails',
@@ -23,9 +24,9 @@ export default function EmailTemplatesPage() {
         </div>
       </div>
 
-      <a href="/products" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
+      <Link href="/products" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
         Back to Products →
-      </a>
+      </Link>
     </main>
   )
 }

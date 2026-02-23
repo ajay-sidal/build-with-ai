@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Card } from '../../../components/ui/card'
 import { Input } from '../../../components/ui/input'
 import { Button } from '../../../components/ui/button'
+import { Select } from '../../../components/ui/select'
 
 type StatsResponse =
   | { error: string }
@@ -167,14 +168,7 @@ export default function PartnersDashboardClient() {
 
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-zinc-400">Method</label>
-                  <select
-                    className="h-10 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-sm text-zinc-100"
-                    value={payoutMethod}
-                    onChange={(e) => setPayoutMethod(e.target.value as any)}
-                  >
-                    <option value="STRIPE_CONNECT">Stripe Connect</option>
-                    <option value="MANUAL">Manual</option>
-                  </select>
+                  <Select value={payoutMethod} onChange={(e) => setPayoutMethod(e.target.value as any)} />
 
                   <Button onClick={requestPayout} disabled={!data.totals.canRequestPayout || payoutState === 'loading'}>
                     {payoutState === 'loading' ? 'Requesting…' : 'Request Payout'}

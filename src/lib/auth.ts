@@ -13,10 +13,8 @@ const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.trim
 const hasNextAuthSecret = !!(process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_SECRET.trim() !== '')
 
 export const authOptions: NextAuthOptions = {
-  // Only use database adapter if DATABASE_URL is set
   adapter: hasDatabase ? PrismaAdapter(prisma) : undefined,
   session: {
-    // Use JWT sessions if no database, otherwise database sessions
     strategy: hasDatabase ? 'database' : 'jwt',
   },
   providers: [

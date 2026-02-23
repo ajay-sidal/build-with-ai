@@ -17,6 +17,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { Button } from '../../../../components/ui/button'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '../../../../components/ui/card'
 import { Input } from '../../../../components/ui/input'
 import DomainSearch from '../../../../components/DomainSearch'
@@ -87,6 +88,7 @@ const pricingTiers = [
 ]
 
 export default function DomainRegistrationClient() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = React.useState('')
 
   return (
@@ -222,10 +224,10 @@ export default function DomainRegistrationClient() {
                 ))}
               </ul>
 
-              <a href="/" className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+              <Button variant="primary" onClick={() => router.push('/')} className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
                 Get Started
                 <ArrowRight size={16} className="ml-2" />
-              </a>
+              </Button>
             </motion.div>
           ))}
         </div>
@@ -316,10 +318,10 @@ export default function DomainRegistrationClient() {
                   <td className="px-4 py-3 text-zinc-400">{row.desc}</td>
                   <td className="px-4 py-3 text-right text-zinc-300">{row.price}</td>
                   <td className="px-4 py-3 text-right">
-                    <a href="/" className="inline-flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800/50 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800">
-                      Register
-                      <ArrowRight size={14} className="ml-1" />
-                    </a>
+                      <Button variant="secondary" onClick={() => router.push('/')} className="inline-flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800/50 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800">
+                        Register
+                        <ArrowRight size={14} className="ml-1" />
+                      </Button>
                   </td>
                 </tr>
               ))}
@@ -345,10 +347,10 @@ export default function DomainRegistrationClient() {
                   Start with our domain search tool to find your perfect name.
                 </p>
               </div>
-              <a href="/" className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+              <Button variant="primary" onClick={() => router.push('/')} className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
                 Search Domains
                 <ArrowRight size={18} className="ml-2" />
-              </a>
+              </Button>
             </div>
           </CardContent>
         </Card>

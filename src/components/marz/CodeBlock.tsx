@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { Copy, Check } from 'lucide-react'
+import { Button } from '../ui/button'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
@@ -29,10 +30,11 @@ export default function CodeBlock({ language, code }: CodeBlockProps) {
         <span className="text-xs font-medium text-zinc-400">
           {language || 'code'}
         </span>
-        <button
+        <Button
           onClick={handleCopy}
           className="inline-flex items-center gap-1.5 rounded-md border border-zinc-600 bg-zinc-700 px-2 py-1 text-xs text-zinc-300 transition-colors hover:bg-zinc-600 hover:text-zinc-100"
           title={isCopied ? 'Copied!' : 'Copy code'}
+          variant="secondary"
         >
           {isCopied ? (
             <>
@@ -45,7 +47,7 @@ export default function CodeBlock({ language, code }: CodeBlockProps) {
               <span>Copy</span>
             </>
           )}
-        </button>
+        </Button>
       </div>
       <SyntaxHighlighter
         language={language}

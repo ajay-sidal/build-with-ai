@@ -138,9 +138,13 @@ export default function SignupForm() {
           {/* Sign in link */}
           <p className="text-center text-sm text-zinc-400">
             Already have an account?{' '}
-            <a href="/login" className="text-zinc-200 underline hover:text-zinc-100">
+            <Button
+              variant="secondary"
+              onClick={() => router.push('/login?next=' + encodeURIComponent(next))}
+              className="text-zinc-200 underline hover:text-zinc-100 p-0"
+            >
               Sign in
-            </a>
+            </Button>
           </p>
         </CardContent>
       </Card>

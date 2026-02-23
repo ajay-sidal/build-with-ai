@@ -20,6 +20,7 @@ import {
   Star,
 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '../../components/ui/card'
 import {
   allProducts,
@@ -57,6 +58,7 @@ const iconMap: Record<string, React.ReactNode> = {
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const router = useRouter()
   return (
     <motion.div
       initial="hidden"
@@ -114,13 +116,21 @@ function ProductCard({ product }: { product: Product }) {
           </ul>
 
           <div className="mt-6 flex items-center gap-3">
-            <a href={product.cta.url} className="inline-flex flex-1 items-center justify-center rounded-md bg-zinc-50 px-3 py-1.5 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+            <Button
+              variant="primary"
+              onClick={() => router.push(product.cta.url)}
+              className="inline-flex flex-1 items-center justify-center rounded-md bg-zinc-50 px-3 py-1.5 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+            >
               {product.cta.primary}
               <ArrowRight size={14} className="ml-2" />
-            </a>
-            <a href={product.cta.url} className="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-zinc-900/50 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800">
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => router.push(product.cta.url)}
+              className="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-zinc-900/50 px-3 py-1.5 text-sm text-zinc-300 transition hover:bg-zinc-800"
+            >
               {product.cta.secondary}
-            </a>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -139,18 +149,19 @@ function CategoryFilter({
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <button
+      <Button
         onClick={() => onSelect(null)}
         className={`rounded-full px-4 py-2 text-sm font-medium transition ${
           activeCategory === null
             ? 'bg-zinc-100 text-zinc-900'
             : 'border border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
         }`}
+        variant={activeCategory === null ? 'primary' : 'secondary'}
       >
         All Products
-      </button>
+      </Button>
       {categories.map((category) => (
-        <button
+        <Button
           key={category.id}
           onClick={() => onSelect(category.id)}
           className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
@@ -158,17 +169,19 @@ function CategoryFilter({
               ? 'bg-zinc-100 text-zinc-900'
               : 'border border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
           }`}
+          variant={activeCategory === category.id ? 'primary' : 'secondary'}
         >
           {iconMap[category.icon]}
           {category.name}
           <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs">{category.count}</span>
-        </button>
+        </Button>
       ))}
     </div>
   )
 }
 
 export default function ProductsClient() {
+  const router = useRouter()
   const [activeCategory, setActiveCategory] = React.useState<string | null>(null)
 
   const filteredProducts = activeCategory
@@ -312,13 +325,13 @@ export default function ProductsClient() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <a href="/services" className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+                <Button variant="primary" onClick={() => router.push('/services')} className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
                   View Services
                   <ArrowRight size={16} className="ml-2" />
-                </a>
-                <a href="/partners" className="inline-flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800">
+                </Button>
+                <Button variant="secondary" onClick={() => router.push('/partners')} className="inline-flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800">
                   Become a Partner
-                </a>
+                </Button>
               </div>
             </div>
           </CardContent>

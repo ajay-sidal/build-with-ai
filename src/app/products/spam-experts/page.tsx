@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Spam Experts | Email Filtering & Security',
@@ -36,16 +37,16 @@ export default function SpamExpertsPage() {
                 </li>
               ))}
             </ul>
-            <a href="/products/spam-experts/incoming" className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+            <Link href="/products/spam-experts/incoming" className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
               Get Started
-            </a>
+            </Link>
           </div>
         ))}
       </div>
 
-      <a href="/products" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
+      <Link href="/products" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
         Back to Products →
-      </a>
+      </Link>
     </main>
   )
 }

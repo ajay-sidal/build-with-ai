@@ -34,6 +34,9 @@ import {
   ArrowDownRight,
 } from 'lucide-react'
 
+import { Button } from '../../components/ui/button'
+const MotionButton = motion(Button)
+
 // Mock data for demonstration
 const mockSiteData = {
   domain: 'example.com',
@@ -95,9 +98,7 @@ export default function DashboardPage() {
               <CheckCircle size={12} />
               <span>All Systems Operational</span>
             </div>
-            <button className="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-cyan-500/30">
-              Upgrade to Pro
-            </button>
+            <Button className="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-cyan-500/30">Upgrade to Pro</Button>
           </div>
         </div>
       </header>
@@ -130,9 +131,7 @@ export default function DashboardPage() {
             <p className="mb-3 text-xs text-zinc-400">
               Need help optimizing your site? MARZ can help!
             </p>
-            <button className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 py-2 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-cyan-500/30">
-              Ask MARZ
-            </button>
+            <Button className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 py-2 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-cyan-500/30">Ask MARZ</Button>
           </div>
         </aside>
 
@@ -178,26 +177,23 @@ export default function DashboardPage() {
           <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-zinc-100">Quick Actions</h2>
-              <button
-                onClick={handleQuickScan}
-                className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 transition-all hover:bg-zinc-700"
-              >
+              <Button onClick={handleQuickScan} className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 transition-all hover:bg-zinc-700">
                 <RefreshCw size={12} className={isScanning ? 'animate-spin' : ''} />
                 {isScanning ? 'Scanning...' : 'Full Scan'}
-              </button>
+              </Button>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {mockQuickActions.map((action) => (
-                <motion.button
-                  key={action.label}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex flex-col items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 p-4 transition-all hover:border-zinc-700 hover:bg-zinc-900"
-                >
-                  <action.icon size={20} className={`text-${action.color}-400`} />
-                  <span className="text-xs text-zinc-300">{action.label}</span>
-                </motion.button>
-              ))}
+                {mockQuickActions.map((action) => (
+                  <MotionButton
+                    key={action.label}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex flex-col items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 p-4 transition-all hover:border-zinc-700 hover:bg-zinc-900"
+                  >
+                    <action.icon size={20} className={`text-${action.color}-400`} />
+                    <span className="text-xs text-zinc-300">{action.label}</span>
+                  </MotionButton>
+                ))}
             </div>
           </div>
 
@@ -207,7 +203,7 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 lg:col-span-2">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-zinc-100">Performance Overview</h2>
-                <button className="text-xs text-cyan-400 hover:text-cyan-300">View Details</button>
+                <Button variant="secondary" className="text-xs text-cyan-400 hover:text-cyan-300">View Details</Button>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <MetricCard label="Load Time" value={`${mockSiteData.speed.load}s`} icon={Clock} />
@@ -234,7 +230,7 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-zinc-100">Recent Alerts</h2>
-                <button className="text-xs text-cyan-400 hover:text-cyan-300">View All</button>
+                <Button variant="secondary" className="text-xs text-cyan-400 hover:text-cyan-300">View All</Button>
               </div>
               <div className="space-y-3">
                 {mockAlerts.map((alert) => (
@@ -258,7 +254,7 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-zinc-100">SEO Health</h2>
-                <button className="text-xs text-cyan-400 hover:text-cyan-300">Optimize</button>
+                <Button variant="secondary" className="text-xs text-cyan-400 hover:text-cyan-300">Optimize</Button>
               </div>
               <div className="space-y-4">
                 <SEOMetric label="Meta Tags" value={95} />
@@ -272,10 +268,10 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 lg:col-span-2">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-zinc-100">Security Status</h2>
-                <button className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400 transition-all hover:bg-emerald-500/20">
-                  <Shield size={12} />
-                  Protected
-                </button>
+                  <Button className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400 transition-all hover:bg-emerald-500/20"> 
+                    <Shield size={12} />
+                    Protected
+                  </Button>
               </div>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <SecurityFeature icon={Lock} label="SSL Certificate" status="Active" />
@@ -294,7 +290,8 @@ export default function DashboardPage() {
 // Sub-components
 function NavItem({ icon: Icon, label, active, onClick, badge }: any) {
   return (
-    <button
+    <Button
+      type="button"
       onClick={onClick}
       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-all ${
         active
@@ -311,7 +308,7 @@ function NavItem({ icon: Icon, label, active, onClick, badge }: any) {
           {badge}
         </span>
       )}
-    </button>
+    </Button>
   )
 }
 

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { logger } from '@/lib/logger'
+import { startSpan } from '@/lib/tracing'
+import { captureException, initSentry } from '@/lib/sentry'
 // import { Resend } from 'resend'
 // import { OrderConfirmationEmail } from '@/components/emails/OrderConfirmationEmail'
 import { prisma } from '@/lib/prisma'
@@ -18,6 +21,8 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    logger.error('Stripe webhook signature validation failed', { error: errorMessage })
+    captureException(err, { route: 'webhooks/stripe', reason: 'signature' })
     return new NextResponse(`Webhook Error: ${errorMessage}`, { status: 400 })
   }
 
@@ -60,7 +65,8 @@ export async function POST(req: Request) {
         })
         console.log(`Order ${orderId} for user ${userId} stored in database.`)
       } catch (error) {
-        console.error('Database order creation error:', error)
+        logger.error('Database order creation error', { error })
+        captureException(error, { orderId, userId })
         // Do not block webhook response for DB errors, but log it
       }
     }
@@ -90,6 +96,13 @@ export async function POST(req: Request) {
     // }
   } else {
     console.warn(`Unhandled event type: ${event.type}`)
+  }
+
+  // Initialize Sentry in case not initialized elsewhere
+  try {
+    initSentry()
+  } catch {
+    // ignore
   }
 
   // Return a 200 response to acknowledge receipt of the event

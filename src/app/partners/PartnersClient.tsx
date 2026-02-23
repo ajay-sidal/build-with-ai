@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card } from '../../components/ui/card'
 import { Input } from '../../components/ui/input'
 import { Button } from '../../components/ui/button'
@@ -10,6 +11,7 @@ type JoinResponse =
   | { partnerId: string; referralUrl: string; existing: boolean }
 
 export default function PartnersClient() {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -80,9 +82,9 @@ export default function PartnersClient() {
               <Button type="submit" disabled={!canSubmit || loading}>
                 {loading ? 'Creating…' : 'Create partner link'}
               </Button>
-              <a className="text-sm text-zinc-300 hover:text-zinc-50" href="/partners/dashboard">
+              <Button variant="secondary" onClick={() => router.push('/partners/dashboard')} className="text-sm text-zinc-300 hover:text-zinc-50">
                 Go to dashboard →
-              </a>
+              </Button>
             </div>
           </form>
         </Card>

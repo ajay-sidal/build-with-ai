@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache'
 import { getCurrentUserTier } from '../../../lib/entitlements'
 import { tierLabel } from '../../../utils/membership'
 import { calculateCustomerPrice, formatCurrency } from '../../../utils/pricing'
+import ExternalLink from '../../../components/ExternalLink'
 
 function formatMoney(currency?: string, amount?: number) {
   if (!currency || amount == null) return '—'
@@ -125,9 +126,9 @@ export default async function BillingPage() {
                     <td className="py-3 pr-4 text-zinc-300">{inv.due_at || '—'}</td>
                     <td className="py-3">
                       {inv.url ? (
-                        <a className="text-zinc-200 underline underline-offset-4" href={inv.url} target="_blank" rel="noreferrer">
+                        <ExternalLink className="text-zinc-200 underline underline-offset-4" href={inv.url} target="_blank">
                           View
-                        </a>
+                        </ExternalLink>
                       ) : (
                         '—'
                       )}

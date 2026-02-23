@@ -1,6 +1,7 @@
 'use client'
 
 import { X, Sparkles, Trash2, Settings, PanelLeft, PanelRight } from 'lucide-react'
+import { Button } from '../ui/button'
 
 interface ChatHeaderProps {
   handleClearChat: () => void
@@ -29,26 +30,27 @@ export default function ChatHeader({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={handleClearChat} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Clear chat history" aria-label="Clear chat history">
+        <Button onClick={handleClearChat} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Clear chat history" aria-label="Clear chat history" variant="secondary">
           <Trash2 size={16} />
-        </button>
-          <button
+        </Button>
+          <Button
             onClick={onToggleSettings}
             className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
             title="Settings"
             aria-label="Settings"
             disabled={!onToggleSettings}
             style={!onToggleSettings ? { opacity: 0.5, pointerEvents: 'none' } : {}}
+            variant="secondary"
           >
             <Settings size={16} />
-          </button>
-        <button onClick={onTogglePosition} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title={`Dock to ${position === 'right' ? 'left' : 'right'}`} aria-label={`Dock to ${position === 'right' ? 'left' : 'right'}`}>
+          </Button>
+        <Button onClick={onTogglePosition} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title={`Dock to ${position === 'right' ? 'left' : 'right'}`} aria-label={`Dock to ${position === 'right' ? 'left' : 'right'}`} variant="secondary">
           {position === 'right' ? <PanelLeft size={16} /> : <PanelRight size={16} />}
-        </button>
+        </Button>
         <div className="h-4 w-px bg-zinc-700 mx-1"></div>
-        <button onClick={() => setIsOpen(false)} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Close chat" aria-label="Close chat">
+        <Button onClick={() => setIsOpen(false)} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Close chat" aria-label="Close chat" variant="secondary">
           <X size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -3,6 +3,7 @@
 import { useCart } from '@/components/providers/CartProvider'
 import Link from 'next/link'
 import { ArrowRight, Lock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 
@@ -103,14 +104,15 @@ export default function CheckoutPage() {
             <div className="rounded-lg bg-zinc-900 px-4 py-6 sm:p-6 lg:p-8">
               <h2 className="text-xl font-medium text-white">Payment</h2>
               <p className="mt-4 text-zinc-400">You will be redirected to our secure payment partner, Stripe, to complete your purchase.</p>
-              <button
+              <Button
+                type="button"
                 onClick={handleCheckout}
                 disabled={isLoading}
                 className="mt-8 flex w-full items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading ? 'Processing...' : 'Proceed to Payment'}
                 {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
-              </button>
+              </Button>
               {error && <p className="mt-4 text-sm text-red-400">Error: {error}</p>}
               <p className="mt-4 text-xs text-zinc-500 text-center">
                 All transactions are secure and encrypted.

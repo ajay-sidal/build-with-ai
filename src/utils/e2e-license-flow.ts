@@ -20,16 +20,32 @@ function extractCheckoutSessionId(url: string): string | null {
   return m?.[0] || null
 }
 
-async function fetchText(url: string, init?: RequestInit) {
-  const res = await fetch(url, init)
-  const text = await res.text()
-  return { res, text }
+async function fetchText(url: string, init?: RequestInit, retries = 3, delay = 1000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, init)
+      const text = await res.text()
+      return { res, text }
+    } catch (err) {
+      if (attempt === retries) throw err
+      await sleep(delay)
+    }
+  }
+  throw new Error('fetchText failed after retries')
 }
 
-async function fetchJson(url: string, init?: RequestInit) {
-  const res = await fetch(url, init)
-  const json = (await res.json().catch(() => null)) as any
-  return { res, json }
+async function fetchJson(url: string, init?: RequestInit, retries = 3, delay = 1000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, init)
+      const json = (await res.json().catch(() => null)) as any
+      return { res, json }
+    } catch (err) {
+      if (attempt === retries) throw err
+      await sleep(delay)
+    }
+  }
+  throw new Error('fetchJson failed after retries')
 }
 
 async function runWorker(baseUrl: string) {

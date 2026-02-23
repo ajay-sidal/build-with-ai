@@ -1,6 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from './ui/button'
+import ExternalLink from './ExternalLink'
 import { Linkedin, Twitter, LayoutDashboard, Globe } from 'lucide-react'
 import { productCategories } from '../lib/openprovider-products'
 
@@ -43,6 +46,7 @@ const footerColumns = [
 ]
 
 export default function Footer() {
+  const router = useRouter()
   return (
     <footer className="mt-12">
       <div className="mx-auto w-full max-w-7xl px-6 pb-10">
@@ -62,20 +66,22 @@ export default function Footer() {
 
                 {/* Admin Quick Access */}
                 <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
-                  <Link
-                    href="/admin/dashboard"
+                  <Button
+                    variant="secondary"
+                    onClick={() => router.push('/admin/dashboard')}
                     className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800/50 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-zinc-800"
                   >
                     <LayoutDashboard size={12} />
                     Admin
-                  </Link>
-                  <Link
-                    href="/dashboard"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => router.push('/dashboard')}
                     className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800/50 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-zinc-800"
                   >
                     <Globe size={12} />
                     Website Hub
-                  </Link>
+                  </Button>
                 </div>
               </div>
 
@@ -86,13 +92,14 @@ export default function Footer() {
                     <div className="text-xs font-semibold uppercase tracking-wider text-zinc-200">{col.title}</div>
                     <div className="mt-3 flex flex-col gap-2">
                       {col.links.map((link) => (
-                        <Link
+                        <Button
                           key={link.href}
-                          href={link.href}
-                          className="text-sm text-zinc-100 hover:text-white transition-colors"
+                          variant="secondary"
+                          onClick={() => router.push(link.href)}
+                          className="text-left text-sm text-zinc-100 hover:text-white transition-colors p-0"
                         >
                           {link.label}
-                        </Link>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -104,24 +111,12 @@ export default function Footer() {
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-zinc-800/80 pt-6 text-xs text-zinc-300 sm:flex-row sm:items-center sm:justify-center">
               <div>© {new Date().getFullYear()} BUILD WITH AI. All rights reserved.</div>
               <div className="flex items-center gap-3">
-                <a
-                  href="https://www.linkedin.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-zinc-300 hover:text-white transition-colors"
-                  aria-label="LinkedIn"
-                >
+                <ExternalLink href="https://www.linkedin.com/" target="_blank" className="text-zinc-300 hover:text-white transition-colors" aria-label="LinkedIn">
                   <Linkedin size={16} />
-                </a>
-                <a
-                  href="https://x.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-zinc-300 hover:text-white transition-colors"
-                  aria-label="X (Twitter)"
-                >
+                </ExternalLink>
+                <ExternalLink href="https://x.com/" target="_blank" className="text-zinc-300 hover:text-white transition-colors" aria-label="X (Twitter)">
                   <Twitter size={16} />
-                </a>
+                </ExternalLink>
               </div>
             </div>
           </div>

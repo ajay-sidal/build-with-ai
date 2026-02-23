@@ -39,6 +39,8 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react'
+import { Textarea } from '../../../components/ui/textarea'
+import { Button } from '../../../components/ui/button'
 
 // Mock data for AI Mission Control
 const mockAIHealthScore = {
@@ -173,13 +175,13 @@ export default function AIMissionControlPage() {
               <span className="font-medium">All Systems Operational</span>
             </div>
             
-            <button
+            <Button
               onClick={() => setShowBrandSynthesizer(true)}
               className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-purple-500/30"
             >
               <Sparkles size={16} />
               AI Brand Synthesizer
-            </button>
+            </Button>
 
             <button className="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-cyan-500/30">
               Upgrade to Pro
@@ -488,22 +490,23 @@ function ActionCard({ action, onApprove }: any) {
             <p className="mt-2 text-xs text-zinc-500">{action.action}</p>
             
             <div className="mt-3 flex gap-2">
-              {action.buttons.map((button: string, index: number) => (
-                <button
-                  key={button}
+              {action.buttons.map((btn: string, index: number) => (
+                <Button
+                  key={btn}
                   onClick={() => index === 0 && onApprove()}
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                     index === 0
                       ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:shadow-lg hover:shadow-cyan-500/30'
                       : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
                   }`}
+                  variant={index === 0 ? 'primary' : 'secondary'}
                 >
-                  {button}
-                </button>
+                  {btn}
+                </Button>
               ))}
             </div>
-          </div>
         </div>
+      </div>
       </div>
     </motion.div>
   )
@@ -521,19 +524,17 @@ function InsightCard({ insight }: any) {
       <div className="mb-2 flex items-center gap-2">
         <Lightbulb size={16} className="text-yellow-400" />
         <span className={`text-xs font-medium uppercase ${
-          insight.impact === 'critical' ? 'text-red-400' :
-          insight.impact === 'high' ? 'text-yellow-400' :
-          'text-blue-400'
+          insight.impact === 'high' ? 'text-yellow-400' : 'text-blue-400'
         }`}>
           {insight.impact} Impact
         </span>
       </div>
       <p className="text-sm font-semibold text-zinc-100">{insight.insight}</p>
       <p className="mt-2 text-xs text-zinc-400">{insight.recommendation}</p>
-      <button className="mt-3 flex items-center gap-2 text-xs font-medium text-cyan-400 hover:text-cyan-300">
+      <Button className="mt-3 flex items-center gap-2 text-xs font-medium text-cyan-400 hover:text-cyan-300" variant="secondary">
         {insight.action}
         <ChevronRight size={12} />
-      </button>
+      </Button>
     </div>
   )
 }
@@ -582,7 +583,7 @@ function BrandSynthesizerModal({ onClose }: any) {
               <label className="mb-2 block text-sm font-medium text-zinc-300">
                 Describe your business idea
               </label>
-              <textarea
+              <Textarea
                 value={businessIdea}
                 onChange={(e) => setBusinessIdea(e.target.value)}
                 placeholder="e.g., I want to start an online store selling sustainable fashion accessories made from recycled materials..."

@@ -146,9 +146,13 @@ export default function LoginClient() {
           {!isAdmin && (
             <p className="text-center text-sm text-zinc-400">
               Admin access?{' '}
-              <a href="/login?admin=1" className="text-zinc-200 underline hover:text-zinc-100">
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/login?admin=1')}
+                className="text-zinc-200 underline hover:text-zinc-100 p-0"
+              >
                 Sign in with admin secret
-              </a>
+              </Button>
             </p>
           )}
         </CardContent>

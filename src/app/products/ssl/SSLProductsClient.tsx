@@ -17,6 +17,7 @@ import {
   Star,
 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '../../../components/ui/card'
 import { sslProducts } from '../../../lib/openprovider-products'
 
@@ -47,6 +48,7 @@ const categoryFilter = [
 ]
 
 export default function SSLProductsClient() {
+  const router = useRouter()
   const [activeCategory, setActiveCategory] = React.useState('all')
 
   const filteredProducts = activeCategory === 'all'
@@ -104,7 +106,7 @@ export default function SSLProductsClient() {
       >
         <div className="flex flex-wrap gap-2">
           {categoryFilter.map((category) => (
-            <button
+            <Button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
@@ -112,9 +114,10 @@ export default function SSLProductsClient() {
                   ? 'bg-zinc-100 text-zinc-900'
                   : 'border border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
               }`}
+              variant={activeCategory === category.id ? 'primary' : 'secondary'}
             >
               {category.name}
-            </button>
+            </Button>
           ))}
         </div>
       </motion.div>
@@ -194,13 +197,21 @@ export default function SSLProductsClient() {
                 )}
 
                 <div className="mt-6 flex items-center gap-3">
-                  <a href={`/products/ssl/${product.slug}`} className="inline-flex flex-1 items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+                  <Button
+                    variant="primary"
+                    onClick={() => router.push(`/products/ssl/${product.slug}`)}
+                    className="inline-flex flex-1 items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+                  >
                     {product.cta.primary}
                     <ArrowRight size={14} className="ml-2" />
-                  </a>
-                  <a href={`/products/ssl/${product.slug}`} className="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800">
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => router.push(`/products/ssl/${product.slug}`)}
+                    className="inline-flex items-center justify-center rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800"
+                  >
                     {product.cta.secondary}
-                  </a>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -275,10 +286,14 @@ export default function SSLProductsClient() {
                   Our SSL experts can help you select the perfect certificate for your needs.
                 </p>
               </div>
-              <a href="/services" className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
+              <Button
+                variant="primary"
+                onClick={() => router.push('/services')}
+                className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
+              >
                 Contact Sales
                 <ArrowRight size={16} className="ml-2" />
-              </a>
+              </Button>
             </div>
           </CardContent>
         </Card>

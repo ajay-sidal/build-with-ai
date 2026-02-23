@@ -6,6 +6,9 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { Package, Receipt, Calendar, Hash, RefreshCw, ArrowUpDown, Truck, Filter, Search, Download, XCircle, User, Undo2 } from 'lucide-react'
 import { useCart } from '@/components/providers/CartProvider'
 import { allProducts } from '@/lib/openprovider-products'
+import { Select } from './ui/select'
+import { Input } from './ui/input'
+import { Button } from './ui/button'
 
 const ORDERS_PER_PAGE = 5;
 
@@ -142,41 +145,37 @@ export default function OrderList({ initialOrders, totalOrders, isAdmin = false 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div className="lg:col-span-4">
             <label htmlFor="search" className="block text-xs font-medium text-zinc-400 mb-1">Search Orders</label>
-            <input id="search" type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Product name or Order ID..." className="w-full appearance-none rounded-md border border-zinc-700 bg-zinc-800 py-2 px-3 text-sm text-white" />
+            <Input id="search" type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Product name or Order ID..." />
           </div>
           <div className="lg:col-span-2">
             <label htmlFor="startDate" className="block text-xs font-medium text-zinc-400 mb-1">Start Date</label>
-            <input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full appearance-none rounded-md border border-zinc-700 bg-zinc-800 py-2 px-3 text-sm text-white" />
+            <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </div>
           <div className="lg:col-span-2">
             <label htmlFor="endDate" className="block text-xs font-medium text-zinc-400 mb-1">End Date</label>
-            <input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full appearance-none rounded-md border border-zinc-700 bg-zinc-800 py-2 px-3 text-sm text-white" />
+            <Input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </div>
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="relative">
-            <select id="sortBy" onChange={handleSortChange} value={sortBy} className="w-full appearance-none rounded-md border border-zinc-700 bg-zinc-800 py-2 pl-3 pr-8 text-sm font-medium text-white transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <Select id="sortBy" onChange={handleSortChange} value={sortBy}>
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
               <option value="total-desc">Total (High to Low)</option>
               <option value="total-asc">Total (Low to High)</option>
-            </select>
-            <ArrowUpDown size={16} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+            </Select>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <button
-              onClick={handleFilter}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-            >
+            <Button onClick={handleFilter} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500">
               <Filter size={16} />
               Apply Filters
-            </button>
+            </Button>
           </div>
             {totalOrders > 0 && (
-              <a href="/api/orders/export" download className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-700">
+              <Button onClick={() => { window.location.href = '/api/orders/export' }} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-700">
                 <Download size={16} />
                 Export as CSV
-              </a>
+              </Button>
             )}
         </div>
       </div>
@@ -204,14 +203,14 @@ export default function OrderList({ initialOrders, totalOrders, isAdmin = false 
               </ul>
               <div className="mt-6 flex flex-wrap justify-end items-center gap-4">
                 {order.shippingStatus === 'shipped' && order.trackingNumber && order.trackingProvider && (
-                  <a href={getTrackingUrl(order.trackingProvider, order.trackingNumber)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
+                  <Button onClick={() => window.open(getTrackingUrl(order.trackingProvider, order.trackingNumber), '_blank', 'noopener,noreferrer')} className="inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
                     <Truck size={16} /> Track Shipment
-                  </a>
+                  </Button>
                 )}
                 {order.shippingStatus === 'delivered' && !order.returnStatus && (
-                  <button onClick={() => handleRequestReturn(order.id)} disabled={isRequestingReturn === order.id} className="inline-flex items-center gap-2 text-sm font-medium text-amber-400 hover:text-amber-300 transition-colors disabled:opacity-50">
+                  <Button onClick={() => handleRequestReturn(order.id)} disabled={isRequestingReturn === order.id} className="inline-flex items-center gap-2 text-sm font-medium text-amber-400 hover:text-amber-300 transition-colors disabled:opacity-50">
                     {isRequestingReturn === order.id ? <><RefreshCw size={16} className="animate-spin" /> Requesting...</> : <><Undo2 size={16} /> Request Return</>}
-                  </button>
+                  </Button>
                 )}
                 {order.returnStatus && (
                   <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400" title={`Reason: ${order.returnReason}`}>
@@ -226,12 +225,12 @@ export default function OrderList({ initialOrders, totalOrders, isAdmin = false 
                 {order.shippingStatus === 'processing' && (
                   <>
                     <span className="inline-flex items-center gap-2 text-sm font-medium text-amber-400"><RefreshCw size={16} className="animate-spin" /> Processing Shipment</span>
-                    <button onClick={() => handleCancelOrder(order.id)} disabled={isCancelling === order.id} className="inline-flex items-center gap-2 text-sm font-medium text-red-400 hover:text-red-300 transition-colors disabled:opacity-50">
+                    <Button onClick={() => handleCancelOrder(order.id)} disabled={isCancelling === order.id} className="inline-flex items-center gap-2 text-sm font-medium text-red-400 hover:text-red-300 transition-colors disabled:opacity-50">
                       {isCancelling === order.id ? <><RefreshCw size={16} className="animate-spin" /> Cancelling...</> : <><XCircle size={16} /> Cancel Order</>}
-                    </button>
+                    </Button>
                   </>
                 )}
-                <button onClick={() => handleReorder(order.items)} className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"><RefreshCw size={16} /> Re-order</button>
+                <Button onClick={() => handleReorder(order.items)} className="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"><RefreshCw size={16} /> Re-order</Button>
                 <Link href={`/dashboard/orders/${order.stripeId}`} className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300">View Details <Receipt size={16} /></Link>
               </div>
             </div>

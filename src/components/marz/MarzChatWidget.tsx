@@ -46,7 +46,7 @@ declare global {
 }
 
 // Helper function to load initial messages from localStorage
-function getInitialMessages(): Message[] {
+function getInitialMessages(): any[] {
   if (typeof window === 'undefined') {
     return []
   }
@@ -67,13 +67,14 @@ function getInitialMessages(): Message[] {
 }
 
 // Helper function to get default welcome message
-function getDefaultWelcomeMessage(): Message[] {
+function getDefaultWelcomeMessage(): any[] {
   return [
     {
       id: 'welcome',
       role: 'assistant',
+      // Keep as any to avoid SDK typing differences
       content: "👋 Hi! I'm **MARZ**, your personal AI assistant for BUILD WITH AI. I can help you register domains, secure your website with SSL certificates, set up DNS hosting, and much more. What would you like to work on today?",
-    },
+    } as any,
   ]
 }
 
@@ -100,27 +101,10 @@ export default function MarzChatWidget() {
 
   const [input, setInput] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
-  const { messages, setMessages, sendMessage, error } = useChat({
-    api: '/api/marz/chat',
-    initialMessages: [],
-    onFinish: ({ message }) => {
-      const content = (message as any).content as string | undefined;
-      const suggestionMatch = content?.match?.(/SUGGESTIONS:(.*)/)
-      if (suggestionMatch && suggestionMatch[1]) {
-        try {
-          const parsedSuggestions = JSON.parse(suggestionMatch[1])
-          setSuggestions(parsedSuggestions)
-        } catch (e) {
-          console.error('Failed to parse suggestions:', e)
-          setSuggestions([])
-        }
-      }
-      if (speechEnabled && content) {
-        speakResponse(content)
-      }
-      setIsLoading(false);
-    },
-  })
+  const { messages, setMessages, sendMessage, error } = useChat()
+
+  // Watch messages for assistant responses and extract suggestions + TTS
+  // (moved below speakResponse definition to avoid using it before declaration)
 
   // Initialize speech synthesis ref
   React.useEffect(() => {
@@ -256,6 +240,29 @@ export default function MarzChatWidget() {
     synthRef.current.speak(utterance)
   }, [speechEnabled, selectedVoice])
 
+  // Watch messages for assistant responses and extract suggestions + TTS
+  React.useEffect(() => {
+    const last = messages[messages.length - 1] as any | undefined
+    if (!last) return
+    if (last.role === 'assistant') {
+      const content = last.content as string | undefined
+      const suggestionMatch = content?.match?.(/SUGGESTIONS:(.*)/)
+      if (suggestionMatch && suggestionMatch[1]) {
+        try {
+          const parsedSuggestions = JSON.parse(suggestionMatch[1])
+          setSuggestions(parsedSuggestions)
+        } catch (e) {
+          console.error('Failed to parse suggestions:', e)
+          setSuggestions([])
+        }
+      }
+      if (speechEnabled && content) {
+        speakResponse(content)
+      }
+      setIsLoading(false)
+    }
+  }, [messages, speechEnabled, speakResponse])
+
   // Initialize speech recognition
   React.useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -314,7 +321,7 @@ export default function MarzChatWidget() {
         const finalTranscript = transcriptRef.current
         if (finalTranscript.trim()) {
           console.log('[MARZ] Auto-submitting transcript:', finalTranscript)
-          append({ role: 'user', content: finalTranscript })
+          sendMessage({ role: 'user', content: finalTranscript } as any)
         }
       }
 
@@ -322,7 +329,7 @@ export default function MarzChatWidget() {
     } else {
       console.warn('[MARZ] Web Speech API not supported in this browser. Please use Chrome or Edge.')
     }
-  }, [append, setInput])
+  }, [sendMessage, setInput])
 
   // Handle voice input toggle
   const toggleVoiceInput = React.useCallback(() => {
@@ -369,7 +376,7 @@ export default function MarzChatWidget() {
     if (!input.trim()) return
     setSuggestions([])
     setIsLoading(true)
-    await sendMessage(input)
+    await sendMessage(input as any)
     setInput('')
   }
 
@@ -378,7 +385,7 @@ export default function MarzChatWidget() {
     setSuggestions([])
     setInput(suggestion)
     setIsLoading(true)
-    await sendMessage(suggestion)
+    await sendMessage(suggestion as any)
     setInput('')
   }, [sendMessage])
 
@@ -405,7 +412,7 @@ export default function MarzChatWidget() {
       if (isEnabling) {
         const lastMessage = messages[messages.length - 1]
         if (lastMessage && lastMessage.role === 'assistant') {
-          speakResponse(lastMessage.content)
+          speakResponse((lastMessage as any).content)
         }
       } else if (synthRef.current?.speaking) {
         synthRef.current.cancel()

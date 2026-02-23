@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { tldCategories } from '../../../lib/openprovider-products'
 
 export const metadata: Metadata = {
@@ -45,12 +46,9 @@ export default function TLDsPage() {
                   className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950/60 px-4 py-3 transition hover:border-zinc-700"
                 >
                   <span className="font-mono text-sm text-zinc-200">{ext}</span>
-                  <a
-                    href="/#tld-search"
-                    className="text-xs text-zinc-500 hover:text-zinc-300"
-                  >
+                  <Link href="/#tld-search" className="text-xs text-zinc-500 hover:text-zinc-300">
                     Register →
-                  </a>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -105,12 +103,9 @@ export default function TLDsPage() {
               <h2 className="text-2xl font-semibold text-zinc-100">Ready to Register?</h2>
               <p className="mt-2 text-zinc-400">Search for your perfect domain name now.</p>
             </div>
-            <a
-              href="/"
-              className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
-            >
+            <Link href="/" className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
               Search Domains
-            </a>
+            </Link>
           </div>
         </div>
       </section>

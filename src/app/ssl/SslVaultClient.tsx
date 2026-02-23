@@ -3,8 +3,10 @@
 import * as React from 'react'
 import { Shield, KeyRound, Lock, Loader2 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
+import { Textarea } from '../../components/ui/textarea'
 import { Card, CardContent, CardHeader } from '../../components/ui/card'
 import { Input } from '../../components/ui/input'
+import { Select } from '../../components/ui/select'
 import { generateSslCredentials } from '../../utils/crypto'
 
 type SslProduct = {
@@ -166,8 +168,8 @@ export default function SslVaultClient() {
           <CardContent className="grid gap-3">
             <div className="grid gap-2">
               <label className="text-xs text-zinc-400">SSL Product</label>
-              <select
-                className="h-12 w-full rounded-md border border-zinc-800 bg-zinc-950 px-4 text-sm text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/20"
+              <Select
+                className=""
                 value={productId}
                 onChange={(e) => setProductId(e.target.value)}
                 disabled={isLoadingProducts}
@@ -177,7 +179,7 @@ export default function SslVaultClient() {
                     {p.name || `Product ${p.id}`}
                   </option>
                 ))}
-              </select>
+              </Select>
               {isLoadingProducts ? (
                 <div className="text-xs text-zinc-500">Loading products…</div>
               ) : selectedProduct?.prices?.reseller ? (
@@ -217,8 +219,8 @@ export default function SslVaultClient() {
 
             <div className="grid gap-2">
               <label className="text-xs text-zinc-400">Approver Email</label>
-              <select
-                className="h-12 w-full rounded-md border border-zinc-800 bg-zinc-950 px-4 text-sm text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/20"
+              <Select
+                className=""
                 value={approverEmail}
                 onChange={(e) => setApproverEmail(e.target.value)}
                 disabled={approverEmails.length === 0}
@@ -229,7 +231,7 @@ export default function SslVaultClient() {
                     {e}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </CardContent>
         </Card>
@@ -263,7 +265,7 @@ export default function SslVaultClient() {
 
             <div className="grid gap-2">
               <label className="text-xs text-zinc-400">CSR (PEM)</label>
-              <textarea
+              <Textarea
                 className="min-h-44 w-full resize-y rounded-md border border-zinc-800 bg-zinc-950 px-4 py-3 font-mono text-xs text-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/20"
                 value={csrPem}
                 readOnly

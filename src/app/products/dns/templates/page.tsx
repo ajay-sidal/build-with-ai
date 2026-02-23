@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -37,9 +38,9 @@ export default function DNSTemplatesPage() {
         ))}
       </div>
 
-      <a href="/products/dns" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
+      <Link href="/products/dns" className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
         Back to DNS Services →
-      </a>
+      </Link>
     </main>
   )
 }

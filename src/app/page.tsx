@@ -4,6 +4,7 @@ import { allProducts } from '@/lib/openprovider-products'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Check, ArrowRight, ShoppingCart } from 'lucide-react'
+import { Button } from '../components/ui/button'
 import { useCart } from '@/components/providers/CartProvider'
 import { useState, useEffect, useMemo } from 'react'
 
@@ -83,13 +84,13 @@ export default function ProductPage({ params }: ProductPageProps) {
               </p>
             )}
             <p className="mt-4 text-zinc-400">Ready to secure your digital assets? Get started with {product.name} today.</p>
-            <button
+            <Button
               onClick={handleAddToCart}
               disabled={isInCart}
               className="mt-8 flex w-full items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
               {isAdded ? <><Check className="mr-2 h-5 w-5" />Added to Cart</> : isInCart ? <><Check className="mr-2 h-5 w-5" />In Cart</> : <><ShoppingCart className="mr-2 h-5 w-5" />Add to Cart</>}
-            </button>
+            </Button>
             <Link href="/products" className="mt-4 block text-center text-sm text-zinc-400 hover:text-zinc-200">
               Compare with other products
             </Link>

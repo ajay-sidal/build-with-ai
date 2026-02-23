@@ -15,6 +15,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '../../../../components/ui/card'
+import { Button } from '../../../../components/ui/button'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -246,13 +247,10 @@ export default function DNSHostingClient() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="/products"
-                className="mt-6 inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
-              >
+              <Button onClick={() => (window.location.href = '/products')} className="mt-6 inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
                 Get Started
                 <ArrowRight size={16} className="ml-2" />
-              </a>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -275,13 +273,10 @@ export default function DNSHostingClient() {
                   Start with our free DNS hosting for all your domains.
                 </p>
               </div>
-              <a
-                href="/products"
-                className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
-              >
+              <Button onClick={() => (window.location.href = '/products')} className="inline-flex items-center justify-center rounded-md bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
                 View All Products
                 <ArrowRight size={18} className="ml-2" />
-              </a>
+              </Button>
             </div>
           </CardContent>
         </Card>

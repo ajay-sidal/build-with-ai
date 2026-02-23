@@ -3,6 +3,7 @@ import AboutHeroClient from './AboutHeroClient'
 import ImpactTracker from './ImpactTracker'
 import LaunchMagnet from '../../components/LaunchMagnet'
 import { Card, CardContent, CardHeader } from '../../components/ui/card'
+import ExternalLink from '../../components/ExternalLink'
 
 export const runtime = 'nodejs'
 
@@ -64,22 +65,8 @@ export default function AboutPage() {
             <div className="text-sm text-zinc-200">— Ajay Sidal</div>
             <div className="mt-1 text-xs text-zinc-500">Founder, BuildWithAI.digital</div>
             <div className="mt-3 flex flex-wrap gap-3 text-xs">
-              <a
-                className="text-zinc-200 underline underline-offset-4"
-                href="https://www.linkedin.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                LinkedIn
-              </a>
-              <a
-                className="text-zinc-200 underline underline-offset-4"
-                href="https://x.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                X
-              </a>
+              <ExternalLink className="text-zinc-200 underline underline-offset-4" href="https://www.linkedin.com/" target="_blank">LinkedIn</ExternalLink>
+              <ExternalLink className="text-zinc-200 underline underline-offset-4" href="https://x.com/" target="_blank">X</ExternalLink>
             </div>
           </div>
         </CardContent>

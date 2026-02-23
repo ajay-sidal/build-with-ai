@@ -2,6 +2,7 @@
 
 import { useCart } from '@/components/providers/CartProvider'
 import Link from 'next/link'
+import { Button } from './ui/button'
 import { ArrowRight, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react'
 
 export default function CartPage() {
@@ -61,30 +62,28 @@ export default function CartPage() {
                     </div>
                     <div className="flex flex-1 items-end justify-between text-sm">
                       <div className="flex items-center border border-zinc-700 rounded-md">
-                        <button
+                        <Button
+                          variant="secondary"
                           onClick={() => decreaseQuantity(product.id)}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-l-md transition-colors"
+                          className="px-2 py-1 text-zinc-400 rounded-l-md"
                           aria-label={`Decrease quantity of ${product.name}`}
                         >
                           <Minus size={16} />
-                        </button>
+                        </Button>
                         <p className="px-3 text-zinc-300" aria-live="polite">{product.quantity}</p>
-                        <button
+                        <Button
+                          variant="secondary"
                           onClick={() => increaseQuantity(product.id)}
-                          className="px-2 py-1 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-r-md transition-colors"
+                          className="px-2 py-1 text-zinc-400 rounded-r-md"
                           aria-label={`Increase quantity of ${product.name}`}
                         >
                           <Plus size={16} />
-                        </button>
+                        </Button>
                       </div>
                       <div className="flex">
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(product.id)}
-                          className="font-medium text-red-500 hover:text-red-400"
-                        >
+                        <Button type="button" variant="secondary" onClick={() => removeFromCart(product.id)} className="font-medium text-red-500 hover:text-red-400">
                           Remove
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -93,13 +92,10 @@ export default function CartPage() {
             </ul>
 
             <div className="mt-6 flex justify-end">
-              <button
-                onClick={handleClearCart}
-                className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-red-400 transition-colors"
-              >
+              <Button onClick={handleClearCart} variant="secondary" className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-red-400 transition-colors">
                 <Trash2 size={16} />
                 Clear Cart
-              </button>
+              </Button>
             </div>
 
             {/* Order summary */}

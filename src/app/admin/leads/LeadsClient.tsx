@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Download, ShieldAlert, RefreshCw } from 'lucide-react'
+import { Select } from '../../../components/ui/select'
 import { Button } from '../../../components/ui/button'
 import { Card, CardContent, CardHeader } from '../../../components/ui/card'
 import { Input } from '../../../components/ui/input'
@@ -323,7 +324,7 @@ export default function LeadsClient() {
                             <span className={isPro ? 'text-emerald-200' : 'text-zinc-300'}>{score}</span>
                           </td>
                           <td className="py-3 pr-4">
-                            <select
+                            <Select
                               className={`h-9 rounded-md px-3 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/20 ${badgeClasses(status)}`}
                               value={status}
                               onChange={(e) => setStatus(id, l.email, e.target.value as LeadStatus)}
@@ -331,17 +332,16 @@ export default function LeadsClient() {
                               <option value="New">New</option>
                               <option value="Contacted">Contacted</option>
                               <option value="Closed">Closed</option>
-                            </select>
+                            </Select>
                           </td>
                           <td className="py-3">
-                            <a
+                            <Button
+                              type="button"
+                              onClick={() => window.open(buildMailto(l, status), '_blank')}
                               className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-zinc-800 bg-zinc-950 px-3 text-xs font-medium text-zinc-50 hover:bg-zinc-900"
-                              href={buildMailto(l, status)}
-                              target="_blank"
-                              rel="noreferrer"
                             >
                               <Mail size={14} /> Engage
-                            </a>
+                            </Button>
                           </td>
                         </motion.tr>
                       )

@@ -6,6 +6,7 @@ import { ArrowRight, BrainCircuit, Lock, ShieldCheck, Sparkles, Wand2 } from 'lu
 import { Button } from '../../../components/ui/button'
 import { Card, CardContent, CardHeader } from '../../../components/ui/card'
 import { Input } from '../../../components/ui/input'
+import { Textarea } from '../../../components/ui/textarea'
 
 type Tier = 'starter' | 'pro'
 
@@ -112,7 +113,7 @@ export default function AiDesignClient() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
+                <Button
                   type="button"
                   onClick={() => setTier('starter')}
                   className={`rounded-xl border p-5 text-left transition ${
@@ -124,9 +125,9 @@ export default function AiDesignClient() {
                   <div className="text-sm font-medium text-zinc-100">Starter</div>
                   <div className="mt-1 text-2xl font-semibold text-zinc-50">$999</div>
                   <div className="mt-2 text-sm text-zinc-400">Landing + core flows + deployment.</div>
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
                   onClick={() => setTier('pro')}
                   className={`rounded-xl border p-5 text-left transition ${
@@ -138,7 +139,7 @@ export default function AiDesignClient() {
                   <div className="text-sm font-medium text-zinc-100">Pro</div>
                   <div className="mt-1 text-2xl font-semibold text-zinc-50">$2,499</div>
                   <div className="mt-2 text-sm text-zinc-400">SaaS-grade UX + checkout + ops dashboard.</div>
-                </button>
+                </Button>
               </div>
 
               <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950 p-5">
@@ -209,7 +210,7 @@ export default function AiDesignClient() {
                   onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))}
                 />
 
-                <textarea
+                <Textarea
                   id="ai-design-message"
                   name="message"
                   className="min-h-32 w-full resize-y rounded-md border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-50 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/20"

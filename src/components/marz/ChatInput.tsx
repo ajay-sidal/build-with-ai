@@ -4,6 +4,8 @@ import * as React from 'react'
 import { forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { Send, Mic, MicOff } from 'lucide-react'
+import { Textarea } from '../ui/textarea'
+import { Button } from '../ui/button'
 
 interface ChatInputProps {
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
@@ -42,7 +44,7 @@ const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(({
   return (
     <div className="border-t border-zinc-800 p-4">
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        <button
+        <Button
           type="button"
           onClick={toggleVoiceInput}
           aria-label={isListening ? 'Stop listening' : 'Start voice input'}
@@ -52,13 +54,14 @@ const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(({
               : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
           }`}
           title={isListening ? 'Stop listening' : 'Start voice input'}
+          variant="secondary"
         >
           {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-        </button>
+        </Button>
 
         <div className="flex-1">
           <label htmlFor="marz-chat-input" className="sr-only">Chat message</label>
-          <textarea
+          <Textarea
             id="marz-chat-input"
             ref={ref}
             value={input}
@@ -71,14 +74,14 @@ const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(({
           />
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={!input.trim() || isLoading}
           aria-label="Send message"
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Send size={18} />
-        </button>
+        </Button>
       </form>
 
       {isListening && (

@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu, X, Sparkles, ChevronDown, Globe, Shield, Server, Mail, Box, Key, LogOut, Layers, Palette, Zap, ShoppingCart } from 'lucide-react'
 import { useCart } from './providers/CartProvider'
+import { useTheme } from './providers/ThemeProvider'
+import { useRouter } from 'next/navigation'
+import { Button } from './ui/button'
 import { allProducts, allServices } from '../lib/openprovider-products'
 
 // Main navigation items (centered) - Products and Services are now dropdown-only
@@ -75,6 +78,8 @@ export default function Navbar() {
   const [productsOpen, setProductsOpen] = React.useState(false)
   const [servicesOpen, setServicesOpen] = React.useState(false)
   const { itemCount } = useCart()
+  const { theme, toggle } = useTheme()
+  const router = useRouter()
 
   const isLoading = status === 'loading'
   const isAuthenticated = !!session
@@ -111,14 +116,21 @@ export default function Navbar() {
 
                 {/* Products Dropdown */}
                 <div className="relative">
-                  <button
+                  <Button
+                    type="button"
                     onMouseEnter={() => setProductsOpen(true)}
                     onMouseLeave={() => setProductsOpen(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') setProductsOpen(p => !p)
+                      if (e.key === 'Escape') setProductsOpen(false)
+                    }}
+                    aria-haspopup="true"
+                    aria-expanded={productsOpen}
                     className="inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-base text-zinc-100 hover:bg-zinc-900/60 hover:text-white transition-colors"
                   >
                     Products
                     <ChevronDown size={16} className={`transition-transform ${productsOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                  </Button>
                   <AnimatePresence>
                     {productsOpen && (
                       <motion.div
@@ -158,14 +170,21 @@ export default function Navbar() {
 
                 {/* Services Dropdown */}
                 <div className="relative">
-                  <button
+                  <Button
+                    type="button"
                     onMouseEnter={() => setServicesOpen(true)}
                     onMouseLeave={() => setServicesOpen(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') setServicesOpen(s => !s)
+                      if (e.key === 'Escape') setServicesOpen(false)
+                    }}
+                    aria-haspopup="true"
+                    aria-expanded={servicesOpen}
                     className="inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-base text-zinc-100 hover:bg-zinc-900/60 hover:text-white transition-colors"
                   >
                     Services
                     <ChevronDown size={16} className={`transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                  </Button>
                   <AnimatePresence>
                     {servicesOpen && (
                       <motion.div
@@ -207,7 +226,22 @@ export default function Navbar() {
 
             {/* Authentication Buttons - Right side */}
             <div className="hidden items-center gap-2 lg:flex">
-              <Link href="/cart" className="relative rounded-lg p-2 text-zinc-100 hover:bg-zinc-900/60 hover:text-white transition-colors" aria-label="View shopping cart">
+              {/* Theme toggle */}
+              <Button
+                variant="secondary"
+                type="button"
+                onClick={toggle}
+                aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                className="rounded-lg p-2 text-zinc-100 hover:bg-zinc-900/60 transition-colors"
+              >
+                {theme === 'dark' ? '🌙' : '☀️'}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/cart')}
+                aria-label="View shopping cart"
+                className="relative rounded-lg p-2 text-zinc-100 hover:bg-zinc-900/60 hover:text-white transition-colors"
+              >
                 <ShoppingCart size={20} />
                 {itemCount > 0 && (
                   <motion.div
@@ -218,52 +252,57 @@ export default function Navbar() {
                     {itemCount}
                   </motion.div>
                 )}
-              </Link>
+              </Button>
               <div className="h-6 w-px bg-zinc-800"></div>
 
               {!isLoading && isAuthenticated ? (
                 <>
-                  <Link
-                    href="/dashboard"
+                  <Button
+                    variant="primary"
+                    onClick={() => router.push('/dashboard')}
                     className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-base font-medium text-white hover:bg-zinc-700 transition-colors"
                   >
                     Dashboard
-                  </Link>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
                     onClick={() => signOut({ callbackUrl: '/' })}
                     className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-base text-zinc-100 hover:text-white hover:bg-zinc-900/60 transition-colors"
                     title="Logout"
                   >
                     <LogOut size={20} />
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <Link
-                    href="/login"
+                  <Button
+                    variant="secondary"
+                    onClick={() => router.push('/login')}
                     className="rounded-lg px-3 py-2 text-base font-medium text-zinc-100 hover:text-white hover:bg-zinc-900/60 transition-colors"
                   >
                     Login
-                  </Link>
-                  <Link
-                    href="/signup"
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => router.push('/signup')}
                     className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-base font-medium text-white hover:bg-zinc-700 transition-colors"
                   >
                     Sign Up
-                  </Link>
+                  </Button>
                 </>
               )}
             </div>
 
             {/* Mobile Menu Button */}
-            <button
+            <Button
+              variant="secondary"
               type="button"
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-50 hover:bg-zinc-900 sm:hidden transition-colors"
               aria-label={open ? 'Close menu' : 'Open menu'}
               onClick={() => setOpen((v) => !v)}
             >
               {open ? <X size={18} /> : <Menu size={18} />}
-            </button>
+            </Button>
           </div>
 
           {/* Mobile Menu */}
@@ -349,10 +388,13 @@ export default function Navbar() {
                     {/* Authentication Buttons (Mobile) */}
                     {!isLoading && isAuthenticated ? (
                       <>
-                        <Link
-                          href="/cart"
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            router.push('/cart')
+                            setOpen(false)
+                          }}
                           className="mt-3 flex items-center justify-between rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
-                          onClick={() => setOpen(false)}
                         >
                           <span>Shopping Cart</span>
                           {itemCount > 0 && (
@@ -360,7 +402,7 @@ export default function Navbar() {
                               {itemCount}
                             </span>
                           )}
-                        </Link>
+                        </Button>
                         <Link
                           href="/dashboard"
                           className="mt-3 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
@@ -368,7 +410,8 @@ export default function Navbar() {
                         >
                           Dashboard
                         </Link>
-                        <button
+                        <Button
+                          variant="secondary"
                           onClick={() => {
                             signOut({ callbackUrl: '/' })
                             setOpen(false)
@@ -377,7 +420,7 @@ export default function Navbar() {
                         >
                           <LogOut size={14} />
                           Logout
-                        </button>
+                        </Button>
                       </>
                     ) : (
                       <>
@@ -393,20 +436,26 @@ export default function Navbar() {
                             </span>
                           )}
                         </Link>
-                        <Link
-                          href="/login"
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            router.push('/login')
+                            setOpen(false)
+                          }}
                           className="mt-3 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
-                          onClick={() => setOpen(false)}
                         >
                           Login
-                        </Link>
-                        <Link
-                          href="/signup"
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            router.push('/signup')
+                            setOpen(false)
+                          }}
                           className="mt-2 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
-                          onClick={() => setOpen(false)}
                         >
                           Sign Up
-                        </Link>
+                        </Button>
                       </>
                     )}
                   </div>

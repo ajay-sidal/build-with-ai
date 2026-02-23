@@ -11,5 +11,7 @@ export function getPostgresPool() {
   }
 
   pool = new Pool({ connectionString, max: 5 })
+  // Example: ensure index on users.email for fast lookup
+  pool.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
   return pool
 }

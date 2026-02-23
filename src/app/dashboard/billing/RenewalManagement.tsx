@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { Button } from '../../../components/ui/button'
+import { Switch } from '../../../components/ui/switch'
 
 type DomainRow = {
   domain: string
@@ -92,18 +93,17 @@ export default function RenewalManagement({ domains }: Props) {
                     <td className="py-3 pr-4 text-zinc-300">{r.expiration_date || '—'}</td>
                     <td className="py-3 pr-4 text-zinc-300">{r.days}</td>
                     <td className="py-3">
-                      <label className="inline-flex items-center gap-2 text-zinc-300">
-                        <input
+                      <div className="flex items-center gap-2">
+                        <Switch
                           id={`auto-renew-${r.domain}`}
                           name={`auto_renew_${r.domain}`}
-                          type="checkbox"
-                          className="h-4 w-4 accent-zinc-200"
                           checked={Boolean(r.is_auto_renew_enabled)}
                           disabled={isSaving === r.domain}
                           onChange={(e) => toggle(r.domain, e.target.checked)}
+                          aria-label={`Auto renew ${r.domain}`}
                         />
                         <span className="text-xs text-zinc-500">{isSaving === r.domain ? 'Saving…' : ''}</span>
-                      </label>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -106,12 +106,13 @@ export default function TemplatesClient() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-3">
-                  <a
-                    href={p.previewHref}
+                  <Button
+                    onClick={() => { window.location.href = p.previewHref }}
                     className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-md border border-zinc-800 bg-zinc-950 text-sm font-medium text-zinc-50 hover:bg-zinc-900"
+                    variant="secondary"
                   >
                     <Eye size={16} /> Preview
-                  </a>
+                  </Button>
 
                   <Button className="h-12 flex-1" onClick={() => buyNow(p.sku)} disabled={loadingSku === p.sku}>
                     <ShoppingCart size={16} className="mr-2" />
