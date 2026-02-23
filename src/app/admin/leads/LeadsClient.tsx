@@ -102,6 +102,9 @@ function downloadCsvFile(fileName: string, csv: string) {
 }
 
 export default function LeadsClient() {
+  const { useNotifications } = require('../../../lib/notifications')
+  const { addNotification } = useNotifications()
+  
   const [adminSecret, setAdminSecret] = React.useState('')
   const [search, setSearch] = React.useState('')
   const [leads, setLeads] = React.useState<Lead[]>([])
