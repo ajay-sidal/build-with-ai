@@ -532,7 +532,7 @@ export default function MarzChatWidget() {
               const welcomeMessage: Message = {
                 id: 'welcome-' + Date.now(),
                 role: 'assistant',
-                content: "👋 Hi! I'm **MARZ**, your personal AI assistant for BUILD WITH AI. I can help you register domains, secure your website with SSL certificates, set up DNS hosting, and much more. What would you like to work on today?",
+                content: "Hello! I'm **MARZ**, your AI assistant for BUILD WITH AI. I can help you with domain registration, SSL certificates, DNS hosting, and more. What would you like to work on today?",
               }
               setMessages([welcomeMessage])
             }
