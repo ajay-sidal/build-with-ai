@@ -69,19 +69,19 @@ export default function Footer() {
         <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/35">
           <div className="px-5 py-8">
             {/* Top Section: Logo + Columns */}
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
               {/* Logo */}
-              <div className="md:w-48">
-                <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-zinc-50">
+              <div className="w-full text-center md:w-auto md:text-left">
+                <div className="flex items-center justify-center gap-2 md:justify-start">
                   <img src="/icon.png" alt="BUILD WITH AI" className="h-6 w-6 rounded-lg" />
-                  BUILD WITH AI
-                </Link>
+                  <span className="text-sm font-semibold tracking-tight text-zinc-50">BUILD WITH AI</span>
+                </div>
                 <p className="mt-3 text-xs text-zinc-500">
                   Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
                 </p>
-                
+
                 {/* Admin Quick Access */}
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
                   <Link
                     href="/admin/dashboard"
                     className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800/50 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-zinc-800"
@@ -121,7 +121,7 @@ export default function Footer() {
             </div>
 
             {/* Bottom Section: Copyright + Social */}
-            <div className="mt-8 flex flex-col gap-3 border-t border-zinc-800/80 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-8 flex flex-col items-center gap-3 border-t border-zinc-800/80 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-center">
               <div>© {new Date().getFullYear()} BUILD WITH AI. All rights reserved.</div>
               <div className="flex items-center gap-3">
                 <a
