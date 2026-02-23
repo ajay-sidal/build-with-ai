@@ -54,46 +54,25 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-    constructor(props: any) {
-      super(props);
-      this.state = { hasError: false };
-    }
-    static getDerivedStateFromError() {
-      return { hasError: true };
-    }
-    componentDidCatch(error: any, info: any) {
-      // Log error to monitoring service
-      console.error('Global Error:', error, info);
-    }
-    render() {
-      if (this.state.hasError) {
-        return <div className="p-8 text-center text-red-600">Something went wrong. Please refresh.</div>;
-      }
-      return this.props.children;
-    }
-  }
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
-        <ErrorBoundary>
-          <SessionProvider>
-            <ThemeProvider>
-              <NotificationProvider>
-                <CartProvider>
-                  <Navbar />
-                  <Suspense fallback={null}>
-                    <AffiliateRefTracker />
-                  </Suspense>
-                  <div className="flex-1">{children}</div>
-                  <Footer />
-                  <MarzChatWidget />
-                  <CookieConsent />
-                </CartProvider>
-              </NotificationProvider>
-            </ThemeProvider>
-          </SessionProvider>
-        </ErrorBoundary>
+        <SessionProvider>
+          <ThemeProvider>
+            <NotificationProvider>
+              <CartProvider>
+                <Navbar />
+                <Suspense fallback={null}>
+                  <AffiliateRefTracker />
+                </Suspense>
+                <div className="flex-1">{children}</div>
+                <Footer />
+                <MarzChatWidget />
+                <CookieConsent />
+              </CartProvider>
+            </NotificationProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   )

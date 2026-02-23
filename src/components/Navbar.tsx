@@ -102,7 +102,7 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Navigation - Centered with even spacing */}
-            <nav className="hidden flex-1 items-center justify-center gap-1.5 lg:flex">
+            <nav className="hidden flex-1 items-center justify-center gap-1.5 lg:flex" role="navigation" aria-label="Main navigation">
               {/* Center group: Home, Products, Services, Developers, About */}
               <div className="flex items-center gap-1.5">
                 {mainNavItems.map((item) => (
@@ -116,7 +116,7 @@ export default function Navbar() {
                 ))}
 
                 {/* Products Dropdown */}
-                <div className="relative">
+                <div className="relative" role="menu" aria-label="Products dropdown">
                   <Button
                     type="button"
                     onMouseEnter={() => setProductsOpen(true)}
@@ -170,7 +170,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Services Dropdown */}
-                <div className="relative">
+                <div className="relative" role="menu" aria-label="Services dropdown">
                   <Button
                     type="button"
                     onMouseEnter={() => setServicesOpen(true)}
