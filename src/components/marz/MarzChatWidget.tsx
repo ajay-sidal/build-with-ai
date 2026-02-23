@@ -91,11 +91,13 @@ export default function MarzChatWidget() {
   const [isVoiceChatActive, setIsVoiceChatActive] = React.useState(false)
   const [isSpeaking, setIsSpeaking] = React.useState(false)
   const [messages, setMessages] = React.useState<Message[]>([])
+  const [input, setInput] = React.useState('')
 
   // Refs
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
   const synthRef = React.useRef<SpeechSynthesis | null>(null)
+  const transcriptRef = React.useRef('')
 
   // Initialize speech synthesis ref
   React.useEffect(() => {
@@ -222,25 +224,40 @@ export default function MarzChatWidget() {
           .map((result) => result.transcript)
           .join('')
 
-        const input = document.querySelector('textarea') as HTMLTextAreaElement
-        if (input) {
-          input.value = transcript
-        }
+        // Store transcript in ref for access in onend
+        transcriptRef.current = transcript
+
+        // Update input field with transcript
+        setInput(transcript)
 
         if (event.results[0].isFinal) {
           setIsListening(false)
         }
       }
 
-      recognitionInstance.onerror = () => {
+      recognitionInstance.onerror = (event: any) => {
+        console.error('[MARZ] Speech recognition error:', event.error)
         setIsListening(false)
+        if (event.error === 'not-allowed') {
+          alert('Microphone access denied. Please allow microphone access in your browser settings.')
+        }
       }
 
       recognitionInstance.onend = () => {
         setIsListening(false)
+        // Auto-submit the transcript when recognition ends
+        const finalTranscript = transcriptRef.current
+        if (finalTranscript.trim()) {
+          // Small delay to ensure input is updated
+          setTimeout(() => {
+            handleSendMessage(finalTranscript)
+          }, 100)
+        }
       }
 
       setRecognition(recognitionInstance)
+    } else {
+      console.warn('[MARZ] Web Speech API not supported in this browser')
     }
   }, [])
 
@@ -255,10 +272,89 @@ export default function MarzChatWidget() {
       recognition.stop()
       setIsListening(false)
     } else {
-      setIsListening(true)
-      recognition.start()
+      // Request microphone access
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+          transcriptRef.current = ''
+          setIsListening(true)
+          recognition.start()
+        })
+        .catch((error) => {
+          console.error('[MARZ] Microphone access error:', error)
+          alert('Microphone access denied. Please allow microphone access in your browser settings to use voice input.')
+        })
     }
   }, [recognition, isListening])
+
+  // Send message to MARZ API
+  const handleSendMessage = React.useCallback(async (messageText: string) => {
+    if (!messageText.trim()) return
+
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: messageText,
+      timestamp: new Date().toISOString(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setInput('')
+    transcriptRef.current = ''
+
+    // Call MARZ API
+    try {
+      const response = await fetch('/api/marz/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: messageText }),
+      })
+
+      if (!response.ok) throw new Error('Failed to get response')
+
+      const data = await response.json()
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.response || data.message || 'I apologize, but I couldn\'t process that request.',
+        timestamp: new Date().toISOString(),
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+
+      // Speak response if speech is enabled
+      if (speechEnabled) {
+        speakResponse(assistantMessage.content)
+      }
+    } catch (error) {
+      console.error('[MARZ] Send message error:', error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        timestamp: new Date().toISOString(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    }
+  }, [speechEnabled, speakResponse])
+
+  // Handle form submission
+  const handleSubmit = React.useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    if (input.trim()) {
+      handleSendMessage(input)
+    }
+  }, [input, handleSendMessage])
+
+  // Handle keyboard events
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      if (input.trim()) {
+        handleSendMessage(input)
+      }
+    }
+  }, [input, handleSendMessage])
 
   // Handle suggestion chip click
   const handleSuggestionClick = React.useCallback((suggestion: string) => {
@@ -332,12 +428,12 @@ export default function MarzChatWidget() {
             />
 
             <ChatInput
-              input=""
+              input={input}
               isLoading={false}
               isListening={isListening}
-              onInputChange={() => {}}
-              onSubmit={() => {}}
-              onKeyDown={() => {}}
+              onInputChange={(e) => setInput(e.target.value)}
+              onSubmit={handleSubmit}
+              onKeyDown={handleKeyDown}
               onVoiceToggle={toggleVoiceInput}
             />
           </motion.div>
