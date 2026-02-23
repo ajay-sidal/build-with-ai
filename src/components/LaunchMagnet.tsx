@@ -178,7 +178,7 @@ export default function LaunchMagnet({ defaultOpen = false }: { defaultOpen?: bo
               <CardContent>
                 {done ? (
                   <div className="rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-4 text-sm text-emerald-200">
-                    {done.already ? 'You&apos;re already on the list.' : 'You&apos;re in. Welcome to the Alpha.'}
+                    {done.already ? "You're already on the list." : "You're in. Welcome to the Alpha."}
                     <div className="mt-2 text-xs text-zinc-300">You can close this and continue domain search.</div>
                   </div>
                 ) : (

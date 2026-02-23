@@ -8,7 +8,7 @@
 |----------|---------|--------------|
 | `NEXTAUTH_SECRET` | NextAuth JWT sessions | Generate: `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | NextAuth callback URL | Should be `https://www.buildwithai.digital` |
-| `DATABASE_URL` | Database connection (optional) | PostgreSQL connection string |
+| `DATABASE_URL` | Database connection (optional) | PostgreSQL with `?sslmode=verify-full` |
 | `ADMIN_SECRET` | Admin dashboard access | Your custom secret |
 | `GROQ_API_KEY` | MARZ AI assistant | From https://console.groq.com |
 
