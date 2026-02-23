@@ -5,30 +5,45 @@ import { motion } from 'framer-motion'
 import { Send, Mic, MicOff } from 'lucide-react'
 
 interface ChatInputProps {
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   input: string
+  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement> | React.ChangeEvent<HTMLInputElement>) => void
   isLoading: boolean
   isListening: boolean
-  onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onSubmit: (e: React.FormEvent) => void
-  onKeyDown: (e: React.KeyboardEvent) => void
-  onVoiceToggle: () => void
+  toggleVoiceInput: () => void
 }
 
 export default function ChatInput({
   input,
   isLoading,
   isListening,
-  onInputChange,
-  onSubmit,
-  onKeyDown,
-  onVoiceToggle,
+  handleInputChange,
+  handleSubmit,
+  toggleVoiceInput,
 }: ChatInputProps) {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea based on content
+  React.useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto' // Reset height to shrink if needed
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }, [input])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e as any)
+    }
+  }
+
   return (
     <div className="border-t border-zinc-800 p-4">
-      <form onSubmit={onSubmit} className="flex items-end gap-2">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2">
         <button
           type="button"
-          onClick={onVoiceToggle}
+          onClick={toggleVoiceInput}
           className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
             isListening
               ? 'bg-red-600 text-white animate-pulse'
@@ -41,9 +56,10 @@ export default function ChatInput({
 
         <div className="flex-1">
           <textarea
+            ref={textareaRef}
             value={input}
-            onChange={onInputChange}
-            onKeyDown={onKeyDown}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             placeholder="Ask me anything..."
             rows={1}
             className="max-h-32 w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"

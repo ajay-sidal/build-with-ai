@@ -36,6 +36,7 @@ export default function MarzChatWidget() {
   const [error, setError] = React.useState<string | null>(null)
   const [isOnline, setIsOnline] = React.useState(true)
   const [retryCount, setRetryCount] = React.useState(0)
+  const [selectedVoice, setSelectedVoice] = React.useState('default')
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const recognitionRef = React.useRef<SpeechRecognition | null>(null)
@@ -208,40 +209,101 @@ export default function MarzChatWidget() {
     }
   }, [messages])
 
-  const speakResponse = React.useCallback((text: string) => {
+  const speakResponse = React.useCallback((text: string, onEnd?: () => void) => {
     if (!speechEnabled || !synthRef.current) return
 
     if (synthRef.current.speaking) {
       synthRef.current.cancel()
     }
 
+    // Clean and naturalize text for speech
     const cleanText = text
       .replace(/\*\*/g, '')
-      .replace(/```[\s\S]*?```/g, '')
+      .replace(/```[\s\S]*?```/g, 'a code snippet is displayed.')
       .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
       .replace(/\n/g, ' ')
+      .replace(/\b(I'm|I've|I'll|I'd|can't|won't|don't|doesn't|isn't|aren't|wasn't|weren't)\b/gi, (match) => {
+        const expansions: Record<string, string> = {
+          "I'm": 'I am',
+          "I've": 'I have',
+          "I'll": 'I will',
+          "I'd": 'I would',
+          "can't": 'cannot',
+          "won't": 'will not',
+          "don't": 'do not',
+          "doesn't": 'does not',
+          "isn't": 'is not',
+          "aren't": 'are not',
+          "wasn't": 'was not',
+          "weren't": 'were not',
+        }
+        return expansions[match] || match
+      })
+      .replace(/\b(DNS|SSL|URL|API|SDK|UI|UX|AI)\b/gi, (match) => {
+        return match.toUpperCase().split('').join(' ')
+      })
       .trim()
 
     const utterance = new SpeechSynthesisUtterance(cleanText)
-    utterance.rate = 1.0
-    utterance.pitch = 1.0
+    
+    // Natural speech parameters for male voice
+    utterance.rate = 0.95
+    utterance.pitch = 0.85
     utterance.volume = 1.0
+    utterance.lang = 'en-US'
 
     const voices = synthRef.current.getVoices()
-    const preferredVoice = voices.find(
-      (v) => v.name.includes('Google US English') || v.name.includes('Female')
+    
+    const maleVoicePriority = [
+      'Google US English Male',
+      'Microsoft Mark',
+      'Mark',
+      'Google US English',
+      'Male',
+      'en-US-Male',
+      'en-GB-Male',
+    ]
+    
+    let preferredVoice = voices.find(
+      (v) => v.voiceURI === selectedVoice
     )
+    
+    if (!preferredVoice || selectedVoice === 'default') {
+      for (const voiceName of maleVoicePriority) {
+        preferredVoice = voices.find(
+          (v) => v.name.includes(voiceName) || v.voiceURI.includes(voiceName)
+        )
+        if (preferredVoice) break
+      }
+      
+      if (!preferredVoice) {
+        preferredVoice = voices.find(
+          (v) => v.name.includes('Male') || v.name.includes('Mark') || v.name.includes('David') || v.name.includes('James')
+        )
+      }
+      
+      if (!preferredVoice) {
+        preferredVoice = voices.find(
+          (v) => v.lang.startsWith('en') && !v.name.includes('Female') && !v.name.includes('Zira')
+        )
+      }
+    }
+    
     if (preferredVoice) {
       utterance.voice = preferredVoice
+      console.log('[MARZ] Using voice:', preferredVoice.name, '(Male)')
+    } else {
+      console.log('[MARZ] Using default system voice')
     }
 
+    utterance.onend = onEnd ?? null
+
     synthRef.current.speak(utterance)
-  }, [speechEnabled])
+  }, [speechEnabled, selectedVoice])
 
   const handleSendMessage = React.useCallback(async (messageText: string) => {
     if (!messageText.trim()) return
 
-    // Cancel any pending requests
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
@@ -338,7 +400,6 @@ export default function MarzChatWidget() {
       setIsListening(false)
       setRetryCount(0)
     } else {
-      // Request microphone permission first
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => {
           setRetryCount(0)
@@ -366,7 +427,6 @@ export default function MarzChatWidget() {
 
   return (
     <>
-      {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl hover:shadow-blue-500/30"
@@ -380,7 +440,6 @@ export default function MarzChatWidget() {
         )}
       </button>
 
-      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -389,7 +448,6 @@ export default function MarzChatWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur shadow-2xl"
           >
-            {/* Header */}
             <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/50 px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🤖</span>
@@ -422,7 +480,6 @@ export default function MarzChatWidget() {
               </div>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4">
               {!isOnline && (
                 <div className="mb-4 flex items-center gap-2 rounded-lg bg-yellow-900/20 p-2 text-xs text-yellow-400">
@@ -475,7 +532,6 @@ export default function MarzChatWidget() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <form onSubmit={handleSubmit} className="border-t border-zinc-800 p-4">
               <div className="flex items-end gap-2">
                 <button

@@ -1,22 +1,21 @@
 'use client'
 
-import * as React from 'react'
-import { X, Volume2, VolumeX, Trash2, Sparkles } from 'lucide-react'
+import { X, Sparkles, Trash2, Settings, PanelLeft, PanelRight } from 'lucide-react'
 
 interface ChatHeaderProps {
-  speechEnabled: boolean
-  onSpeechToggle: () => void
-  onClose: () => void
-  onClearChat: () => void
-  onVoiceIntroduce?: () => void
+  handleClearChat: () => void
+  onToggleSettings: () => void
+  position: 'left' | 'right'
+  onTogglePosition: () => void
+  setIsOpen: (isOpen: boolean) => void
 }
 
 export default function ChatHeader({
-  speechEnabled,
-  onSpeechToggle,
-  onClose,
-  onClearChat,
-  onVoiceIntroduce,
+  handleClearChat,
+  onToggleSettings,
+  position,
+  onTogglePosition,
+  setIsOpen,
 }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between border-b border-zinc-800 bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-4 py-3">
@@ -30,28 +29,14 @@ export default function ChatHeader({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button
-          onClick={onClearChat}
-          className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-          title="Clear chat history"
-        >
-          <Trash2 size={16} />
+        <button onClick={onToggleSettings} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Settings">
+          <Settings size={16} />
         </button>
-        <button
-          onClick={onSpeechToggle}
-          className={`rounded-lg p-2 transition-colors ${
-            speechEnabled
-              ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
-              : 'text-zinc-500 hover:text-zinc-300'
-          }`}
-          title={speechEnabled ? 'Disable voice output' : 'Enable voice output'}
-        >
-          {speechEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        <button onClick={onTogglePosition} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title={`Dock to ${position === 'right' ? 'left' : 'right'}`}>
+          {position === 'right' ? <PanelLeft size={16} /> : <PanelRight size={16} />}
         </button>
-        <button
-          onClick={onClose}
-          className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-        >
+        <div className="h-4 w-px bg-zinc-700 mx-1"></div>
+        <button onClick={() => setIsOpen(false)} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Close chat">
           <X size={16} />
         </button>
       </div>

@@ -5,13 +5,13 @@ import { motion } from 'framer-motion'
 
 interface SuggestionChipsProps {
   suggestions: string[]
-  onSuggestionClick: (suggestion: string) => void
+  handleSuggestionClick: (suggestion: string) => void
   isLoading: boolean
 }
 
 export default function SuggestionChips({
   suggestions,
-  onSuggestionClick,
+  handleSuggestionClick,
   isLoading,
 }: SuggestionChipsProps) {
   if (suggestions.length === 0 || isLoading) {
@@ -32,7 +32,7 @@ export default function SuggestionChips({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
-            onClick={() => onSuggestionClick(suggestion)}
+            onClick={() => handleSuggestionClick(suggestion)}
             className="rounded-full border border-blue-600/50 bg-blue-600/10 px-3 py-1.5 text-xs text-blue-300 transition-all hover:bg-blue-600/20 hover:text-blue-200"
           >
             {suggestion}
