@@ -83,13 +83,13 @@ export default function Footer() {
               <div className="flex flex-1 flex-wrap justify-center gap-8 sm:gap-6 lg:gap-8">
                 {footerColumns.map((col) => (
                   <div key={col.title} className="w-40 flex-shrink-0">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{col.title}</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-zinc-200">{col.title}</div>
                     <div className="mt-3 flex flex-col gap-2">
                       {col.links.map((link) => (
                         <Link
                           key={link.href}
                           href={link.href}
-                          className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                          className="text-sm text-zinc-100 hover:text-white transition-colors"
                         >
                           {link.label}
                         </Link>
@@ -101,14 +101,14 @@ export default function Footer() {
             </div>
 
             {/* Bottom Section: Copyright + Social */}
-            <div className="mt-8 flex flex-col items-center gap-3 border-t border-zinc-800/80 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-center">
+            <div className="mt-8 flex flex-col items-center gap-3 border-t border-zinc-800/80 pt-6 text-xs text-zinc-300 sm:flex-row sm:items-center sm:justify-center">
               <div>© {new Date().getFullYear()} BUILD WITH AI. All rights reserved.</div>
               <div className="flex items-center gap-3">
                 <a
                   href="https://www.linkedin.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-zinc-400 hover:text-zinc-200 transition-colors"
+                  className="text-zinc-300 hover:text-white transition-colors"
                   aria-label="LinkedIn"
                 >
                   <Linkedin size={16} />
@@ -117,7 +117,7 @@ export default function Footer() {
                   href="https://x.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-zinc-400 hover:text-zinc-200 transition-colors"
+                  className="text-zinc-300 hover:text-white transition-colors"
                   aria-label="X (Twitter)"
                 >
                   <Twitter size={16} />

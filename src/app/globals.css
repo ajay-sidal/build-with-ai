@@ -4,14 +4,14 @@
 
 :root {
   color-scheme: dark;
-  
-  /* New Color Palette - Futuristic & Trustworthy */
+
+  /* Updated Color Palette - Brighter & More Legible */
   --bg-primary: #0a0a0f;
   --bg-secondary: #111118;
   --bg-tertiary: #1a1a25;
-  --text-primary: #f5f5f7;
-  --text-secondary: #d1d1d6;
-  --text-tertiary: #86868b;
+  --text-primary: #ffffff;        /* Pure white for maximum legibility */
+  --text-secondary: #e5e5e5;      /* Brighter secondary (was #d1d1d6) */
+  --text-tertiary: #a3a3a3;       /* Brighter tertiary (was #86868b) */
   --accent-cyan: #00d4ff;
   --accent-blue: #3b82f6;
   --accent-purple: #8b5cf6;
