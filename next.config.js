@@ -6,20 +6,22 @@ const nextConfig = {
     const allowVercelLive = process.env.VERCEL === '1'
     const allowUnsafeEval = allowVercelLive && process.env.VERCEL_ENV !== 'production'
 
-    // CSP is intentionally permissive to avoid breaking Next.js hydration and Stripe.
-    // On Vercel deployments, allow Vercel Live Feedback / Toolbar script.
+    // CSP with media support for voice chat and MARZ AI
     const scriptSrc = [
       "'self'",
       "'unsafe-inline'",
       ...(allowUnsafeEval ? ["'unsafe-eval'"] : []),
       'https://js.stripe.com',
       'https://*.stripe.com',
+      'https://api.groq.com', // MARZ AI backend
       ...(allowVercelLive ? ['https://vercel.live'] : []),
     ].join(' ')
 
     const connectSrc = [
       "'self'",
       'https:',
+      'https://api.groq.com', // MARZ AI
+      'https://*.upstash.io', // Vector DB (if configured)
       ...(allowVercelLive ? ['https://vercel.live'] : []),
     ].join(' ')
 
@@ -41,6 +43,7 @@ const nextConfig = {
       `script-src ${scriptSrc}`,
       `script-src-elem ${scriptSrc}`,
       "style-src 'self' 'unsafe-inline' https:",
+      "media-src 'self' blob: mediastream:", // CRITICAL: Allows microphone access for voice chat
       "object-src 'none'",
       'upgrade-insecure-requests',
     ].join('; ')
@@ -54,7 +57,7 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-DNS-Prefetch-Control', value: 'off' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(self)' }, // Allow mic on same origin
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
         ],
       },

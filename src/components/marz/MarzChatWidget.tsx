@@ -389,9 +389,26 @@ export default function MarzChatWidget() {
     }
   }
 
-  const toggleVoiceInput = () => {
+  const toggleVoiceInput = async () => {
     if (!recognitionRef.current) {
-      setError('Voice recognition is not supported in your browser. Please use Chrome or Edge.')
+      const errorMsg = 'Voice recognition is not supported in your browser. Please use Chrome or Edge.'
+      setError(errorMsg)
+      console.error('[MARZ] ' + errorMsg)
+      
+      // Log to admin dashboard
+      try {
+        await fetch('/api/logs/client-error', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: 'Voice recognition not supported',
+            details: { userAgent: navigator.userAgent },
+            timestamp: new Date().toISOString(),
+          }),
+        })
+      } catch {
+        // Ignore logging errors
+      }
       return
     }
 
@@ -400,16 +417,53 @@ export default function MarzChatWidget() {
       setIsListening(false)
       setRetryCount(0)
     } else {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          setRetryCount(0)
-          recognitionRef.current?.start()
-        })
-        .catch((err) => {
-          console.error('[MARZ] Microphone access error:', err)
-          setError('Microphone access denied. Please allow microphone access in your browser settings.')
-          setRetryCount(0)
-        })
+      // Request microphone permission with detailed error handling
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        console.log('[MARZ] Microphone access granted')
+        
+        // Stop the stream immediately after getting permission
+        stream.getTracks().forEach(track => track.stop())
+        
+        setRetryCount(0)
+        recognitionRef.current?.start()
+      } catch (err: any) {
+        console.error('[MARZ] Microphone access error:', err)
+        
+        let errorMsg = 'Microphone access denied. '
+        
+        if (err.name === 'NotAllowedError') {
+          errorMsg += 'Please allow microphone access in your browser settings.'
+        } else if (err.name === 'NotFoundError') {
+          errorMsg += 'No microphone found. Please connect a microphone.'
+        } else if (err.name === 'NotReadableError') {
+          errorMsg += 'Microphone is in use by another application.'
+        } else {
+          errorMsg += err.message
+        }
+        
+        setError(errorMsg)
+        setRetryCount(0)
+        
+        // Log to admin dashboard
+        try {
+          await fetch('/api/logs/client-error', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: 'Microphone access failed',
+              details: {
+                error: err.name,
+                message: err.message,
+                userAgent: navigator.userAgent,
+              },
+              timestamp: new Date().toISOString(),
+            }),
+          })
+        } catch {
+          // Ignore logging errors
+        }
+      }
     }
   }
 
@@ -534,19 +588,44 @@ export default function MarzChatWidget() {
 
             <form onSubmit={handleSubmit} className="border-t border-zinc-800 p-4">
               <div className="flex items-end gap-2">
-                <button
-                  type="button"
-                  onClick={toggleVoiceInput}
-                  disabled={isLoading || !isOnline}
-                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
-                    isListening
-                      ? 'bg-red-600 text-white animate-pulse'
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-                  } disabled:cursor-not-allowed disabled:opacity-50`}
-                  title={isListening ? 'Stop listening' : 'Start voice input (Ctrl+M)'}
-                >
-                  {isListening ? <MicOff size={18} /> : <Mic size={18} />}
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={toggleVoiceInput}
+                    disabled={isLoading || !isOnline}
+                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
+                      isListening
+                        ? 'bg-red-600 text-white'
+                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                    title={isListening ? 'Stop listening' : 'Start voice input (Ctrl+M)'}
+                  >
+                    {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                  </button>
+                  
+                  {/* Voice Wave Animation - Shows when actively listening */}
+                  <AnimatePresence>
+                    {isListening && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        {[...Array(3)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ scale: 1, opacity: 0.8 }}
+                            animate={{ scale: [1, 2, 3], opacity: [0.8, 0.4, 0] }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              delay: i * 0.3,
+                              ease: "easeOut",
+                            }}
+                            className="absolute h-10 w-10 rounded-full border-2 border-red-400"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 <textarea
                   value={input}
@@ -574,7 +653,7 @@ export default function MarzChatWidget() {
               </div>
               {isListening && (
                 <p className="mt-2 text-center text-xs text-red-400 animate-pulse">
-                  🔴 Listening... Speak now (Ctrl+M to stop)
+                  🔴 Listening... Speak now • Waves indicate active capture
                 </p>
               )}
             </form>
