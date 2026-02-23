@@ -29,7 +29,7 @@ export default function HomePage() {
 
         {/* Main Headline */}
         <h1 className="text-balance text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-          <span className="bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">BUILD WITH AI</span>
+          <span className="bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent italic">Build With AI</span>
           <br />
           <span className="mt-2 block text-3xl sm:text-4xl lg:text-5xl text-zinc-100">
             Your Digital Future, Secured
