@@ -105,11 +105,13 @@ function downloadCsvFile(fileName: string, csv: string) {
 export default function LeadsClient() {
   const { useNotifications } = require('../../../lib/notifications')
   const { addNotification } = useNotifications()
-  
+  const { useDragAndDropList } = require('../../../lib/drag-and-drop')
+
   const [adminSecret, setAdminSecret] = React.useState('')
   const [search, setSearch] = React.useState('')
   const [leads, setLeads] = React.useState<Lead[]>([])
   const [statuses, setStatuses] = React.useState<Record<string, LeadStatus>>({})
+  const [orderedLeads, setOrderedLeads] = React.useState<Array<{ l: Lead, id: string, status: LeadStatus }>>([])
 
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -150,6 +152,14 @@ export default function LeadsClient() {
 
       const list = data?.results ?? []
       setLeads(list)
+
+      // Initialize ordered leads with decorated data
+      const decorated = list.map((l) => {
+        const id = leadId(l)
+        const s = statuses[id] || l.status || 'New'
+        return { l, id, status: s }
+      })
+      setOrderedLeads(decorated)
 
       // default any missing to New
       setStatuses((prev) => {
