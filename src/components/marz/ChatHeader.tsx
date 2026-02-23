@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { X, Volume2, VolumeX, Trash2, Sparkles, Mic } from 'lucide-react'
+import { X, Volume2, VolumeX, Trash2, Sparkles } from 'lucide-react'
 
 interface ChatHeaderProps {
   speechEnabled: boolean
@@ -26,19 +26,10 @@ export default function ChatHeader({
         </div>
         <div>
           <h3 className="text-sm font-semibold text-zinc-100">MARZ</h3>
-          <p className="text-xs text-zinc-400">AI Assistant {speechEnabled && '• Voice Active'}</p>
+          <p className="text-xs text-zinc-400">AI Assistant</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {onVoiceIntroduce && (
-          <button
-            onClick={onVoiceIntroduce}
-            className="rounded-lg p-2 text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors"
-            title="Activate voice chat - MARZ will speak and listen"
-          >
-            <Mic size={16} />
-          </button>
-        )}
         <button
           onClick={onClearChat}
           className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
