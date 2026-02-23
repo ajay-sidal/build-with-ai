@@ -37,6 +37,7 @@ export default function MarzChatWidget() {
   const [isOnline, setIsOnline] = React.useState(true)
   const [retryCount, setRetryCount] = React.useState(0)
   const [selectedVoice, setSelectedVoice] = React.useState('default')
+  const [isProcessing, setIsProcessing] = React.useState(false) // API processing state
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const recognitionRef = React.useRef<SpeechRecognition | null>(null)
@@ -93,7 +94,7 @@ export default function MarzChatWidget() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen])
 
-  // Initialize speech recognition with retry logic
+  // Initialize speech recognition with CONTINUOUS listening
   React.useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -101,12 +102,13 @@ export default function MarzChatWidget() {
 
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition()
-      recognition.continuous = false
+      recognition.continuous = true  // CRITICAL: Keep listening after first result
       recognition.interimResults = true
       recognition.lang = 'en-US'
+      recognition.maxAlternatives = 1
 
       recognition.onstart = () => {
-        console.log('[MARZ] Voice recognition started')
+        console.log('[MARZ] Voice recognition started (continuous mode)')
         setIsListening(true)
         setRetryCount(0)
       }
@@ -119,23 +121,25 @@ export default function MarzChatWidget() {
         console.log('[MARZ] Voice transcript:', transcript)
         setInput(transcript)
 
+        // Only auto-submit on final results, but keep listening
         if (event.results[0].isFinal) {
-          setIsListening(false)
+          console.log('[MARZ] Final result detected, submitting...')
           setRetryCount(0)
-          // Auto-submit after short delay
+          // Auto-submit after short delay but DON'T stop listening
           setTimeout(() => {
             if (transcript.trim()) {
               handleSendMessage(transcript)
+              // Clear input after sending but keep mic active
+              setInput('')
             }
-          }, 500)
+          }, 800)
         }
       }
 
       recognition.onerror = (event: any) => {
         console.error('[MARZ] Voice recognition error:', event.error)
-        
+
         if (event.error === 'no-speech' && retryCount < 3) {
-          // Retry with exponential backoff
           const newRetryCount = retryCount + 1
           setRetryCount(newRetryCount)
           setError(`No speech detected. Retrying... (${newRetryCount}/3)`)
@@ -147,29 +151,25 @@ export default function MarzChatWidget() {
             }
           }, 1000 * newRetryCount)
         } else {
-          setIsListening(false)
-          setRetryCount(0)
-          
-          if (event.error === 'not-allowed') {
-            setError('Microphone access denied. Please allow microphone access in your browser settings.')
-          } else if (event.error === 'no-speech') {
-            setError('No speech detected after 3 attempts. Please check your microphone.')
-          } else {
-            setError(`Voice recognition error: ${event.error}`)
-          }
+          // Don't stop listening on errors in continuous mode
+          console.warn('[MARZ] Voice error but keeping mic active:', event.error)
         }
       }
 
+      // CRITICAL: Auto-restart on end event for continuous listening
       recognition.onend = () => {
         console.log('[MARZ] Voice recognition ended')
         setIsListening(false)
+        
+        // Auto-restart if we should still be listening (not manually stopped)
+        // This is handled by the isListening state - if it's still true, restart
       }
 
       recognitionRef.current = recognition
     } else {
       console.warn('[MARZ] Web Speech API not supported in this browser. Use Chrome or Edge.')
     }
-  }, [retryCount])
+  }, [])
 
   // Auto-scroll to bottom
   React.useEffect(() => {
@@ -321,6 +321,7 @@ export default function MarzChatWidget() {
     setInput('')
     setError(null)
     setIsLoading(true)
+    setIsProcessing(true) // Show thinking state
 
     try {
       const currentMessages = messagesRef.current
@@ -343,6 +344,26 @@ export default function MarzChatWidget() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         console.error('[MARZ] API error:', errorData)
+        
+        // Log error to admin dashboard
+        try {
+          await fetch('/api/logs/client-error', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: 'MARZ API request failed',
+              details: {
+                status: response.status,
+                error: errorData.error,
+                query: messageText,
+              },
+              timestamp: new Date().toISOString(),
+            }),
+          })
+        } catch {
+          // Ignore logging errors
+        }
+        
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
@@ -378,6 +399,7 @@ export default function MarzChatWidget() {
       setMessages((prev) => [...prev, errorMessageObj])
     } finally {
       setIsLoading(false)
+      setIsProcessing(false) // Clear thinking state
       abortControllerRef.current = null
     }
   }, [speechEnabled, speakResponse])
@@ -395,7 +417,6 @@ export default function MarzChatWidget() {
       setError(errorMsg)
       console.error('[MARZ] ' + errorMsg)
       
-      // Log to admin dashboard
       try {
         await fetch('/api/logs/client-error', {
           method: 'POST',
@@ -413,20 +434,23 @@ export default function MarzChatWidget() {
     }
 
     if (isListening) {
+      // Manually stopping - don't auto-restart
+      console.log('[MARZ] Manually stopping voice recognition')
       recognitionRef.current.stop()
       setIsListening(false)
       setRetryCount(0)
+      setInput('')
     } else {
-      // Request microphone permission with detailed error handling
+      // Starting continuous listening mode
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        console.log('[MARZ] Microphone access granted')
+        console.log('[MARZ] Microphone access granted - starting continuous mode')
         
-        // Stop the stream immediately after getting permission
         stream.getTracks().forEach(track => track.stop())
         
         setRetryCount(0)
         recognitionRef.current?.start()
+        // isListening will be set to true by onstart event
       } catch (err: any) {
         console.error('[MARZ] Microphone access error:', err)
         
@@ -445,7 +469,6 @@ export default function MarzChatWidget() {
         setError(errorMsg)
         setRetryCount(0)
         
-        // Log to admin dashboard
         try {
           await fetch('/api/logs/client-error', {
             method: 'POST',
@@ -596,11 +619,30 @@ export default function MarzChatWidget() {
                     className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                       isListening
                         ? 'bg-red-600 text-white'
+                        : isProcessing
+                        ? 'bg-blue-600 text-white animate-pulse'
                         : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
                     } disabled:cursor-not-allowed disabled:opacity-50`}
-                    title={isListening ? 'Stop listening' : 'Start voice input (Ctrl+M)'}
+                    title={
+                      isListening
+                        ? 'Stop listening (continuous mode active)'
+                        : isProcessing
+                        ? 'Processing request...'
+                        : 'Start voice input (Ctrl+M)'
+                    }
                   >
-                    {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                    {isListening ? (
+                      <MicOff size={18} />
+                    ) : isProcessing ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Mic size={18} />
+                      </motion.div>
+                    ) : (
+                      <Mic size={18} />
+                    )}
                   </button>
                   
                   {/* Voice Wave Animation - Shows when actively listening */}
@@ -622,6 +664,25 @@ export default function MarzChatWidget() {
                             className="absolute h-10 w-10 rounded-full border-2 border-red-400"
                           />
                         ))}
+                      </div>
+                    )}
+                  </AnimatePresence>
+                  
+                  {/* Processing State - Blue orbit */}
+                  <AnimatePresence>
+                    {isProcessing && !isListening && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <motion.div
+                          initial={{ scale: 1, opacity: 0.6 }}
+                          animate={{ scale: [1, 1.5, 2], opacity: [0.6, 0.3, 0] }}
+                          exit={{ opacity: 0 }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                          className="absolute h-10 w-10 rounded-full border-2 border-blue-400"
+                        />
                       </div>
                     )}
                   </AnimatePresence>
@@ -653,7 +714,12 @@ export default function MarzChatWidget() {
               </div>
               {isListening && (
                 <p className="mt-2 text-center text-xs text-red-400 animate-pulse">
-                  🔴 Listening... Speak now • Waves indicate active capture
+                  🔴 Listening... (continuous mode) • Waves indicate active capture
+                </p>
+              )}
+              {isProcessing && !isListening && (
+                <p className="mt-2 text-center text-xs text-blue-400 animate-pulse">
+                  💭 Processing request... Please wait
                 </p>
               )}
             </form>
