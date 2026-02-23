@@ -25,7 +25,9 @@ export function startSpan(name: string, meta?: TraceMeta): { end: (meta?: TraceM
       const durationMs = Date.now() - start
       if (otelSpan) {
         if (endMeta) {
-          Object.entries(endMeta).forEach(([k, v]) => otelSpan!.setAttribute(k, v))
+          Object.entries(endMeta).forEach(([k, v]) => {
+            if (v !== undefined) otelSpan!.setAttribute(k, v)
+          })
         }
         otelSpan.end()
       } else {
