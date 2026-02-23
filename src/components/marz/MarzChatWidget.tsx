@@ -98,19 +98,14 @@ export default function MarzChatWidget() {
   const synthRef = React.useRef<SpeechSynthesis | null>(null)
   const transcriptRef = React.useRef('')
 
-  const {
-    messages,
-    input,
-    setInput,
-    append,
-    isLoading,
-    setMessages,
-  } = useChat({
+  const [input, setInput] = React.useState('')
+  const [isLoading, setIsLoading] = React.useState(false)
+  const { messages, setMessages, sendMessage, error } = useChat({
     api: '/api/marz/chat',
     initialMessages: [],
-    onFinish: (message: UIMessage) => {
-      // Extract suggestions from the final message content
-      const suggestionMatch = message.content?.match?.(/SUGGESTIONS:(.*)/)
+    onFinish: ({ message }) => {
+      const content = (message as any).content as string | undefined;
+      const suggestionMatch = content?.match?.(/SUGGESTIONS:(.*)/)
       if (suggestionMatch && suggestionMatch[1]) {
         try {
           const parsedSuggestions = JSON.parse(suggestionMatch[1])
@@ -120,9 +115,10 @@ export default function MarzChatWidget() {
           setSuggestions([])
         }
       }
-      if (speechEnabled && message.content) {
-        speakResponse(message.content)
+      if (speechEnabled && content) {
+        speakResponse(content)
       }
+      setIsLoading(false);
     },
   })
 
@@ -368,18 +364,23 @@ export default function MarzChatWidget() {
   }, [recognition, isListening])
 
   // Handle form submission
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim()) return
-    setSuggestions([]) // Clear suggestions on new submission
-    handleSubmit(e)
+    setSuggestions([])
+    setIsLoading(true)
+    await sendMessage(input)
+    setInput('')
   }
 
   // Handle suggestion chip click
-  const handleSuggestionClick = React.useCallback((suggestion: string) => {
+  const handleSuggestionClick = React.useCallback(async (suggestion: string) => {
     setSuggestions([])
-    append({ role: 'user', content: suggestion })
-  }, [append])
+    setInput(suggestion)
+    setIsLoading(true)
+    await sendMessage(suggestion)
+    setInput('')
+  }, [sendMessage])
 
   // Clear chat history
   const handleClearChat = React.useCallback(() => {
@@ -467,8 +468,8 @@ export default function MarzChatWidget() {
               input={input}
               isLoading={isLoading}
               isListening={isListening}
-              handleInputChange={handleInputChange}
-              handleSubmit={handleSubmit}
+              handleInputChange={e => setInput(e.target.value)}
+              handleSubmit={handleFormSubmit}
               toggleVoiceInput={toggleVoiceInput}
             />
           </motion.div>
