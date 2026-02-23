@@ -1,8 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { useChat, type Message } from 'ai/react'
+import { useChat, type Message } from '@ai-sdk/react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useMemo } from 'react'
 
 // Import sub-components
 import MarzAvatar from './MarzAvatar'
@@ -84,7 +85,7 @@ export default function MarzChatWidget() {
   const [isHistoryLoading, setIsHistoryLoading] = React.useState(true)
   const [suggestions, setSuggestions] = React.useState<string[]>([])
   const [position, setPosition] = React.useState<'left' | 'right'>('right')
-  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
+  // Removed isSettingsOpen, SettingsPanel is not used
   const [availableVoices, setAvailableVoices] = React.useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = React.useState<string | null>(null)
   const [isSpeaking, setIsSpeaking] = React.useState(false)
@@ -381,7 +382,7 @@ export default function MarzChatWidget() {
       localStorage.removeItem('marz_has_welcomed')
       setMessages(getDefaultWelcomeMessage())
       setSuggestions([])
-      setIsSettingsOpen(false)
+      // Removed setIsSettingsOpen(false), SettingsPanel is not used
     }
   }, [setMessages])
 
@@ -436,14 +437,14 @@ export default function MarzChatWidget() {
           >
             <ChatHeader
               handleClearChat={handleClearChat}
-              onToggleSettings={() => setIsSettingsOpen(true)}
+              // Removed onToggleSettings, SettingsPanel is not used
               position={position}
               onTogglePosition={() => setPosition(p => p === 'right' ? 'left' : 'right')}
               setIsOpen={setIsOpen}
             />
 
             <MessageList
-              messages={messages as any}
+              messages={messages}
               isLoading={isLoading}
               isHistoryLoading={isHistoryLoading}
               messagesEndRef={messagesEndRef}

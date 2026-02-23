@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
 
 // Force Node.js runtime for better compatibility
@@ -187,17 +186,18 @@ export async function POST(req: Request) {
       console.log('[MARZ] GROQ_API_KEY not configured, using fallback responses')
       // Use intelligent fallback responses (no API key needed)
       const fallbackResponse = getFallbackResponse(userQuery)
-      return NextResponse.json({
-        response: fallbackResponse.response,
-        suggestions: fallbackResponse.suggestions,
-        matches: [],
-      })
+      const stream = new ReadableStream({
+        start(controller) {
+            controller.enqueue(new TextEncoder().encode(fallbackResponse.response + `SUGGESTIONS:${JSON.stringify(fallbackResponse.suggestions)}`));
+            controller.close();
+        }
+      });
+      return new StreamingTextResponse(stream);
     }
 
     // GROQ API key is configured - use AI
     const groq = new Groq({
       apiKey: groqApiKey,
-      timeout: 50000, // 50 second timeout for API calls
     })
 
     // COMPACT system prompt - NO massive product catalog
@@ -211,7 +211,7 @@ export async function POST(req: Request) {
 - **Hosting**: Plesk Licenses, Virtuozzo Licenses, Templates Storefront
 - **Services**: Customer Management, Domain Management, SSL Management, AI Web Design
 
-Be conversational and helpful. Use markdown formatting. Keep responses concise. If asked about specific pricing or details you don't have, offer to help them find more information.`
+Be conversational and helpful. Use markdown formatting. Keep responses concise. If asked about specific pricing or details you don't have, offer to help them find more information. After answering, you MUST generate 2-3 relevant follow-up questions as a JSON array string at the VERY END of your response, prefixed with "SUGGESTIONS:". For example: SUGGESTIONS:["What are its key features?", "How does pricing work?"]`
 
     const finalMessages = [
       { role: 'system', content: systemPrompt },
@@ -221,82 +221,19 @@ Be conversational and helpful. Use markdown formatting. Keep responses concise. 
     // Call the LLM with timeout handling
     console.log('[MARZ] Calling Groq API...')
     
-    let completion: any
-    try {
-      completion = await Promise.race([
-        groq.chat.completions.create({
-          model: 'llama3-8b-8192',
-          messages: finalMessages,
-          max_tokens: 1024,
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('API_TIMEOUT')), 55000)
-        ),
-      ])
-    } catch (apiError: any) {
-      if (apiError.message === 'API_TIMEOUT') {
-        console.error('[MARZ] Groq API timeout')
-        // Fallback to keyword-based response on timeout
-        const fallbackResponse = getFallbackResponse(userQuery)
-        return NextResponse.json({
-          response: fallbackResponse.response + '\n\n*(AI response timed out, showing quick response)*',
-          suggestions: fallbackResponse.suggestions,
-          matches: [],
-        }, { status: 200 })
-      }
-      throw apiError
-    }
-
-    const aiResponse = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
-    console.log('[MARZ] Got response from Groq')
-
-    // Generate simple suggestions
-    const suggestions = [
-      'Tell me about domain pricing',
-      'What SSL options are available?',
-      'How does DNS hosting work?',
-    ]
-
-    console.log('[MARZ] Sending response back to client')
-    return NextResponse.json({
-      response: aiResponse,
-      suggestions,
-      matches: [],
+    const response = await groq.chat.completions.create({
+      model: 'llama3-8b-8192',
+      stream: true,
+      messages: finalMessages,
     })
+
+    const stream = OpenAIStream(response)
+    return new StreamingTextResponse(stream)
   } catch (error) {
     console.error('[MARZ API Error]:', error)
     
     // ALWAYS return a helpful response, NEVER show error to user
-    // Use fallback response based on their query
-    let userQuery = 'help'
-    try {
-      const { messages } = await req.json()
-      userQuery = messages?.[messages.length - 1]?.content || 'help'
-    } catch {}
-    
-    const fallbackResponse = getFallbackResponse(userQuery)
-    
-    // Log error to admin dashboard (non-blocking)
-    if (process.env.NEXT_PUBLIC_SITE_URL) {
-      fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/logs/client-error`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: 'MARZ API request failed - fallback used',
-          details: {
-            error: error instanceof Error ? error.message : 'Unknown error',
-            userQuery,
-          },
-          timestamp: new Date().toISOString(),
-        }),
-      }).catch(() => {})
-    }
-    
-    // Return ONLY helpful response - NO error field
-    return NextResponse.json({
-      response: fallbackResponse.response,
-      suggestions: fallbackResponse.suggestions,
-      matches: [],
-    })
+    // In case of a non-streaming error, return a generic error message.
+    return new Response("I apologize, but I'm experiencing technical difficulties. Please try again later.", { status: 500 });
   }
 }

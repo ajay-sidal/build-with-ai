@@ -4,7 +4,7 @@ import { X, Sparkles, Trash2, Settings, PanelLeft, PanelRight } from 'lucide-rea
 
 interface ChatHeaderProps {
   handleClearChat: () => void
-  onToggleSettings: () => void
+  onToggleSettings?: () => void
   position: 'left' | 'right'
   onTogglePosition: () => void
   setIsOpen: (isOpen: boolean) => void
@@ -12,7 +12,7 @@ interface ChatHeaderProps {
 
 export default function ChatHeader({
   handleClearChat,
-  onToggleSettings,
+    onToggleSettings = () => {}, // Default to a no-op function if not provided
   position,
   onTogglePosition,
   setIsOpen,
@@ -32,9 +32,16 @@ export default function ChatHeader({
         <button onClick={handleClearChat} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Clear chat history" aria-label="Clear chat history">
           <Trash2 size={16} />
         </button>
-        <button onClick={onToggleSettings} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Settings" aria-label="Settings">
-          <Settings size={16} />
-        </button>
+          <button
+            onClick={onToggleSettings}
+            className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+            title="Settings"
+            aria-label="Settings"
+            disabled={!onToggleSettings}
+            style={!onToggleSettings ? { opacity: 0.5, pointerEvents: 'none' } : {}}
+          >
+            <Settings size={16} />
+          </button>
         <button onClick={onTogglePosition} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title={`Dock to ${position === 'right' ? 'left' : 'right'}`} aria-label={`Dock to ${position === 'right' ? 'left' : 'right'}`}>
           {position === 'right' ? <PanelLeft size={16} /> : <PanelRight size={16} />}
         </button>
