@@ -40,6 +40,7 @@ export default function MarzChatWidget() {
   const [selectedVoice, setSelectedVoice] = React.useState('default')
   const [isProcessing, setIsProcessing] = React.useState(false) // API processing state
   const [isSpeaking, setIsSpeaking] = React.useState(false) // TTS speaking state
+  const [hasWelcomedThisSession, setHasWelcomedThisSession] = React.useState(false)
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const recognitionRef = React.useRef<SpeechRecognition | null>(null)
@@ -523,7 +524,20 @@ export default function MarzChatWidget() {
           isProcessing={isProcessing}
           isSpeaking={isSpeaking}
           size={100}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            // Show welcome message on first click of session
+            if (!hasWelcomedThisSession && messages.length <= 1) {
+              setHasWelcomedThisSession(true)
+              // Add welcome message if not already present
+              const welcomeMessage: Message = {
+                id: 'welcome-' + Date.now(),
+                role: 'assistant',
+                content: "👋 Hi! I'm **MARZ**, your personal AI assistant for BUILD WITH AI. I can help you register domains, secure your website with SSL certificates, set up DNS hosting, and much more. What would you like to work on today?",
+              }
+              setMessages([welcomeMessage])
+            }
+            setIsOpen(!isOpen)
+          }}
         />
       </div>
 

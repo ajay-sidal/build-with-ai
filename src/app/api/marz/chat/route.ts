@@ -3,7 +3,7 @@ import Groq from 'groq-sdk'
 
 // Force Node.js runtime for better compatibility
 export const runtime = 'nodejs'
-export const maxDuration = 60 // 60 second timeout (increased from 30s)
+export const maxDuration = 60 // 60 second timeout
 
 export async function POST(req: Request) {
   try {
@@ -39,30 +39,18 @@ export async function POST(req: Request) {
 
     console.log('[MARZ] Processing query:', userQuery)
 
-    // System prompt with product knowledge
-    const systemPrompt = `You are MARZ, a friendly and expert AI assistant for BUILD WITH AI.
+    // COMPACT system prompt - NO massive product catalog (RAG would be better but requires Vector DB setup)
+    const systemPrompt = `You are MARZ, a friendly AI assistant for BUILD WITH AI.
 
-**BUILD WITH AI Products & Services:**
+**Quick Reference:**
+- **Domains**: 1,500+ TLDs (.com, .ai, .io, etc.) - Registration, Transfer, Renewal
+- **SSL**: Domain Validation, Organization Validation, Extended Validation, Wildcard, Multi-Domain, Code Signing
+- **DNS**: Free DNS Hosting, Premium DNS, DNS Templates, Nameserver Groups
+- **Email**: Email Verification, Email Templates, Spam Experts, EasyDMARC
+- **Hosting**: Plesk Licenses, Virtuozzo Licenses, Templates Storefront
+- **Services**: Customer Management, Domain Management, SSL Management, AI Web Design
 
-1. **Domain Registration** - Search and register domains with 1,500+ TLDs (.com, .ai, .io, etc.)
-2. **SSL Certificates** - Zero-knowledge SSL certificates (Domain Validation, Organization Validation, Extended Validation, Wildcard, Multi-Domain)
-3. **DNS Hosting** - Fast, reliable DNS with instant propagation
-4. **Premium DNS** - Enhanced DNS with advanced features
-5. **Email Verification** - Verify email addresses for deliverability
-6. **Email Templates** - Professional email templates
-7. **Spam Experts** - Email spam filtering and archiving
-8. **EasyDMARC** - DMARC, SPF, DKIM email authentication
-9. **Templates Storefront** - Website templates
-10. **Plesk Licenses** - Plesk hosting control panel licenses
-11. **Virtuozzo Licenses** - Virtuozzo virtualization licenses
-
-**Services:**
-- Customer Management
-- Domain Management
-- SSL Management
-- AI Web Design
-
-Be conversational, helpful, and use markdown formatting. Keep responses concise but informative.`
+Be conversational and helpful. Use markdown formatting. Keep responses concise. If asked about specific pricing or details you don't have, offer to help them find more information.`
 
     const finalMessages = [
       { role: 'system', content: systemPrompt },
@@ -102,7 +90,7 @@ Be conversational, helpful, and use markdown formatting. Keep responses concise 
     const aiResponse = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
     console.log('[MARZ] Got response from Groq')
 
-    // Generate simple suggestions based on common queries
+    // Generate simple suggestions
     const suggestions = [
       'Tell me about domain pricing',
       'What SSL options are available?',
