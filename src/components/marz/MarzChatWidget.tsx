@@ -32,9 +32,10 @@ interface SpeechRecognition extends EventTarget {
   start: () => void
   stop: () => void
   abort: () => void
-  onresult: (event: any) => void
-  onerror: (event: any) => void
-  onend: () => void
+  onresult: ((event: any) => void) | null
+  onerror: ((event: any) => void) | null
+  onend: (() => void) | null
+  onstart: (() => void) | null
 }
 
 interface SpeechRecognitionConstructor {
@@ -212,13 +213,20 @@ export default function MarzChatWidget() {
   // Initialize speech recognition
   React.useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    console.log('[MARZ] SpeechRecognition available:', !!SpeechRecognition)
+    
     if (SpeechRecognition) {
       const recognitionInstance = new SpeechRecognition()
       recognitionInstance.continuous = false
       recognitionInstance.interimResults = true
       recognitionInstance.lang = 'en-US'
 
-      recognitionInstance.onresult = (event) => {
+      recognitionInstance.onstart = () => {
+        console.log('[MARZ] Speech recognition started')
+      }
+
+      recognitionInstance.onresult = (event: any) => {
+        console.log('[MARZ] Speech recognition result:', event)
         const transcript = Array.from(event.results)
           .map((result: any) => result[0])
           .map((result) => result.transcript)
@@ -231,6 +239,7 @@ export default function MarzChatWidget() {
         setInput(transcript)
 
         if (event.results[0].isFinal) {
+          console.log('[MARZ] Final transcript:', transcript)
           setIsListening(false)
         }
       }
@@ -243,7 +252,7 @@ export default function MarzChatWidget() {
         if (event.error === 'not-allowed') {
           console.warn('[MARZ] Microphone permission denied by user')
         } else if (event.error === 'no-speech') {
-          console.warn('[MARZ] No speech detected')
+          console.warn('[MARZ] No speech detected - please speak into the microphone')
         } else if (event.error === 'audio-capture') {
           console.warn('[MARZ] No microphone found')
           alert('No microphone detected. Please ensure a microphone is connected to your device.')
@@ -253,10 +262,12 @@ export default function MarzChatWidget() {
       }
 
       recognitionInstance.onend = () => {
+        console.log('[MARZ] Speech recognition ended')
         setIsListening(false)
         // Auto-submit the transcript when recognition ends
         const finalTranscript = transcriptRef.current
         if (finalTranscript.trim()) {
+          console.log('[MARZ] Auto-submitting transcript:', finalTranscript)
           // Small delay to ensure input is updated
           setTimeout(() => {
             handleSendMessage(finalTranscript)
@@ -325,15 +336,24 @@ export default function MarzChatWidget() {
     setInput('')
     transcriptRef.current = ''
 
-    // Call MARZ API
+    // Call MARZ API with proper messages format
     try {
+      // Prepare messages array for API (include last 10 messages for context)
+      const apiMessages = [...messages, userMessage].slice(-10).map(m => ({
+        role: m.role,
+        content: m.content,
+      }))
+
       const response = await fetch('/api/marz/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageText }),
+        body: JSON.stringify({ messages: apiMessages }),
       })
 
-      if (!response.ok) throw new Error('Failed to get response')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}`)
+      }
 
       const data = await response.json()
       const assistantMessage: Message = {
@@ -354,12 +374,12 @@ export default function MarzChatWidget() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        content: `I apologize, but I encountered an error: ${error instanceof Error ? error.message : 'Please try again.'}`,
         timestamp: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, errorMessage])
     }
-  }, [speechEnabled, speakResponse])
+  }, [messages, speechEnabled, speakResponse])
 
   // Handle form submission
   const handleSubmit = React.useCallback((e: React.FormEvent) => {
