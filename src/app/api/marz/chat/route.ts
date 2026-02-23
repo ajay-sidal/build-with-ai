@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk'
+import { NextResponse } from 'next/server';
 
 // Force Node.js runtime for better compatibility
 export const runtime = 'nodejs'
@@ -186,13 +187,11 @@ export async function POST(req: Request) {
       console.log('[MARZ] GROQ_API_KEY not configured, using fallback responses')
       // Use intelligent fallback responses (no API key needed)
       const fallbackResponse = getFallbackResponse(userQuery)
-      const stream = new ReadableStream({
-        start(controller) {
-            controller.enqueue(new TextEncoder().encode(fallbackResponse.response + `SUGGESTIONS:${JSON.stringify(fallbackResponse.suggestions)}`));
-            controller.close();
-        }
-      });
-      return new StreamingTextResponse(stream);
+      return NextResponse.json({
+        response: fallbackResponse.response,
+        suggestions: fallbackResponse.suggestions,
+        matches: [],
+      })
     }
 
     // GROQ API key is configured - use AI
@@ -223,12 +222,22 @@ Be conversational and helpful. Use markdown formatting. Keep responses concise. 
     
     const response = await groq.chat.completions.create({
       model: 'llama3-8b-8192',
-      stream: true,
       messages: finalMessages,
     })
-
-    const stream = OpenAIStream(response)
-    return new StreamingTextResponse(stream)
+    const aiMessage = response.choices?.[0]?.message?.content || 'Sorry, no response.';
+    // Extract suggestions if present
+    let suggestions: string[] = [];
+    const match = aiMessage.match(/SUGGESTIONS:(\[.*?\])$/);
+    if (match) {
+      try {
+        suggestions = JSON.parse(match[1]);
+      } catch {}
+    }
+    return NextResponse.json({
+      response: aiMessage.replace(/SUGGESTIONS:(\[.*?\])$/, '').trim(),
+      suggestions,
+      matches: [],
+    });
   } catch (error) {
     console.error('[MARZ API Error]:', error)
     

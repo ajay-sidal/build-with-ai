@@ -5,27 +5,21 @@ import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import CodeBlock from './CodeBlock'
 import ChatHistorySkeleton from './ChatHistorySkeleton'
-
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-}
+import type { UIMessage } from '@ai-sdk/react'
 
 interface MessageListProps {
-  messages: Message[]
+  messages: UIMessage[]
   isLoading: boolean
   isHistoryLoading: boolean
   messagesEndRef: React.RefObject<HTMLDivElement>
 }
 
 // Parse markdown with code block support
-const formatMessage = (content: string) => {
+const formatMessage = (content: string | undefined) => {
+  if (!content) return null;
   const parts = content.split(/```(\w*)\n([\s\S]*?)```/g)
-  
   const elements: React.ReactNode[] = []
   let key = 0
-
   for (let i = 0; i < parts.length; i += 3) {
     const textPart = parts[i]
     if (textPart) {
@@ -44,7 +38,6 @@ const formatMessage = (content: string) => {
       ))
       elements.push(...textElements)
     }
-
     if (i + 2 < parts.length) {
       const language = parts[i + 1]
       const code = parts[i + 2].trim()
@@ -58,7 +51,6 @@ const formatMessage = (content: string) => {
       key++
     }
   }
-
   return <>{elements}</>
 }
 
@@ -95,7 +87,7 @@ export default function MessageList({
                   : 'bg-zinc-800/80 text-zinc-200'
               }`}
             >
-              {formatMessage(message.content)}
+              {formatMessage((message as any).content)}
             </div>
           </motion.li>
         ))}

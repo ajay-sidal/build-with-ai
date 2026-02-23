@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useChat, type Message } from '@ai-sdk/react'
+import { useChat, type UIMessage } from '@ai-sdk/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMemo } from 'react'
 
@@ -98,12 +98,19 @@ export default function MarzChatWidget() {
   const synthRef = React.useRef<SpeechSynthesis | null>(null)
   const transcriptRef = React.useRef('')
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages, setInput } = useChat({
+  const {
+    messages,
+    input,
+    setInput,
+    append,
+    isLoading,
+    setMessages,
+  } = useChat({
     api: '/api/marz/chat',
-    initialMessages: [], // Start empty, will populate via useEffect
-    onFinish: (message: Message) => {
+    initialMessages: [],
+    onFinish: (message: UIMessage) => {
       // Extract suggestions from the final message content
-      const suggestionMatch = message.content.match(/SUGGESTIONS:(.*)/)
+      const suggestionMatch = message.content?.match?.(/SUGGESTIONS:(.*)/)
       if (suggestionMatch && suggestionMatch[1]) {
         try {
           const parsedSuggestions = JSON.parse(suggestionMatch[1])
@@ -113,8 +120,7 @@ export default function MarzChatWidget() {
           setSuggestions([])
         }
       }
-
-      if (speechEnabled) {
+      if (speechEnabled && message.content) {
         speakResponse(message.content)
       }
     },
@@ -462,7 +468,7 @@ export default function MarzChatWidget() {
               isLoading={isLoading}
               isListening={isListening}
               handleInputChange={handleInputChange}
-              handleSubmit={handleFormSubmit}
+              handleSubmit={handleSubmit}
               toggleVoiceInput={toggleVoiceInput}
             />
           </motion.div>
