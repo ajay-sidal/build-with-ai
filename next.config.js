@@ -37,18 +37,14 @@ const nextConfig = {
       ]
     }
 
-    // Production CSP - strict security
-    const allowVercelLive = process.env.VERCEL === '1'
-    const allowUnsafeEval = allowVercelLive && process.env.VERCEL_ENV !== 'production'
-
+    // Production CSP - secure but functional
     const scriptSrc = [
       "'self'",
       "'unsafe-inline'",
-      ...(allowUnsafeEval ? ["'unsafe-eval'"] : []),
+      "'unsafe-eval'", // Required for Next.js hydration
       'https://js.stripe.com',
       'https://*.stripe.com',
       'https://api.groq.com',
-      ...(allowVercelLive ? ['https://vercel.live'] : []),
     ].join(' ')
 
     const connectSrc = [
@@ -56,13 +52,11 @@ const nextConfig = {
       'https:',
       'https://api.groq.com',
       'https://*.upstash.io',
-      ...(allowVercelLive ? ['https://vercel.live'] : []),
     ].join(' ')
 
     const frameSrc = [
       'https://checkout.stripe.com',
       'https://*.stripe.com',
-      ...(allowVercelLive ? ['https://vercel.live'] : []),
     ].join(' ')
 
     const csp = [
