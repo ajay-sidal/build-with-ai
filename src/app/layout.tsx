@@ -2,11 +2,13 @@ import type { Metadata } from 'next'
 import React, { Suspense } from 'react'
 import SessionProvider from '../components/providers/SessionProvider'
 import { ThemeProvider } from '../components/providers/ThemeProvider'
+import { NotificationProvider } from '../lib/notifications'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import AffiliateRefTracker from '../components/AffiliateRefTracker'
 import MarzChatWidget from '../components/marz/MarzChatWidget'
 import { CartProvider } from '../components/providers/CartProvider'
+import CookieConsent from '../components/CookieConsent'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -77,15 +79,18 @@ export default function RootLayout({
         <ErrorBoundary>
           <SessionProvider>
             <ThemeProvider>
-              <CartProvider>
-              <Navbar />
-              <Suspense fallback={null}>
-                <AffiliateRefTracker />
-              </Suspense>
-              <div className="flex-1">{children}</div>
-              <Footer />
-              <MarzChatWidget />
-            </CartProvider>
+              <NotificationProvider>
+                <CartProvider>
+                  <Navbar />
+                  <Suspense fallback={null}>
+                    <AffiliateRefTracker />
+                  </Suspense>
+                  <div className="flex-1">{children}</div>
+                  <Footer />
+                  <MarzChatWidget />
+                  <CookieConsent />
+                </CartProvider>
+              </NotificationProvider>
             </ThemeProvider>
           </SessionProvider>
         </ErrorBoundary>

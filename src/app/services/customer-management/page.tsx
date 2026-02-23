@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { useRouter } from 'next/navigation'
 import { Button } from '../../../components/ui/button'
+import ClientRouterLinkButtons from '@/components/ClientRouterLinkButtons'
 
 export const metadata: Metadata = {
   title: 'Customer Management | Contact & Handle Management',
@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 }
 
 export default function CustomerManagementPage() {
-  const router = useRouter()
   const features = [
     { title: 'Contact Handles', desc: 'Create and manage customer contact objects' },
     { title: 'Verification', desc: 'Email verification for ICANN compliance' },
@@ -81,9 +80,7 @@ export default function CustomerManagementPage() {
       </div>
 
       <div className="mt-8">
-        <Button variant="secondary" onClick={() => router.push('/services')} className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
-          Back to Services →
-        </Button>
+        <ClientRouterLinkButtons items={[{ href: '/services', label: 'Back to Services →', variant: 'secondary', className: 'inline-flex items-center text-zinc-300 hover:text-zinc-100' }]} />
       </div>
     </main>
   )

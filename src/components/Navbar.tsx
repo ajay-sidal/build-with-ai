@@ -10,6 +10,7 @@ import { useTheme } from './providers/ThemeProvider'
 import { useRouter } from 'next/navigation'
 import { Button } from './ui/button'
 import { allProducts, allServices } from '../lib/openprovider-products'
+import NotificationBell from './NotificationBell'
 
 // Main navigation items (centered) - Products and Services are now dropdown-only
 const mainNavItems = [
@@ -226,6 +227,9 @@ export default function Navbar() {
 
             {/* Authentication Buttons - Right side */}
             <div className="hidden items-center gap-2 lg:flex">
+              {/* Notification Bell */}
+              <NotificationBell />
+              
               {/* Theme toggle */}
               <Button
                 variant="secondary"

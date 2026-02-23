@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { useRouter } from 'next/navigation'
 import { Button } from '../../../../components/ui/button'
+import ClientRouterLinkButtons from '@/components/ClientRouterLinkButtons'
 
 export const metadata: Metadata = {
   title: 'Plesk Licenses | Web Hosting Control Panel',
@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 }
 
 export default function PleskLicensesPage() {
-  const router = useRouter()
   const editions = [
     { name: 'Web Admin', price: '$6.99', unit: '/month', domains: '10 domains', features: ['WordPress toolkit', 'Git support', 'Basic support', 'Security updates'] },
     { name: 'Web Pro', price: '$12.99', unit: '/month', domains: '30 domains', features: ['All Web Admin features', 'All extensions', 'Priority support', 'Advanced security'] },
@@ -40,16 +39,14 @@ export default function PleskLicensesPage() {
                 </li>
               ))}
             </ul>
-            <Button variant="primary" onClick={() => router.push('/products/licenses')} className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200">
-              Get License
-            </Button>
+            <ClientRouterLinkButtons
+              items={[{ href: '/products/licenses', label: 'Get License', variant: 'primary', className: 'mt-6 inline-flex w-full items-center justify-center rounded-md px-4 py-2 text-sm font-medium' }]}
+            />
           </div>
         ))}
       </div>
 
-      <Button variant="secondary" onClick={() => router.push('/products')} className="inline-flex items-center text-zinc-300 hover:text-zinc-100">
-        Back to Products →
-      </Button>
+      <ClientRouterLinkButtons items={[{ href: '/products', label: 'Back to Products →', variant: 'secondary', className: 'inline-flex items-center text-zinc-300 hover:text-zinc-100' }]} />
     </main>
   )
 }

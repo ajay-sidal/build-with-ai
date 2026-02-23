@@ -27,6 +27,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -35,6 +36,9 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionToken])
 }
 
 model User {
@@ -47,6 +51,9 @@ model User {
   accounts      Account[]
   sessions      Session[]
   orders        Order[] // Add relation to Order
+
+  @@index([email])
+  @@index([role])
 }
 
 model VerificationToken {
@@ -78,6 +85,12 @@ model Order {
   returnReason      String?
   returnRequestedAt DateTime?
   returnLabelUrl    String? // URL to the generated return label
+
+  @@index([userId])
+  @@index([stripeId])
+  @@index([createdAt])
+  @@index([shippingStatus])
+  @@index([returnStatus])
 }
 
 model OrderItem {
@@ -87,4 +100,6 @@ model OrderItem {
   name      String
   quantity  Int
   price     Int // Price in cents
+
+  @@index([orderId])
 }
