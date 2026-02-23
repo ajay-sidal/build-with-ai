@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu, X, Sparkles, ChevronDown, Globe, Shield, Server, Mail, Box, Key, LogOut, Layers, Palette, Zap } from 'lucide-react'
+import { allProducts, allServices } from '../lib/openprovider-products'
 
 // Main navigation items (centered) - Products and Services are now dropdown-only
 const mainNavItems = [
@@ -13,61 +14,32 @@ const mainNavItems = [
   { href: '/about', label: 'About' },
 ]
 
-// Merged Products dropdown - all product categories in one cohesive menu
-const productDropdown = [
-  {
-    category: 'Domains',
-    icon: <Globe size={16} />,
-    items: [
-      { href: '/products/domains/registration', label: 'Domain Registration' },
-      { href: '/products/domains/transfer', label: 'Domain Transfer' },
-      { href: '/products/tlds', label: 'TLD Explorer' },
-    ],
-  },
-  {
-    category: 'SSL Certificates',
-    icon: <Shield size={16} />,
-    items: [
-      { href: '/products/ssl', label: 'All SSL Certificates' },
-      { href: '/ssl', label: 'SSL Vault' },
-      { href: '/products/ssl/domain-validation', label: 'Domain Validation' },
-      { href: '/products/ssl/organization-validation', label: 'Organization Validation' },
-      { href: '/products/ssl/extended-validation', label: 'Extended Validation' },
-      { href: '/products/ssl/wildcard', label: 'Wildcard SSL' },
-      { href: '/products/ssl/multi-domain', label: 'Multi-Domain SSL' },
-      { href: '/products/ssl/code-signing', label: 'Code Signing' },
-    ],
-  },
-  {
-    category: 'DNS Services',
-    icon: <Server size={16} />,
-    items: [
-      { href: '/products/dns/hosting', label: 'DNS Hosting' },
-      { href: '/products/dns/templates', label: 'DNS Templates' },
-      { href: '/products/dns/nameservers', label: 'Nameserver Groups' },
-      { href: '/products/premium-dns', label: 'Premium DNS' },
-    ],
-  },
-  {
-    category: 'Email & Security',
-    icon: <Mail size={16} />,
-    items: [
-      { href: '/products/email/verification', label: 'Email Verification' },
-      { href: '/products/email/templates', label: 'Email Templates' },
-      { href: '/products/spam-experts', label: 'Spam Experts' },
-      { href: '/products/easy-dmarc', label: 'EasyDMARC' },
-    ],
-  },
-  {
-    category: 'Templates & Licenses',
-    icon: <Box size={16} />,
-    items: [
-      { href: '/products/templates', label: 'Templates Storefront' },
-      { href: '/products/licenses/plesk', label: 'Plesk Licenses' },
-      { href: '/products/licenses/virtuozzo', label: 'Virtuozzo Licenses' },
-    ],
-  },
-]
+// Dynamically generate product dropdown from the single source of truth
+const productDropdown = allProducts.reduce((acc: { category: string; icon: JSX.Element; items: { href: string; label: string }[] }[], product) => {
+  let group = acc.find(g => g.category === product.category);
+  if (!group) {
+    group = { category: product.category, icon: <Globe size={16} />, items: [] };
+    // Assign specific icons based on category
+    if (product.category === 'SSL Certificates') group.icon = <Shield size={16} />;
+    if (product.category === 'DNS Services') group.icon = <Server size={16} />;
+    if (product.category.includes('Email') || product.category.includes('Spam')) group.icon = <Mail size={16} />;
+    if (product.category === 'Licenses') group.icon = <Key size={16} />;
+    if (product.category === 'EasyDMARC') group.icon = <Shield size={16} />;
+    acc.push(group);
+  }
+  group.items.push({
+    href: `/products/${product.slug}`,
+    label: product.name,
+  });
+  return acc;
+}, []);
+
+// Add a general "All Products" link
+productDropdown.unshift({
+  category: 'Overview',
+  icon: <Layers size={16} />,
+  items: [{ href: '/products', label: 'All Products' }],
+});
 
 // Merged Services dropdown - all service categories in one cohesive menu
 const serviceItems = [

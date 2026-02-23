@@ -8,7 +8,7 @@ export const maxDuration = 30 // 30 second timeout
 export async function POST(req: Request) {
   try {
     console.log('[MARZ] Received chat request')
-    
+
     // Check for GROQ API key
     const groqApiKey = process.env.GROQ_API_KEY
     if (!groqApiKey || groqApiKey.trim() === '') {
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
 **Services:**
 - Customer Management
-- Domain Management  
+- Domain Management
 - SSL Management
 - AI Web Design
 

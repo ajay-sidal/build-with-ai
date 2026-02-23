@@ -2,42 +2,33 @@
 
 import Link from 'next/link'
 import { Linkedin, Twitter, LayoutDashboard, Globe } from 'lucide-react'
+import { productCategories } from '../lib/openprovider-products'
 
 const footerColumns = [
   {
     title: 'Platform',
     links: [
       { href: '/', label: 'Domain Search' },
-      { href: '/products', label: 'Products' },
+      { href: '/products', label: 'All Products' },
       { href: '/services', label: 'Services' },
       { href: '/ssl', label: 'SSL Vault' },
+      { href: '/developers', label: 'Developers' },
     ],
   },
   {
-    title: 'Products',
-    links: [
-      { href: '/products/domains/registration', label: 'Domain Registration' },
-      { href: '/products/ssl', label: 'SSL Certificates' },
-      { href: '/products/dns/hosting', label: 'DNS Hosting' },
-      { href: '/products/licenses/plesk', label: 'Plesk Licenses' },
-    ],
+    title: 'Product Categories',
+    links: productCategories.map(cat => ({
+      href: `/products#${cat.id}`,
+      label: cat.name
+    })),
   },
   {
-    title: 'Management Hub',
+    title: 'Account',
     links: [
       { href: '/dashboard', label: 'Website Dashboard' },
-      { href: '/dashboard/infrastructure', label: 'Infrastructure' },
       { href: '/dashboard/billing', label: 'Billing & Assets' },
-      { href: '/dashboard/api', label: 'API Management' },
-    ],
-  },
-  {
-    title: 'Admin',
-    links: [
-      { href: '/admin/dashboard', label: 'Admin Dashboard' },
-      { href: '/admin/leads', label: 'Leads Management' },
-      { href: '/admin/payouts', label: 'Payout Requests' },
-      { href: '/admin/errors', label: 'Error Logs' },
+      { href: '/login', label: 'Login' },
+      { href: '/signup', label: 'Sign Up' },
     ],
   },
   {
@@ -45,17 +36,6 @@ const footerColumns = [
     links: [
       { href: '/about', label: 'About' },
       { href: '/partners', label: 'Partners' },
-      { href: '/developers', label: 'Developers' },
-      { href: '/login', label: 'Login' },
-      { href: '/signup', label: 'Sign Up' },
-    ],
-  },
-  {
-    title: 'Support',
-    links: [
-      { href: '/services/customer-management', label: 'Customer Management' },
-      { href: '/services/domain-management', label: 'Domain Management' },
-      { href: '/services/ssl-management', label: 'SSL Management' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
     ],

@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mic, MicOff, Send, X, Volume2, VolumeX, Trash2 } from 'lucide-react'
+import { Mic, MicOff, Send, X, Volume2, VolumeX, Trash2, WifiOff } from 'lucide-react'
 
 // Storage key for chat persistence
 const MARZ_CHAT_HISTORY_KEY = 'marz_chat_history'
@@ -34,11 +34,14 @@ export default function MarzChatWidget() {
   const [isListening, setIsListening] = React.useState(false)
   const [speechEnabled, setSpeechEnabled] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
-  
+  const [isOnline, setIsOnline] = React.useState(true)
+  const [retryCount, setRetryCount] = React.useState(0)
+
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const recognitionRef = React.useRef<SpeechRecognition | null>(null)
   const synthRef = React.useRef<SpeechSynthesis | null>(null)
   const messagesRef = React.useRef<Message[]>([])
+  const abortControllerRef = React.useRef<AbortController | null>(null)
 
   // Keep messagesRef in sync
   React.useEffect(() => {
@@ -52,12 +55,49 @@ export default function MarzChatWidget() {
     }
   }, [])
 
-  // Initialize speech recognition
+  // Online/Offline detection
   React.useEffect(() => {
     if (typeof window === 'undefined') return
-    
+
+    setIsOnline(navigator.onLine)
+
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+M to toggle voice input
+      if (e.ctrlKey && e.key === 'm' && isOpen) {
+        e.preventDefault()
+        toggleVoiceInput()
+      }
+      // Ctrl+K to toggle chat
+      if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault()
+        setIsOpen(prev => !prev)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen])
+
+  // Initialize speech recognition with retry logic
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    
+
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition()
       recognition.continuous = false
@@ -67,18 +107,20 @@ export default function MarzChatWidget() {
       recognition.onstart = () => {
         console.log('[MARZ] Voice recognition started')
         setIsListening(true)
+        setRetryCount(0)
       }
 
       recognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
           .map((result: any) => result[0].transcript)
           .join('')
-        
+
         console.log('[MARZ] Voice transcript:', transcript)
         setInput(transcript)
 
         if (event.results[0].isFinal) {
           setIsListening(false)
+          setRetryCount(0)
           // Auto-submit after short delay
           setTimeout(() => {
             if (transcript.trim()) {
@@ -90,12 +132,30 @@ export default function MarzChatWidget() {
 
       recognition.onerror = (event: any) => {
         console.error('[MARZ] Voice recognition error:', event.error)
-        setIsListening(false)
         
-        if (event.error === 'not-allowed') {
-          setError('Microphone access denied. Please allow microphone access in your browser settings.')
-        } else if (event.error === 'no-speech') {
-          setError('No speech detected. Please try again.')
+        if (event.error === 'no-speech' && retryCount < 3) {
+          // Retry with exponential backoff
+          const newRetryCount = retryCount + 1
+          setRetryCount(newRetryCount)
+          setError(`No speech detected. Retrying... (${newRetryCount}/3)`)
+          setTimeout(() => {
+            try {
+              recognition.start()
+            } catch {
+              // Ignore start errors
+            }
+          }, 1000 * newRetryCount)
+        } else {
+          setIsListening(false)
+          setRetryCount(0)
+          
+          if (event.error === 'not-allowed') {
+            setError('Microphone access denied. Please allow microphone access in your browser settings.')
+          } else if (event.error === 'no-speech') {
+            setError('No speech detected after 3 attempts. Please check your microphone.')
+          } else {
+            setError(`Voice recognition error: ${event.error}`)
+          }
         }
       }
 
@@ -106,9 +166,9 @@ export default function MarzChatWidget() {
 
       recognitionRef.current = recognition
     } else {
-      console.warn('[MARZ] Web Speech API not supported in this browser')
+      console.warn('[MARZ] Web Speech API not supported in this browser. Use Chrome or Edge.')
     }
-  }, [])
+  }, [retryCount])
 
   // Auto-scroll to bottom
   React.useEffect(() => {
@@ -118,7 +178,7 @@ export default function MarzChatWidget() {
   // Load chat history
   React.useEffect(() => {
     if (typeof window === 'undefined') return
-    
+
     const stored = localStorage.getItem(MARZ_CHAT_HISTORY_KEY)
     if (stored) {
       try {
@@ -131,7 +191,7 @@ export default function MarzChatWidget() {
         console.error('[MARZ] Failed to load chat history:', e)
       }
     }
-    
+
     // Default welcome message
     setMessages([{
       id: 'welcome',
@@ -181,6 +241,14 @@ export default function MarzChatWidget() {
   const handleSendMessage = React.useCallback(async (messageText: string) => {
     if (!messageText.trim()) return
 
+    // Cancel any pending requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -200,15 +268,16 @@ export default function MarzChatWidget() {
       }))
 
       console.log('[MARZ] Sending to API:', messageText)
-      
+
       const response = await fetch('/api/marz/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: apiMessages }),
+        signal: controller.signal,
       })
 
       console.log('[MARZ] API response status:', response.status)
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         console.error('[MARZ] API error:', errorData)
@@ -217,7 +286,7 @@ export default function MarzChatWidget() {
 
       const data = await response.json()
       console.log('[MARZ] API response data:', data)
-      
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -229,16 +298,25 @@ export default function MarzChatWidget() {
       if (speechEnabled) {
         speakResponse(assistantMessage.content)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('[MARZ] Send error:', err)
-      const errorMessage: Message = {
+      
+      let errorMessage = 'Please try again.'
+      if (err.name === 'AbortError') {
+        errorMessage = 'Request timed out. Please try again.'
+      } else if (err instanceof Error) {
+        errorMessage = err.message
+      }
+      
+      const errorMessageObj: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I apologize, but I encountered an error: ${err instanceof Error ? err.message : 'Please try again.'}`,
+        content: `I apologize, but I encountered an error: ${errorMessage}`,
       }
-      setMessages((prev) => [...prev, errorMessage])
+      setMessages((prev) => [...prev, errorMessageObj])
     } finally {
       setIsLoading(false)
+      abortControllerRef.current = null
     }
   }, [speechEnabled, speakResponse])
 
@@ -258,15 +336,18 @@ export default function MarzChatWidget() {
     if (isListening) {
       recognitionRef.current.stop()
       setIsListening(false)
+      setRetryCount(0)
     } else {
       // Request microphone permission first
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => {
+          setRetryCount(0)
           recognitionRef.current?.start()
         })
         .catch((err) => {
           console.error('[MARZ] Microphone access error:', err)
           setError('Microphone access denied. Please allow microphone access in your browser settings.')
+          setRetryCount(0)
         })
     }
   }
@@ -279,6 +360,7 @@ export default function MarzChatWidget() {
         role: 'assistant',
         content: "👋 Hi! I'm **MARZ**, your personal AI assistant. How can I help you today?",
       }])
+      setError(null)
     }
   }
 
@@ -288,6 +370,7 @@ export default function MarzChatWidget() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl hover:shadow-blue-500/30"
+        title="Toggle MARZ chat (Ctrl+K)"
       >
         {isOpen ? <X size={24} /> : (
           <div className="relative">
@@ -312,7 +395,7 @@ export default function MarzChatWidget() {
                 <span className="text-2xl">🤖</span>
                 <div>
                   <h3 className="font-semibold text-zinc-100">MARZ AI Assistant</h3>
-                  <p className="text-xs text-zinc-400">Build With AI</p>
+                  <p className="text-xs text-zinc-400">Build With AI • Ctrl+K to toggle</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -341,6 +424,13 @@ export default function MarzChatWidget() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4">
+              {!isOnline && (
+                <div className="mb-4 flex items-center gap-2 rounded-lg bg-yellow-900/20 p-2 text-xs text-yellow-400">
+                  <WifiOff size={14} />
+                  <span>You're offline. Messages will be sent when connection is restored.</span>
+                </div>
+              )}
+
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -377,6 +467,11 @@ export default function MarzChatWidget() {
                   {error}
                 </div>
               )}
+              {retryCount > 0 && retryCount < 3 && (
+                <div className="mb-4 rounded-lg bg-yellow-900/20 p-3 text-xs text-yellow-400">
+                  🔄 {error}
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -386,13 +481,13 @@ export default function MarzChatWidget() {
                 <button
                   type="button"
                   onClick={toggleVoiceInput}
-                  disabled={isLoading}
+                  disabled={isLoading || !isOnline}
                   className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
                     isListening
                       ? 'bg-red-600 text-white animate-pulse'
                       : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-                  }`}
-                  title={isListening ? 'Stop listening' : 'Start voice input'}
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                  title={isListening ? 'Stop listening' : 'Start voice input (Ctrl+M)'}
                 >
                   {isListening ? <MicOff size={18} /> : <Mic size={18} />}
                 </button>
@@ -406,16 +501,16 @@ export default function MarzChatWidget() {
                       handleSubmit(e)
                     }
                   }}
-                  placeholder="Ask me anything..."
+                  placeholder={isOnline ? "Ask me anything..." : "You're offline - type your message"}
                   rows={1}
-                  disabled={isLoading}
+                  disabled={isLoading || !isOnline}
                   className="max-h-32 flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50"
                   style={{ minHeight: '44px' }}
                 />
 
                 <button
                   type="submit"
-                  disabled={!input.trim() || isLoading}
+                  disabled={!input.trim() || isLoading || !isOnline}
                   className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Send size={18} />
@@ -423,7 +518,7 @@ export default function MarzChatWidget() {
               </div>
               {isListening && (
                 <p className="mt-2 text-center text-xs text-red-400 animate-pulse">
-                  🔴 Listening... Speak now
+                  🔴 Listening... Speak now (Ctrl+M to stop)
                 </p>
               )}
             </form>
