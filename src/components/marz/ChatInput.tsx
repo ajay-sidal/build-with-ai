@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { Send, Mic, MicOff } from 'lucide-react'
 
@@ -13,14 +14,14 @@ interface ChatInputProps {
   toggleVoiceInput: () => void
 }
 
-export default function ChatInput({
+const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(({
   input,
   isLoading,
   isListening,
   handleInputChange,
   handleSubmit,
   toggleVoiceInput,
-}: ChatInputProps) {
+}: ChatInputProps, ref) => {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
 
   // Auto-resize textarea based on content
@@ -44,6 +45,7 @@ export default function ChatInput({
         <button
           type="button"
           onClick={toggleVoiceInput}
+          aria-label={isListening ? 'Stop listening' : 'Start voice input'}
           className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
             isListening
               ? 'bg-red-600 text-white animate-pulse'
@@ -55,8 +57,10 @@ export default function ChatInput({
         </button>
 
         <div className="flex-1">
+          <label htmlFor="marz-chat-input" className="sr-only">Chat message</label>
           <textarea
-            ref={textareaRef}
+            id="marz-chat-input"
+            ref={ref}
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
@@ -70,6 +74,7 @@ export default function ChatInput({
         <button
           type="submit"
           disabled={!input.trim() || isLoading}
+          aria-label="Send message"
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Send size={18} />
@@ -87,4 +92,7 @@ export default function ChatInput({
       )}
     </div>
   )
-}
+})
+
+ChatInput.displayName = 'ChatInput'
+export default ChatInput

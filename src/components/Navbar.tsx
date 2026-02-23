@@ -4,7 +4,8 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { Menu, X, Sparkles, ChevronDown, Globe, Shield, Server, Mail, Box, Key, LogOut, Layers, Palette, Zap } from 'lucide-react'
+import { Menu, X, Sparkles, ChevronDown, Globe, Shield, Server, Mail, Box, Key, LogOut, Layers, Palette, Zap, ShoppingCart } from 'lucide-react'
+import { useCart } from './providers/CartProvider'
 import { allProducts, allServices } from '../lib/openprovider-products'
 
 // Main navigation items (centered) - Products and Services are now dropdown-only
@@ -73,6 +74,7 @@ export default function Navbar() {
   const [open, setOpen] = React.useState(false)
   const [productsOpen, setProductsOpen] = React.useState(false)
   const [servicesOpen, setServicesOpen] = React.useState(false)
+  const { itemCount } = useCart()
 
   const isLoading = status === 'loading'
   const isAuthenticated = !!session
@@ -205,6 +207,20 @@ export default function Navbar() {
 
             {/* Authentication Buttons - Right side */}
             <div className="hidden items-center gap-2 lg:flex">
+              <Link href="/cart" className="relative rounded-lg p-2 text-zinc-100 hover:bg-zinc-900/60 hover:text-white transition-colors" aria-label="View shopping cart">
+                <ShoppingCart size={20} />
+                {itemCount > 0 && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
+                  >
+                    {itemCount}
+                  </motion.div>
+                )}
+              </Link>
+              <div className="h-6 w-px bg-zinc-800"></div>
+
               {!isLoading && isAuthenticated ? (
                 <>
                   <Link
@@ -334,6 +350,18 @@ export default function Navbar() {
                     {!isLoading && isAuthenticated ? (
                       <>
                         <Link
+                          href="/cart"
+                          className="mt-3 flex items-center justify-between rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
+                          onClick={() => setOpen(false)}
+                        >
+                          <span>Shopping Cart</span>
+                          {itemCount > 0 && (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                              {itemCount}
+                            </span>
+                          )}
+                        </Link>
+                        <Link
                           href="/dashboard"
                           className="mt-3 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
                           onClick={() => setOpen(false)}
@@ -353,6 +381,18 @@ export default function Navbar() {
                       </>
                     ) : (
                       <>
+                        <Link
+                          href="/cart"
+                          className="mt-3 flex items-center justify-between rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"
+                          onClick={() => setOpen(false)}
+                        >
+                          <span>Shopping Cart</span>
+                          {itemCount > 0 && (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                              {itemCount}
+                            </span>
+                          )}
+                        </Link>
                         <Link
                           href="/login"
                           className="mt-3 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-700 transition-colors"

@@ -80,9 +80,9 @@ export default function MessageList({
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-3">
-      <div className="space-y-4">
+      <ul role="log" aria-live="polite" className="space-y-4">
         {messages.map((message) => (
-          <motion.div
+          <motion.li
             key={message.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -97,22 +97,23 @@ export default function MessageList({
             >
               {formatMessage(message.content)}
             </div>
-          </motion.div>
+          </motion.li>
         ))}
         {isLoading && (
-          <motion.div
+          <motion.li
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex justify-start"
+            aria-label="MARZ is thinking"
           >
             <div className="flex items-center gap-2 rounded-2xl bg-zinc-800/80 px-4 py-3 text-sm text-zinc-400">
               <Loader2 size={16} className="animate-spin" />
               <span>MARZ is thinking...</span>
             </div>
-          </motion.div>
+          </motion.li>
         )}
         <div ref={messagesEndRef} />
-      </div>
+      </ul>
     </div>
   )
 }

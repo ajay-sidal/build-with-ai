@@ -1,217 +1,217 @@
 'use client'
 
 import * as React from 'react'
+import { useChat, type Message } from 'ai/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mic, MicOff, Send, X, Volume2, VolumeX, Trash2, WifiOff } from 'lucide-react'
+
+// Import sub-components
 import MarzAvatar from './MarzAvatar'
+import ChatHeader from './ChatHeader'
+import MessageList from './MessageList'
+import SuggestionChips from './SuggestionChips'
+import ChatInput from './ChatInput'
 
 // Storage key for chat persistence
 const MARZ_CHAT_HISTORY_KEY = 'marz_chat_history'
 
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
+interface SuggestionData {
+  suggestions?: string[]
 }
 
 // Web Speech API types
+interface SpeechRecognitionEvent extends Event {
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultList;
+}
+
 interface SpeechRecognition extends EventTarget {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  start: () => void
-  stop: () => void
-  abort: () => void
-  onresult: (event: any) => void
-  onerror: (event: any) => void
-  onend: () => void
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  onstart: (() => void) | null;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognition
+    webkitSpeechRecognition?: new () => SpeechRecognition
+  }
+}
+
+// Helper function to load initial messages from localStorage
+function getInitialMessages(): Message[] {
+  if (typeof window === 'undefined') {
+    return []
+  }
+
+  try {
+    const stored = localStorage.getItem(MARZ_CHAT_HISTORY_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+    }
+  } catch (error) {
+    console.error('[MARZ] Failed to load chat history:', error)
+  }
+
+  return []
+}
+
+// Helper function to get default welcome message
+function getDefaultWelcomeMessage(): Message[] {
+  return [
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: "👋 Hi! I'm **MARZ**, your personal AI assistant for BUILD WITH AI. I can help you register domains, secure your website with SSL certificates, set up DNS hosting, and much more. What would you like to work on today?",
+    },
+  ]
 }
 
 export default function MarzChatWidget() {
+  // UI State
   const [isOpen, setIsOpen] = React.useState(false)
-  const [messages, setMessages] = React.useState<Message[]>([])
-  const [input, setInput] = React.useState('')
-  const [isLoading, setIsLoading] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
   const [speechEnabled, setSpeechEnabled] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
-  const [isOnline, setIsOnline] = React.useState(true)
-  const [retryCount, setRetryCount] = React.useState(0)
-  const [selectedVoice, setSelectedVoice] = React.useState('default')
-  const [isProcessing, setIsProcessing] = React.useState(false) // API processing state
-  const [isSpeaking, setIsSpeaking] = React.useState(false) // TTS speaking state
-  const [hasWelcomedThisSession, setHasWelcomedThisSession] = React.useState(false)
+  const [isHistoryLoading, setIsHistoryLoading] = React.useState(true)
+  const [suggestions, setSuggestions] = React.useState<string[]>([])
+  const [position, setPosition] = React.useState<'left' | 'right'>('right')
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
+  const [availableVoices, setAvailableVoices] = React.useState<SpeechSynthesisVoice[]>([])
+  const [selectedVoice, setSelectedVoice] = React.useState<string | null>(null)
+  const [isSpeaking, setIsSpeaking] = React.useState(false)
 
+  // Refs
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
-  const recognitionRef = React.useRef<SpeechRecognition | null>(null)
+  const inputRef = React.useRef<HTMLTextAreaElement>(null)
+  const avatarRef = React.useRef<HTMLButtonElement>(null)
+  const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null)
   const synthRef = React.useRef<SpeechSynthesis | null>(null)
-  const messagesRef = React.useRef<Message[]>([])
-  const abortControllerRef = React.useRef<AbortController | null>(null)
+  const transcriptRef = React.useRef('')
 
-  // Keep messagesRef in sync
-  React.useEffect(() => {
-    messagesRef.current = messages
-  }, [messages])
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages, setInput } = useChat({
+    api: '/api/marz/chat',
+    initialMessages: [], // Start empty, will populate via useEffect
+    onFinish: (message: Message) => {
+      // Extract suggestions from the final message content
+      const suggestionMatch = message.content.match(/SUGGESTIONS:(.*)/)
+      if (suggestionMatch && suggestionMatch[1]) {
+        try {
+          const parsedSuggestions = JSON.parse(suggestionMatch[1])
+          setSuggestions(parsedSuggestions)
+        } catch (e) {
+          console.error('Failed to parse suggestions:', e)
+          setSuggestions([])
+        }
+      }
 
-  // Initialize speech synthesis
+      if (speechEnabled) {
+        speakResponse(message.content)
+      }
+    },
+  })
+
+  // Initialize speech synthesis ref
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       synthRef.current = window.speechSynthesis
     }
   }, [])
 
-  // Online/Offline detection
+  // Focus management for accessibility
   React.useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    setIsOnline(navigator.onLine)
-
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
-
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+    if (isOpen) {
+      // When the chat opens, focus the input field after a short delay for the animation
+      setTimeout(() => inputRef.current?.focus(), 100)
+    } else {
+      // When the chat closes, return focus to the avatar button
+      // This check prevents focus loss on initial page load
+      if (document.activeElement !== avatarRef.current) avatarRef.current?.focus()
     }
-  }, [])
-
-  // Keyboard shortcuts
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+M to toggle voice input
-      if (e.ctrlKey && e.key === 'm' && isOpen) {
-        e.preventDefault()
-        toggleVoiceInput()
-      }
-      // Ctrl+K to toggle chat
-      if (e.ctrlKey && e.key === 'k') {
-        e.preventDefault()
-        setIsOpen(prev => !prev)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen])
 
-  // Initialize speech recognition with CONTINUOUS listening
+  // Load history and handle proactive welcome
   React.useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition()
-      recognition.continuous = true  // CRITICAL: Keep listening after first result
-      recognition.interimResults = true
-      recognition.lang = 'en-US'
-      recognition.maxAlternatives = 1
-
-      recognition.onstart = () => {
-        console.log('[MARZ] Voice recognition started (continuous mode)')
-        setIsListening(true)
-        setRetryCount(0)
-      }
-
-      recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0].transcript)
-          .join('')
-
-        console.log('[MARZ] Voice transcript:', transcript)
-        setInput(transcript)
-
-        // Only auto-submit on final results, but keep listening
-        if (event.results[0].isFinal) {
-          console.log('[MARZ] Final result detected, submitting...')
-          setRetryCount(0)
-          // Auto-submit after short delay but DON'T stop listening
-          setTimeout(() => {
-            if (transcript.trim()) {
-              handleSendMessage(transcript)
-              // Clear input after sending but keep mic active
-              setInput('')
-            }
-          }, 800)
-        }
-      }
-
-      recognition.onerror = (event: any) => {
-        console.error('[MARZ] Voice recognition error:', event.error)
-
-        if (event.error === 'no-speech' && retryCount < 3) {
-          const newRetryCount = retryCount + 1
-          setRetryCount(newRetryCount)
-          setError(`No speech detected. Retrying... (${newRetryCount}/3)`)
-          setTimeout(() => {
-            try {
-              recognition.start()
-            } catch {
-              // Ignore start errors
-            }
-          }, 1000 * newRetryCount)
-        } else {
-          // Don't stop listening on errors in continuous mode
-          console.warn('[MARZ] Voice error but keeping mic active:', event.error)
-        }
-      }
-
-      // CRITICAL: Auto-restart on end event for continuous listening
-      recognition.onend = () => {
-        console.log('[MARZ] Voice recognition ended')
-        setIsListening(false)
-        
-        // Auto-restart if we should still be listening (not manually stopped)
-        // This is handled by the isListening state - if it's still true, restart
-      }
-
-      recognitionRef.current = recognition
+    const initialMessages = getInitialMessages()
+    if (initialMessages.length > 0) {
+      setMessages(initialMessages)
     } else {
-      console.warn('[MARZ] Web Speech API not supported in this browser. Use Chrome or Edge.')
+      setMessages(getDefaultWelcomeMessage())
     }
-  }, [])
+    setIsHistoryLoading(false)
 
-  // Auto-scroll to bottom
+    const hasBeenWelcomed = localStorage.getItem('marz_has_welcomed')
+    if (!hasBeenWelcomed && initialMessages.length === 0) {
+      const welcomeTimer = setTimeout(() => {
+        setIsOpen(true)
+        localStorage.setItem('marz_has_welcomed', 'true')
+
+        const closeTimer = setTimeout(() => {
+          // Check if user has interacted
+          if (messages.length <= 1 && input === '') {
+            setIsOpen(false)
+          }
+        }, 7000)
+
+        return () => clearTimeout(closeTimer)
+      }, 1500)
+
+      return () => clearTimeout(welcomeTimer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Run only once on mount
+
+  // Load widget position from localStorage
   React.useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  // Load chat history
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const stored = localStorage.getItem(MARZ_CHAT_HISTORY_KEY)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed)
-          return
-        }
-      } catch (e) {
-        console.error('[MARZ] Failed to load chat history:', e)
+    if (typeof window !== 'undefined') {
+      const storedPosition = localStorage.getItem('marz_widget_position')
+      if (storedPosition === 'left' || storedPosition === 'right') {
+        setPosition(storedPosition)
       }
     }
-
-    // Default welcome message
-    setMessages([{
-      id: 'welcome',
-      role: 'assistant',
-      content: "👋 Hi! I'm **MARZ**, your personal AI assistant for BUILD WITH AI. I can help you register domains, secure your website with SSL certificates, set up DNS hosting, and much more. What would you like to work on today?",
-    }])
   }, [])
 
-  // Save chat history
+  // Save widget position to localStorage
   React.useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (messages.length > 0) {
-      localStorage.setItem(MARZ_CHAT_HISTORY_KEY, JSON.stringify(messages))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('marz_widget_position', position)
     }
-  }, [messages])
+  }, [position])
 
+  // Load and save selected voice
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedVoice = localStorage.getItem('marz_selected_voice')
+      if (storedVoice) {
+        setSelectedVoice(storedVoice)
+      }
+
+      const getVoices = () => {
+        const voices = window.speechSynthesis.getVoices()
+        if (voices.length > 0) {
+          setAvailableVoices(voices)
+        }
+      }
+      getVoices()
+      window.speechSynthesis.onvoiceschanged = getVoices
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && selectedVoice) {
+      localStorage.setItem('marz_selected_voice', selectedVoice)
+    }
+  }, [selectedVoice])
+
+  // Text-to-speech with enhanced control
   const speakResponse = React.useCallback((text: string, onEnd?: () => void) => {
     if (!speechEnabled || !synthRef.current) return
 
@@ -219,327 +219,208 @@ export default function MarzChatWidget() {
       synthRef.current.cancel()
     }
 
-    // Clean and naturalize text for speech
     const cleanText = text
       .replace(/\*\*/g, '')
-      .replace(/```[\s\S]*?```/g, 'a code snippet is displayed.')
+      .replace(/```[\s\S]*?```/g, 'a code snippet is displayed.') // Replace code blocks with placeholder text for speech
       .replace(/💰|📋|🤖|💵|✨|🔍|⚠️/g, '')
       .replace(/\n/g, ' ')
-      .replace(/\b(I'm|I've|I'll|I'd|can't|won't|don't|doesn't|isn't|aren't|wasn't|weren't)\b/gi, (match) => {
-        const expansions: Record<string, string> = {
-          "I'm": 'I am',
-          "I've": 'I have',
-          "I'll": 'I will',
-          "I'd": 'I would',
-          "can't": 'cannot',
-          "won't": 'will not',
-          "don't": 'do not',
-          "doesn't": 'does not',
-          "isn't": 'is not',
-          "aren't": 'are not',
-          "wasn't": 'was not',
-          "weren't": 'were not',
-        }
-        return expansions[match] || match
-      })
-      .replace(/\b(DNS|SSL|URL|API|SDK|UI|UX|AI)\b/gi, (match) => {
-        return match.toUpperCase().split('').join(' ')
-      })
       .trim()
 
     const utterance = new SpeechSynthesisUtterance(cleanText)
-    
-    // Natural speech parameters for male voice
-    utterance.rate = 0.95
-    utterance.pitch = 0.85
+    utterance.rate = 1.0
+    utterance.pitch = 1.0
     utterance.volume = 1.0
-    utterance.lang = 'en-US'
 
     const voices = synthRef.current.getVoices()
-    
-    const maleVoicePriority = [
-      'Google US English Male',
-      'Microsoft Mark',
-      'Mark',
-      'Google US English',
-      'Male',
-      'en-US-Male',
-      'en-GB-Male',
-    ]
-    
-    let preferredVoice = voices.find(
+    const preferredVoice = voices.find(
       (v) => v.voiceURI === selectedVoice
+    ) || voices.find(
+      (v) => v.name.includes('Female') || v.name.includes('Google US English')
     )
-    
-    if (!preferredVoice || selectedVoice === 'default') {
-      for (const voiceName of maleVoicePriority) {
-        preferredVoice = voices.find(
-          (v) => v.name.includes(voiceName) || v.voiceURI.includes(voiceName)
-        )
-        if (preferredVoice) break
-      }
-      
-      if (!preferredVoice) {
-        preferredVoice = voices.find(
-          (v) => v.name.includes('Male') || v.name.includes('Mark') || v.name.includes('David') || v.name.includes('James')
-        )
-      }
-      
-      if (!preferredVoice) {
-        preferredVoice = voices.find(
-          (v) => v.lang.startsWith('en') && !v.name.includes('Female') && !v.name.includes('Zira')
-        )
-      }
-    }
-    
     if (preferredVoice) {
       utterance.voice = preferredVoice
-      console.log('[MARZ] Using voice:', preferredVoice.name, '(Male)')
-    } else {
-      console.log('[MARZ] Using default system voice')
     }
 
-    // Set speaking state
-    setIsSpeaking(true)
-    
+    utterance.onstart = () => setIsSpeaking(true)
     utterance.onend = () => {
       setIsSpeaking(false)
       onEnd?.()
     }
-    
-    utterance.onerror = () => {
-      setIsSpeaking(false)
-    }
+    utterance.onerror = () => setIsSpeaking(false)
+
+    utterance.onend = onEnd ?? null
 
     synthRef.current.speak(utterance)
   }, [speechEnabled, selectedVoice])
 
-  const handleSendMessage = React.useCallback(async (messageText: string) => {
-    if (!messageText.trim()) return
+  // Initialize speech recognition
+  React.useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    console.log('[MARZ] SpeechRecognition available:', !!SpeechRecognition)
+    
+    if (SpeechRecognition) {
+      const recognitionInstance = new SpeechRecognition()
+      recognitionInstance.continuous = false
+      recognitionInstance.interimResults = true
+      recognitionInstance.lang = 'en-US'
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
+      recognitionInstance.onstart = () => {
+        console.log('[MARZ] Speech recognition started')
+      }
 
-    const controller = new AbortController()
-    abortControllerRef.current = controller
+      recognitionInstance.onresult = (event: any) => {
+        console.log('[MARZ] Speech recognition result:', event)
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result) => result.transcript)
+          .join('')
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: messageText,
-    }
+        // Store transcript in ref for access in onend
+        transcriptRef.current = transcript
 
-    setMessages((prev) => [...prev, userMessage])
-    setInput('')
-    setError(null)
-    setIsLoading(true)
-    setIsProcessing(true) // Show thinking state
+        // Update input field with transcript
+        setInput(transcript)
 
-    try {
-      const currentMessages = messagesRef.current
-      const apiMessages = [...currentMessages, userMessage].slice(-10).map(m => ({
-        role: m.role,
-        content: m.content,
-      }))
-
-      console.log('[MARZ] Sending to API:', messageText)
-
-      const response = await fetch('/api/marz/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages }),
-        signal: controller.signal,
-      })
-
-      console.log('[MARZ] API response status:', response.status)
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error('[MARZ] API error:', errorData)
-        
-        // Log error to admin dashboard
-        try {
-          await fetch('/api/logs/client-error', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: 'MARZ API request failed',
-              details: {
-                status: response.status,
-                error: errorData.error,
-                query: messageText,
-              },
-              timestamp: new Date().toISOString(),
-            }),
-          })
-        } catch {
-          // Ignore logging errors
+        if (event.results[0].isFinal) {
+          console.log('[MARZ] Final transcript:', transcript)
+          setIsListening(false)
         }
+      }
+
+      recognitionInstance.onerror = (event: any) => {
+        console.error('[MARZ] Speech recognition error:', event.error)
+        setIsListening(false)
         
-        throw new Error(errorData.error || `HTTP ${response.status}`)
+        // Provide helpful error messages
+        if (event.error === 'not-allowed') {
+          alert('Microphone access was denied. Please allow microphone access in your browser settings to use voice chat.')
+        } else if (event.error === 'no-speech') {
+          console.warn('[MARZ] No speech detected - please speak into the microphone')
+        } else if (event.error === 'audio-capture') {
+          console.warn('[MARZ] No microphone found')
+          alert('No microphone was found. Please ensure a microphone is connected and enabled.')
+        } else if (event.error === 'network') {
+          console.warn('[MARZ] Network error occurred')
+        }
       }
 
-      const data = await response.json()
-      console.log('[MARZ] API response data:', data)
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.response || 'I apologize, but I couldn\'t process that request.',
+      recognitionInstance.onend = () => {
+        console.log('[MARZ] Speech recognition ended')
+        setIsListening(false)
+        // Auto-submit the transcript when recognition ends
+        const finalTranscript = transcriptRef.current
+        if (finalTranscript.trim()) {
+          console.log('[MARZ] Auto-submitting transcript:', finalTranscript)
+          append({ role: 'user', content: finalTranscript })
+        }
       }
 
-      setMessages((prev) => [...prev, assistantMessage])
-
-      if (speechEnabled) {
-        speakResponse(assistantMessage.content)
-      }
-    } catch (err: any) {
-      console.error('[MARZ] Send error:', err)
-      
-      let errorMessage = 'Please try again.'
-      if (err.name === 'AbortError') {
-        errorMessage = 'Request timed out. Please try again.'
-      } else if (err instanceof Error) {
-        errorMessage = err.message
-      }
-      
-      const errorMessageObj: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `I apologize, but I encountered an error: ${errorMessage}`,
-      }
-      setMessages((prev) => [...prev, errorMessageObj])
-    } finally {
-      setIsLoading(false)
-      setIsProcessing(false) // Clear thinking state
-      abortControllerRef.current = null
+      setRecognition(recognitionInstance)
+    } else {
+      console.warn('[MARZ] Web Speech API not supported in this browser. Please use Chrome or Edge.')
     }
-  }, [speechEnabled, speakResponse])
+  }, [append, setInput])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (input.trim() && !isLoading) {
-      handleSendMessage(input)
-    }
-  }
-
-  const toggleVoiceInput = async () => {
-    if (!recognitionRef.current) {
-      const errorMsg = 'Voice recognition is not supported in your browser. Please use Chrome or Edge.'
-      setError(errorMsg)
-      console.error('[MARZ] ' + errorMsg)
-      
-      try {
-        await fetch('/api/logs/client-error', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: 'Voice recognition not supported',
-            details: { userAgent: navigator.userAgent },
-            timestamp: new Date().toISOString(),
-          }),
-        })
-      } catch {
-        // Ignore logging errors
-      }
+  // Handle voice input toggle
+  const toggleVoiceInput = React.useCallback(() => {
+    if (!recognition) {
+      alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.')
       return
     }
 
     if (isListening) {
-      // Manually stopping - don't auto-restart
-      console.log('[MARZ] Manually stopping voice recognition')
-      recognitionRef.current.stop()
+      recognition.stop()
       setIsListening(false)
-      setRetryCount(0)
-      setInput('')
     } else {
-      // Starting continuous listening mode
+      // Start recognition directly - browser will prompt for permission if needed
+      transcriptRef.current = ''
+      setIsListening(true)
+      
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        console.log('[MARZ] Microphone access granted - starting continuous mode')
+        recognition.start()
+      } catch (error: any) {
+        console.error('[MARZ] Recognition start error:', error)
+        setIsListening(false)
         
-        stream.getTracks().forEach(track => track.stop())
-        
-        setRetryCount(0)
-        recognitionRef.current?.start()
-        // isListening will be set to true by onstart event
-      } catch (err: any) {
-        console.error('[MARZ] Microphone access error:', err)
-        
-        let errorMsg = 'Microphone access denied. '
-        
-        if (err.name === 'NotAllowedError') {
-          errorMsg += 'Please allow microphone access in your browser settings.'
-        } else if (err.name === 'NotFoundError') {
-          errorMsg += 'No microphone found. Please connect a microphone.'
-        } else if (err.name === 'NotReadableError') {
-          errorMsg += 'Microphone is in use by another application.'
+        // Handle specific error cases
+        if (error.message?.includes('permission') || error.message?.includes('not-allowed')) {
+          alert('Microphone access denied. Please click the microphone icon in your browser address bar and allow microphone access, then try again.')
+        } else if (error.message?.includes('already started')) {
+          // Recognition already running, stop and restart
+          recognition.stop()
+          setTimeout(() => {
+            transcriptRef.current = ''
+            setIsListening(true)
+            recognition.start()
+          }, 100)
         } else {
-          errorMsg += err.message
-        }
-        
-        setError(errorMsg)
-        setRetryCount(0)
-        
-        try {
-          await fetch('/api/logs/client-error', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: 'Microphone access failed',
-              details: {
-                error: err.name,
-                message: err.message,
-                userAgent: navigator.userAgent,
-              },
-              timestamp: new Date().toISOString(),
-            }),
-          })
-        } catch {
-          // Ignore logging errors
+          alert('Unable to start voice recognition. Please ensure your browser supports the Web Speech API and try again.')
         }
       }
     }
+  }, [recognition, isListening])
+
+  // Handle form submission
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim()) return
+    setSuggestions([]) // Clear suggestions on new submission
+    handleSubmit(e)
   }
 
-  const handleClearChat = () => {
+  // Handle suggestion chip click
+  const handleSuggestionClick = React.useCallback((suggestion: string) => {
+    setSuggestions([])
+    append({ role: 'user', content: suggestion })
+  }, [append])
+
+  // Clear chat history
+  const handleClearChat = React.useCallback(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(MARZ_CHAT_HISTORY_KEY)
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        content: "👋 Hi! I'm **MARZ**, your personal AI assistant. How can I help you today?",
-      }])
-      setError(null)
+      localStorage.removeItem('marz_has_welcomed')
+      setMessages(getDefaultWelcomeMessage())
+      setSuggestions([])
+      setIsSettingsOpen(false)
     }
-  }
+  }, [setMessages])
+
+  // Toggle chat visibility
+  const handleToggle = React.useCallback(() => {
+    setIsOpen((prev) => !prev)
+  }, [])
+
+  // Toggle speech output and provide immediate feedback
+  const handleSpeechToggle = React.useCallback(() => {
+    setSpeechEnabled((prev) => {
+      const isEnabling = !prev
+      if (isEnabling) {
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage && lastMessage.role === 'assistant') {
+          speakResponse(lastMessage.content)
+        }
+      } else if (synthRef.current?.speaking) {
+        synthRef.current.cancel()
+      }
+      return isEnabling
+    })
+  }, [messages, speakResponse])
+
+  // Close chat
+  const handleClose = React.useCallback(() => {
+    setIsOpen(false)
+  }, [])
 
   return (
     <>
-      {/* 3D MARZ Avatar - Floating Action Button Replacement */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <MarzAvatar
-          isListening={isListening}
-          isProcessing={isProcessing}
-          isSpeaking={isSpeaking}
-          size={100}
-          onClick={() => {
-            // Show welcome message on first click of session
-            if (!hasWelcomedThisSession && messages.length <= 1) {
-              setHasWelcomedThisSession(true)
-              // Add welcome message if not already present
-              const welcomeMessage: Message = {
-                id: 'welcome-' + Date.now(),
-                role: 'assistant',
-                content: "Hello! I'm **MARZ**, your AI assistant for BUILD WITH AI. I can help you with domain registration, SSL certificates, DNS hosting, and more. What would you like to work on today?",
-              }
-              setMessages([welcomeMessage])
-            }
-            setIsOpen(!isOpen)
-          }}
-        />
-      </div>
+      <MarzAvatar
+        ref={avatarRef}
+        isOpen={isOpen}
+        position={position}
+        setIsOpen={setIsOpen}
+        isLoading={isLoading}
+        isSpeaking={isSpeaking}
+      />
 
       <AnimatePresence>
         {isOpen && (
@@ -547,206 +428,45 @@ export default function MarzChatWidget() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur shadow-2xl"
+            transition={{ duration: 0.2 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="marz-chat-header"
+            className={`fixed bottom-24 z-50 flex h-[600px] max-h-[80vh] w-[400px] max-w-[90vw] flex-col overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900/95 backdrop-blur shadow-2xl shadow-black/50 ${position === 'right' ? 'right-6' : 'left-6'}`}
           >
-            <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/50 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🤖</span>
-                <div>
-                  <h3 className="font-semibold text-zinc-100">MARZ AI Assistant</h3>
-                  <p className="text-xs text-zinc-400">Build With AI • Ctrl+K to toggle</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setSpeechEnabled(!speechEnabled)}
-                  className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-                  title={speechEnabled ? 'Disable voice' : 'Enable voice'}
-                >
-                  {speechEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                </button>
-                <button
-                  onClick={handleClearChat}
-                  className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-                  title="Clear chat"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
+            <ChatHeader
+              handleClearChat={handleClearChat}
+              onToggleSettings={() => setIsSettingsOpen(true)}
+              position={position}
+              onTogglePosition={() => setPosition(p => p === 'right' ? 'left' : 'right')}
+              setIsOpen={setIsOpen}
+            />
 
-            <div className="flex-1 overflow-y-auto p-4">
-              {!isOnline && (
-                <div className="mb-4 flex items-center gap-2 rounded-lg bg-yellow-900/20 p-2 text-xs text-yellow-400">
-                  <WifiOff size={14} />
-                  <span>You're offline. Messages will be sent when connection is restored.</span>
-                </div>
-              )}
+            <MessageList
+              messages={messages as any}
+              isLoading={isLoading}
+              isHistoryLoading={isHistoryLoading}
+              messagesEndRef={messagesEndRef}
+            />
 
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`mb-4 flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
-                      message.role === 'user'
-                        ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
-                        : 'bg-zinc-800 text-zinc-100'
-                    }`}
-                  >
-                    {message.content.split('\n').map((line, i) => (
-                      <p key={i} className={i > 0 ? 'mt-2' : ''}>
-                        {line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^- /gm, '• ')}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="mb-4 flex justify-start">
-                  <div className="rounded-2xl bg-zinc-800 px-4 py-2">
-                    <div className="flex gap-1">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></span>
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" style={{ animationDelay: '0.1s' }}></span>
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" style={{ animationDelay: '0.2s' }}></span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {error && (
-                <div className="mb-4 rounded-lg bg-red-900/20 p-3 text-xs text-red-400">
-                  {error}
-                </div>
-              )}
-              {retryCount > 0 && retryCount < 3 && (
-                <div className="mb-4 rounded-lg bg-yellow-900/20 p-3 text-xs text-yellow-400">
-                  🔄 {error}
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+            <SuggestionChips
+              suggestions={suggestions}
+              handleSuggestionClick={handleSuggestionClick}
+              isLoading={isLoading}
+            />
 
-            <form onSubmit={handleSubmit} className="border-t border-zinc-800 p-4">
-              <div className="flex items-end gap-2">
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={toggleVoiceInput}
-                    disabled={isLoading || !isOnline}
-                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
-                      isListening
-                        ? 'bg-red-600 text-white'
-                        : isProcessing
-                        ? 'bg-blue-600 text-white animate-pulse'
-                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-                    } disabled:cursor-not-allowed disabled:opacity-50`}
-                    title={
-                      isListening
-                        ? 'Stop listening (continuous mode active)'
-                        : isProcessing
-                        ? 'Processing request...'
-                        : 'Start voice input (Ctrl+M)'
-                    }
-                  >
-                    {isListening ? (
-                      <MicOff size={18} />
-                    ) : isProcessing ? (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      >
-                        <Mic size={18} />
-                      </motion.div>
-                    ) : (
-                      <Mic size={18} />
-                    )}
-                  </button>
-                  
-                  {/* Voice Wave Animation - Shows when actively listening */}
-                  <AnimatePresence>
-                    {isListening && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        {[...Array(3)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ scale: 1, opacity: 0.8 }}
-                            animate={{ scale: [1, 2, 3], opacity: [0.8, 0.4, 0] }}
-                            exit={{ opacity: 0 }}
-                            transition={{
-                              duration: 1.5,
-                              repeat: Infinity,
-                              delay: i * 0.3,
-                              ease: "easeOut",
-                            }}
-                            className="absolute h-10 w-10 rounded-full border-2 border-red-400"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </AnimatePresence>
-                  
-                  {/* Processing State - Blue orbit */}
-                  <AnimatePresence>
-                    {isProcessing && !isListening && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <motion.div
-                          initial={{ scale: 1, opacity: 0.6 }}
-                          animate={{ scale: [1, 1.5, 2], opacity: [0.6, 0.3, 0] }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                          className="absolute h-10 w-10 rounded-full border-2 border-blue-400"
-                        />
-                      </div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSubmit(e)
-                    }
-                  }}
-                  placeholder={isOnline ? "Ask me anything..." : "You're offline - type your message"}
-                  rows={1}
-                  disabled={isLoading || !isOnline}
-                  className="max-h-32 flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50"
-                  style={{ minHeight: '44px' }}
-                />
-
-                <button
-                  type="submit"
-                  disabled={!input.trim() || isLoading || !isOnline}
-                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Send size={18} />
-                </button>
-              </div>
-              {isListening && (
-                <p className="mt-2 text-center text-xs text-red-400 animate-pulse">
-                  🔴 Listening... (continuous mode) • Waves indicate active capture
-                </p>
-              )}
-              {isProcessing && !isListening && (
-                <p className="mt-2 text-center text-xs text-blue-400 animate-pulse">
-                  💭 Processing request... Please wait
-                </p>
-              )}
-            </form>
+            <ChatInput
+              ref={inputRef}
+              input={input}
+              isLoading={isLoading}
+              isListening={isListening}
+              handleInputChange={handleInputChange}
+              handleSubmit={handleFormSubmit}
+              toggleVoiceInput={toggleVoiceInput}
+            />
+            <AnimatePresence>
+              {isSettingsOpen && <SettingsPanel onClose={() => setIsSettingsOpen(false)} speechEnabled={speechEnabled} setSpeechEnabled={setSpeechEnabled} availableVoices={availableVoices} selectedVoice={selectedVoice} setSelectedVoice={setSelectedVoice} />}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

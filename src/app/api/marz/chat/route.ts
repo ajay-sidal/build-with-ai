@@ -5,28 +5,170 @@ import Groq from 'groq-sdk'
 export const runtime = 'nodejs'
 export const maxDuration = 60 // 60 second timeout
 
+// Simple keyword-based responses as fallback (no API key needed)
+function getFallbackResponse(query: string) {
+  const lowerQuery = query.toLowerCase()
+  
+  // Domain-related queries
+  if (lowerQuery.includes('domain') || lowerQuery.includes('tld') || lowerQuery.includes('.com') || lowerQuery.includes('.ai')) {
+    return {
+      response: `**Domain Registration Services**
+
+We offer domain registration with **1,500+ TLDs** including:
+- **Popular TLDs**: .com, .net, .org, .io, .ai
+- **New gTLDs**: .tech, .store, .app, .dev
+- **Country TLDs**: .uk, .de, .fr, .in
+
+**Features:**
+- Instant domain search
+- Domain transfer services
+- Auto-renewal protection
+- DNS management included
+
+Would you like me to help you search for a specific domain?`,
+      suggestions: ['Search for a domain', 'Transfer a domain', 'Domain pricing'],
+    }
+  }
+  
+  // SSL-related queries
+  if (lowerQuery.includes('ssl') || lowerQuery.includes('certificate') || lowerQuery.includes('https') || lowerQuery.includes('security')) {
+    return {
+      response: `**SSL Certificate Services**
+
+We provide comprehensive SSL solutions:
+
+**Types Available:**
+- **Domain Validation (DV)**: Basic encryption, instant issuance
+- **Organization Validation (OV)**: Business verification included
+- **Extended Validation (EV)**: Maximum trust, green address bar
+- **Wildcard SSL**: Secure unlimited subdomains
+- **Multi-Domain SSL**: Protect multiple domains with one certificate
+
+**Features:**
+- Zero-knowledge SSL (we don't store your private keys)
+- Instant issuance for most certificates
+- Free reissues
+- Browser compatibility guarantee
+
+Which type of SSL certificate are you interested in?`,
+      suggestions: ['DV SSL pricing', 'Wildcard SSL', 'Multi-domain SSL'],
+    }
+  }
+  
+  // DNS-related queries
+  if (lowerQuery.includes('dns') || lowerQuery.includes('nameserver') || lowerQuery.includes('hosting')) {
+    return {
+      response: `**DNS Hosting Services**
+
+Our DNS infrastructure provides:
+
+**Free DNS Hosting:**
+- Unlimited DNS records
+- 99.99% uptime SLA
+- Instant propagation
+- DDoS protection
+
+**Premium DNS:**
+- Advanced analytics
+- GeoDNS routing
+- DNSSEC support
+- Priority support
+
+**Features:**
+- DNS templates for quick setup
+- Custom nameserver groups
+- API access for automation
+
+Would you like to learn more about our DNS templates or premium features?`,
+      suggestions: ['DNS templates', 'Premium DNS features', 'DNS pricing'],
+    }
+  }
+  
+  // Email-related queries
+  if (lowerQuery.includes('email') || lowerQuery.includes('spam') || lowerQuery.includes('dmarc')) {
+    return {
+      response: `**Email Services**
+
+Complete email protection and management:
+
+**Email Verification:**
+- Validate email addresses in real-time
+- Reduce bounce rates
+- Improve deliverability
+
+**Spam Experts:**
+- Inbound spam filtering (99.9% accuracy)
+- Outbound spam monitoring
+- Email archiving (30-day retention)
+
+**EasyDMARC:**
+- DMARC, SPF, DKIM setup
+- Email authentication
+- Phishing protection
+
+Which email service would you like to explore?`,
+      suggestions: ['Spam filtering', 'Email archiving', 'DMARC setup'],
+    }
+  }
+  
+  // Pricing/cost queries
+  if (lowerQuery.includes('price') || lowerQuery.includes('cost') || lowerQuery.includes('how much')) {
+    return {
+      response: `**Pricing Information**
+
+Our pricing is competitive and transparent:
+
+**Domains:**
+- .com: ~$14.99/year
+- .ai: ~$89.99/year
+- .io: ~$59.99/year
+- Pricing varies by TLD
+
+**SSL Certificates:**
+- Domain Validation: From $9.99/year
+- Wildcard SSL: From $69.99/year
+- Extended Validation: From $149.99/year
+
+**DNS:**
+- Free DNS Hosting: $0 (unlimited records)
+- Premium DNS: From $4.99/month
+
+**Email Services:**
+- Spam Experts: From $3.99/month
+- Email Archiving: From $2.99/month
+
+Would you like specific pricing for a particular product?`,
+      suggestions: ['Domain pricing', 'SSL pricing', 'Bundle deals'],
+    }
+  }
+  
+  // Default response
+  return {
+    response: `Hello! I'm **MARZ**, your AI assistant for BUILD WITH AI.
+
+I can help you with:
+
+**Products:**
+- **Domain Registration** - 1,500+ TLDs available
+- **SSL Certificates** - DV, OV, EV, Wildcard, Multi-Domain
+- **DNS Hosting** - Free & Premium options
+- **Email Services** - Verification, Spam filtering, DMARC
+- **Hosting Licenses** - Plesk, Virtuozzo
+
+**Services:**
+- Customer Management
+- Domain Management
+- SSL Management
+- AI Web Design
+
+What would you like to work on today? Just ask me anything about domains, SSL, DNS, or our other services!`,
+    suggestions: ['Register a domain', 'Get SSL certificate', 'DNS hosting', 'Email protection'],
+  }
+}
+
 export async function POST(req: Request) {
   try {
     console.log('[MARZ] Received chat request')
-
-    // Check for GROQ API key
-    const groqApiKey = process.env.GROQ_API_KEY
-    if (!groqApiKey || groqApiKey.trim() === '') {
-      console.error('[MARZ] GROQ_API_KEY is not configured')
-      return NextResponse.json(
-        {
-          error: 'GROQ_API_KEY not configured',
-          response: "I apologize, but MARZ is not fully configured yet. The GROQ_API_KEY environment variable is missing. Please contact the administrator.",
-          suggestions: ['What products do you offer?', 'Tell me about domains', 'What is SSL?'],
-        },
-        { status: 503 }
-      )
-    }
-
-    const groq = new Groq({ 
-      apiKey: groqApiKey,
-      timeout: 50000, // 50 second timeout for API calls
-    })
 
     // Parse request body
     const { messages } = await req.json()
@@ -39,7 +181,26 @@ export async function POST(req: Request) {
 
     console.log('[MARZ] Processing query:', userQuery)
 
-    // COMPACT system prompt - NO massive product catalog (RAG would be better but requires Vector DB setup)
+    // Check for GROQ API key
+    const groqApiKey = process.env.GROQ_API_KEY
+    if (!groqApiKey || groqApiKey.trim() === '') {
+      console.log('[MARZ] GROQ_API_KEY not configured, using fallback responses')
+      // Use intelligent fallback responses (no API key needed)
+      const fallbackResponse = getFallbackResponse(userQuery)
+      return NextResponse.json({
+        response: fallbackResponse.response,
+        suggestions: fallbackResponse.suggestions,
+        matches: [],
+      })
+    }
+
+    // GROQ API key is configured - use AI
+    const groq = new Groq({
+      apiKey: groqApiKey,
+      timeout: 50000, // 50 second timeout for API calls
+    })
+
+    // COMPACT system prompt - NO massive product catalog
     const systemPrompt = `You are MARZ, a friendly AI assistant for BUILD WITH AI.
 
 **Quick Reference:**
@@ -75,14 +236,13 @@ Be conversational and helpful. Use markdown formatting. Keep responses concise. 
     } catch (apiError: any) {
       if (apiError.message === 'API_TIMEOUT') {
         console.error('[MARZ] Groq API timeout')
-        return NextResponse.json(
-          {
-            error: 'API_TIMEOUT',
-            response: "I apologize, but the request is taking longer than expected. Please try again.",
-            suggestions: ['Try asking a simpler question', 'Check your internet connection', 'Contact support if this persists'],
-          },
-          { status: 504 }
-        )
+        // Fallback to keyword-based response on timeout
+        const fallbackResponse = getFallbackResponse(userQuery)
+        return NextResponse.json({
+          response: fallbackResponse.response + '\n\n*(AI response timed out, showing quick response)*',
+          suggestions: fallbackResponse.suggestions,
+          matches: [],
+        }, { status: 200 })
       }
       throw apiError
     }
@@ -105,31 +265,38 @@ Be conversational and helpful. Use markdown formatting. Keep responses concise. 
     })
   } catch (error) {
     console.error('[MARZ API Error]:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     
-    // Log to admin dashboard
+    // ALWAYS return a helpful response, NEVER show error to user
+    // Use fallback response based on their query
+    let userQuery = 'help'
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/logs/client-error`, {
+      const { messages } = await req.json()
+      userQuery = messages?.[messages.length - 1]?.content || 'help'
+    } catch {}
+    
+    const fallbackResponse = getFallbackResponse(userQuery)
+    
+    // Log error to admin dashboard (non-blocking)
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
+      fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/logs/client-error`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: 'MARZ API request failed',
+          message: 'MARZ API request failed - fallback used',
           details: {
-            error: errorMessage,
-            stack: error instanceof Error ? error.stack : undefined,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            userQuery,
           },
           timestamp: new Date().toISOString(),
         }),
-      }).catch(() => {}) // Ignore logging errors
-    } catch {}
+      }).catch(() => {})
+    }
     
-    return NextResponse.json(
-      {
-        error: 'Failed to process request',
-        response: `I apologize, but I'm experiencing technical difficulties. (Error: ${errorMessage})`,
-        suggestions: ['Tell me about domains', 'What SSL options are available?', 'Help me choose a product'],
-      },
-      { status: 500 }
-    )
+    // Return ONLY helpful response - NO error field
+    return NextResponse.json({
+      response: fallbackResponse.response,
+      suggestions: fallbackResponse.suggestions,
+      matches: [],
+    })
   }
 }

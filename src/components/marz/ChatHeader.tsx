@@ -24,19 +24,22 @@ export default function ChatHeader({
           <Sparkles size={20} className="text-white" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-zinc-100">MARZ</h3>
+          <h3 id="marz-chat-header" className="text-sm font-semibold text-zinc-100">MARZ</h3>
           <p className="text-xs text-zinc-400">AI Assistant</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={onToggleSettings} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Settings">
+        <button onClick={handleClearChat} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Clear chat history" aria-label="Clear chat history">
+          <Trash2 size={16} />
+        </button>
+        <button onClick={onToggleSettings} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Settings" aria-label="Settings">
           <Settings size={16} />
         </button>
-        <button onClick={onTogglePosition} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title={`Dock to ${position === 'right' ? 'left' : 'right'}`}>
+        <button onClick={onTogglePosition} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title={`Dock to ${position === 'right' ? 'left' : 'right'}`} aria-label={`Dock to ${position === 'right' ? 'left' : 'right'}`}>
           {position === 'right' ? <PanelLeft size={16} /> : <PanelRight size={16} />}
         </button>
         <div className="h-4 w-px bg-zinc-700 mx-1"></div>
-        <button onClick={() => setIsOpen(false)} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Close chat">
+        <button onClick={() => setIsOpen(false)} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Close chat" aria-label="Close chat">
           <X size={16} />
         </button>
       </div>

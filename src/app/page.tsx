@@ -1,103 +1,101 @@
 'use client'
 
-import { Suspense } from 'react'
-import DomainSearch from '../components/DomainSearch'
-import LaunchMagnet from '../components/LaunchMagnet'
-import { motion } from 'framer-motion'
-import { Sparkles, Shield, Zap, Globe } from 'lucide-react'
+import { allProducts } from '@/lib/openprovider-products'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { Check, ArrowRight, ShoppingCart } from 'lucide-react'
+import { useCart } from '@/components/providers/CartProvider'
+import { useState, useEffect, useMemo } from 'react'
 
-export default function HomePage() {
+interface ProductPageProps {
+  params: {
+    slug: string
+  }
+}
+
+export default function ProductPage({ params }: ProductPageProps) {
+  const product = allProducts.find((p) => p.slug === params.slug)
+  const { addToCart, cartItems } = useCart()
+  const [isAdded, setIsAdded] = useState(false)
+
+  const isInCart = useMemo(() => cartItems.some(item => item.id === product?.id), [cartItems, product])
+
+  useEffect(() => {
+    // This effect ensures the button state is correct if the user navigates back/forward
+    setIsAdded(false)
+  }, [params.slug])
+
+  if (!product) {
+    notFound()
+  }
+
+  const handleAddToCart = () => {
+    addToCart(product)
+    setIsAdded(true)
+    setTimeout(() => setIsAdded(false), 2000) // Reset button visual state after 2s
+  }
+
   return (
-    <main className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-12">
-      {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="mb-16 text-center"
-      >
-        {/* Brand Badge */}
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-400 backdrop-blur-sm"
-        >
-          <Sparkles size={16} className="text-cyan-400" />
-          <span>Powered by Advanced AI</span>
-        </motion.div>
-
-        {/* Main Headline */}
-        <h1 className="text-balance text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-          <span className="bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent italic">Build With AI</span>
-          <br />
-          <span className="mt-2 block text-3xl sm:text-4xl lg:text-5xl text-zinc-100">
-            Your Digital Future, Secured
-          </span>
-        </h1>
-
-        {/* Sub-headline */}
-        <p className="mx-auto mt-6 max-w-3xl text-balance text-lg text-zinc-400 sm:text-xl">
-          The world's first AI-driven platform for domain registration, zero-knowledge SSL, and instant DNS.
-          Find and secure your brand in seconds.
-        </p>
-
-        {/* Feature Badges */}
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex items-center gap-2 rounded-lg bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 backdrop-blur-sm"
-          >
-            <Globe size={16} className="text-cyan-400" />
-            <span>1,500+ TLDs Available</span>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="flex items-center gap-2 rounded-lg bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 backdrop-blur-sm"
-          >
-            <Shield size={16} className="text-cyan-400" />
-            <span>Zero-Knowledge Security</span>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="flex items-center gap-2 rounded-lg bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 backdrop-blur-sm"
-          >
-            <Zap size={16} className="text-cyan-400" />
-            <span>Instant DNS Propagation</span>
-          </motion.div>
+    <div className="bg-zinc-950 text-white">
+      <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
+        {/* Header */}
+        <div className="text-center">
+          <p className="text-base font-semibold leading-7 text-blue-400">{product.category}</p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{product.name}</h1>
+          <p className="mt-6 max-w-2xl mx-auto text-lg leading-8 text-zinc-300">{product.description}</p>
         </div>
-      </motion.div>
 
-      {/* Domain Search Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.0 }}
-        className="flex-1"
-      >
-        <Suspense fallback={null}>
-          <LaunchMagnet />
-          <DomainSearch />
-        </Suspense>
-      </motion.div>
+        {/* Main Content */}
+        <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2 lg:gap-20">
+          {/* Left Column: Features & Benefits */}
+          <div className="space-y-10">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Key Features</h2>
+              <ul className="mt-4 space-y-2 text-zinc-400">
+                {product.features.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="h-5 w-5 flex-shrink-0 text-blue-500 mt-1" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">Benefits</h2>
+              <ul className="mt-4 space-y-2 text-zinc-400">
+                {product.benefits.map((benefit, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="h-5 w-5 flex-shrink-0 text-emerald-500 mt-1" />
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
-      {/* Trust Indicators */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4 }}
-        className="mt-16 border-t border-zinc-800/50 pt-8 text-center"
-      >
-        <p className="text-sm text-zinc-500">
-          Trusted by developers and businesses worldwide • Powered by OpenProvider • Secured with Enterprise-Grade Infrastructure
-        </p>
-      </motion.div>
-    </main>
+          {/* Right Column: Pricing & CTA */}
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 self-start">
+            <h2 className="text-2xl font-bold tracking-tight text-white">Get Started</h2>
+            {product.pricing && (
+              <p className="mt-4 text-4xl font-bold tracking-tight text-white">
+                ${product.pricing.startingFrom}
+                <span className="text-base font-medium text-zinc-400">/{product.pricing.period}</span>
+              </p>
+            )}
+            <p className="mt-4 text-zinc-400">Ready to secure your digital assets? Get started with {product.name} today.</p>
+            <button
+              onClick={handleAddToCart}
+              disabled={isInCart}
+              className="mt-8 flex w-full items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+            >
+              {isAdded ? <><Check className="mr-2 h-5 w-5" />Added to Cart</> : isInCart ? <><Check className="mr-2 h-5 w-5" />In Cart</> : <><ShoppingCart className="mr-2 h-5 w-5" />Add to Cart</>}
+            </button>
+            <Link href="/products" className="mt-4 block text-center text-sm text-zinc-400 hover:text-zinc-200">
+              Compare with other products
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

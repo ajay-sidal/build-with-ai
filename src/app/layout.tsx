@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import AffiliateRefTracker from '../components/AffiliateRefTracker'
 import MarzChatWidget from '../components/marz/MarzChatWidget'
+import { CartProvider } from '../components/providers/CartProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -54,13 +55,15 @@ export default function RootLayout({
     <html lang="en">
       <body className="flex min-h-screen flex-col bg-zinc-950 text-zinc-50">
         <SessionProvider>
-          <Navbar />
-          <Suspense fallback={null}>
-            <AffiliateRefTracker />
-          </Suspense>
-          <div className="flex-1">{children}</div>
-          <Footer />
-          <MarzChatWidget />
+          <CartProvider>
+            <Navbar />
+            <Suspense fallback={null}>
+              <AffiliateRefTracker />
+            </Suspense>
+            <div className="flex-1">{children}</div>
+            <Footer />
+            <MarzChatWidget />
+          </CartProvider>
         </SessionProvider>
       </body>
     </html>
