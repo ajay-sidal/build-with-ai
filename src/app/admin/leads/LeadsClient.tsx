@@ -7,6 +7,7 @@ import { Select } from '../../../components/ui/select'
 import { Button } from '../../../components/ui/button'
 import { Card, CardContent, CardHeader } from '../../../components/ui/card'
 import { Input } from '../../../components/ui/input'
+import { Skeleton } from '../../../components/ui/Skeleton'
 
 type Lead = {
   service: string
