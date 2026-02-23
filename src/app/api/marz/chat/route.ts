@@ -76,33 +76,55 @@ async function semanticSearch(query: string, topK: number = 3): Promise<Knowledg
 
 export async function POST(req: Request) {
   try {
-    // Instantiate Groq client inside the handler to access env vars at runtime
-    if (!process.env.GROQ_API_KEY) {
-      // This will be caught by the catch block and return a 500 error.
-      throw new Error('The GROQ_API_KEY environment variable is missing or empty.')
+    // Check for GROQ API key
+    const groqApiKey = process.env.GROQ_API_KEY
+    if (!groqApiKey || groqApiKey.trim() === '') {
+      console.error('[MARZ] GROQ_API_KEY is not configured')
+      return NextResponse.json(
+        {
+          error: 'GROQ_API_KEY not configured',
+          response: "I apologize, but MARZ is not fully configured yet. The GROQ_API_KEY environment variable is missing. Please contact the administrator to set up the AI service.",
+          suggestions: ['What products do you offer?', 'Tell me about domains', 'What is SSL?'],
+        },
+        { status: 503 }
+      )
     }
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
-    // Vercel AI SDK reads the body
+    const groq = new Groq({ apiKey: groqApiKey })
+
+    // Parse request body
     const { messages } = await req.json()
-    const userQuery = messages[messages.length - 1]?.content
+    const userQuery = messages?.[messages.length - 1]?.content
 
     if (!userQuery) {
       return new Response('Missing user query', { status: 400 })
     }
 
+    console.log('[MARZ] Processing query:', userQuery)
+
     // Check if we have Upstash Vector credentials
-    if (!process.env.UPSTASH_VECTOR_REST_URL || !process.env.UPSTASH_VECTOR_REST_TOKEN) {
-      // Fallback to basic keyword matching if no vector DB
-      console.warn('[MARZ] Vector DB credentials not found. Returning setup message.')
+    const hasVectorDb = !!(process.env.UPSTASH_VECTOR_REST_URL && process.env.UPSTASH_VECTOR_REST_TOKEN)
+    
+    if (!hasVectorDb) {
+      console.warn('[MARZ] Vector DB credentials not found. Using fallback response.')
+      // Fallback to basic response if no vector DB
       return NextResponse.json({
-        response: 'MARZ is in setup mode. Vector DB credentials are not configured.',
-        suggestions: ['What products do you offer?', 'Tell me about domains', 'What is SSL?'],
+        response: `I'm MARZ, your AI assistant for BUILD WITH AI. I can help you with:
+
+**Products:**
+- **Domain Registration** - Search and register domains with 1,500+ TLDs
+- **SSL Certificates** - Secure your website with zero-knowledge SSL
+- **DNS Hosting** - Fast, reliable DNS with instant propagation
+- **Email Services** - Professional email with spam protection
+
+What would you like to know more about?`,
+        suggestions: ['Tell me about domain pricing', 'What SSL options are available?', 'How does DNS hosting work?'],
       })
     }
 
     // 1. Retrieval: Perform semantic search to get relevant context
     const contextItems = await semanticSearch(userQuery, 3)
+    console.log('[MARZ] Found context items:', contextItems.length)
 
     // 2. Augmentation: Create a detailed prompt for the LLM
     const systemPrompt = `You are MARZ, a friendly and expert AI assistant for BUILD WITH AI, a futuristic domain and infrastructure provider.
@@ -129,6 +151,7 @@ export async function POST(req: Request) {
     ]
 
     // 3. Generation: Call the LLM with the complete prompt
+    console.log('[MARZ] Calling Groq API...')
     const completion = await groq.chat.completions.create({
       model: 'llama3-8b-8192',
       messages: finalMessages,
@@ -136,6 +159,7 @@ export async function POST(req: Request) {
     })
 
     const aiResponse = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
+    console.log('[MARZ] Got response from Groq')
 
     // Parse suggestions from response
     let suggestions: string[] = []
@@ -162,10 +186,11 @@ export async function POST(req: Request) {
     })
   } catch (error) {
     console.error('[MARZ API Error]:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to process request',
-        response: "I apologize, but I'm experiencing technical difficulties. Please try again.",
+        response: `I apologize, but I'm experiencing technical difficulties. Please try again. (Error: ${errorMessage})`,
         suggestions: ['Tell me about domains', 'What SSL options are available?', 'Help me choose a product'],
       },
       { status: 500 }
