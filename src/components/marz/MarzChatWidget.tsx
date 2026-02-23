@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mic, MicOff, Send, X, Volume2, VolumeX, Trash2, WifiOff } from 'lucide-react'
+import MarzAvatar from './MarzAvatar'
 
 // Storage key for chat persistence
 const MARZ_CHAT_HISTORY_KEY = 'marz_chat_history'
@@ -38,6 +39,7 @@ export default function MarzChatWidget() {
   const [retryCount, setRetryCount] = React.useState(0)
   const [selectedVoice, setSelectedVoice] = React.useState('default')
   const [isProcessing, setIsProcessing] = React.useState(false) // API processing state
+  const [isSpeaking, setIsSpeaking] = React.useState(false) // TTS speaking state
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const recognitionRef = React.useRef<SpeechRecognition | null>(null)
@@ -296,7 +298,17 @@ export default function MarzChatWidget() {
       console.log('[MARZ] Using default system voice')
     }
 
-    utterance.onend = onEnd ?? null
+    // Set speaking state
+    setIsSpeaking(true)
+    
+    utterance.onend = () => {
+      setIsSpeaking(false)
+      onEnd?.()
+    }
+    
+    utterance.onerror = () => {
+      setIsSpeaking(false)
+    }
 
     synthRef.current.speak(utterance)
   }, [speechEnabled, selectedVoice])
@@ -504,18 +516,16 @@ export default function MarzChatWidget() {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg transition-all hover:shadow-xl hover:shadow-blue-500/30"
-        title="Toggle MARZ chat (Ctrl+K)"
-      >
-        {isOpen ? <X size={24} /> : (
-          <div className="relative">
-            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative">🤖</span>
-          </div>
-        )}
-      </button>
+      {/* 3D MARZ Avatar - Floating Action Button Replacement */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <MarzAvatar
+          isListening={isListening}
+          isProcessing={isProcessing}
+          isSpeaking={isSpeaking}
+          size={100}
+          onClick={() => setIsOpen(!isOpen)}
+        />
+      </div>
 
       <AnimatePresence>
         {isOpen && (
