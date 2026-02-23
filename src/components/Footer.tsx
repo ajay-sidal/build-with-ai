@@ -69,9 +69,9 @@ export default function Footer() {
         <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/35">
           <div className="px-5 py-8">
             {/* Top Section: Logo + Columns */}
-            <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
+            <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
               {/* Logo */}
-              <div className="w-full text-center md:w-auto md:text-left">
+              <div className="w-full text-center md:w-56 md:text-left">
                 <div className="flex items-center justify-center gap-2 md:justify-start">
                   <img src="/icon.png" alt="BUILD WITH AI" className="h-6 w-6 rounded-lg" />
                   <span className="text-sm font-semibold tracking-tight text-zinc-50">BUILD WITH AI</span>
@@ -99,10 +99,10 @@ export default function Footer() {
                 </div>
               </div>
 
-              {/* Footer Columns */}
-              <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-3">
+              {/* Footer Columns - Evenly spaced */}
+              <div className="flex flex-1 flex-wrap justify-center gap-8 sm:gap-6 lg:gap-8">
                 {footerColumns.map((col) => (
-                  <div key={col.title}>
+                  <div key={col.title} className="w-40 flex-shrink-0">
                     <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{col.title}</div>
                     <div className="mt-3 flex flex-col gap-2">
                       {col.links.map((link) => (
