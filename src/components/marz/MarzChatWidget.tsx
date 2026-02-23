@@ -464,9 +464,6 @@ export default function MarzChatWidget() {
               handleSubmit={handleFormSubmit}
               toggleVoiceInput={toggleVoiceInput}
             />
-            <AnimatePresence>
-              {isSettingsOpen && <SettingsPanel onClose={() => setIsSettingsOpen(false)} speechEnabled={speechEnabled} setSpeechEnabled={setSpeechEnabled} availableVoices={availableVoices} selectedVoice={selectedVoice} setSelectedVoice={setSelectedVoice} />}
-            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

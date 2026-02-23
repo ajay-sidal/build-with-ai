@@ -1,4 +1,4 @@
-import { allProducts, productCategories } from '../../lib/openprovider-products'
+import { allProducts, productCategories } from '@/lib/openprovider-products'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle } from 'lucide-react'
 import type { Metadata } from 'next'
