@@ -1,7 +1,7 @@
 // Distributed tracing setup using OpenTelemetry
 import { trace, context, Span, SpanKind } from '@opentelemetry/api'
 
-export type TraceMeta = Record<string, unknown>
+export type TraceMeta = Record<string, string | number | boolean | undefined>
 
 /**
  * Starts a span for distributed tracing. Integrates with OpenTelemetry if available.
