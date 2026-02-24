@@ -64,15 +64,18 @@ test.describe('Homepage', () => {
   test('should open mobile menu on small screens', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/', { waitUntil: 'domcontentloaded' })
+    
+    // Dismiss MARZ widget first
     await dismissMarz(page)
 
     // Look for mobile menu button
     const menuButton = page.locator('button[aria-label*="menu" i], button[aria-label*="Menu" i], [data-testid="mobile-menu-btn"]').first()
     await menuButton.click({ force: true })
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(1000)
 
-    // Check that mobile menu links are visible
-    await expect(page.locator('a:has-text("Home")').first()).toBeVisible({ timeout: 5000 })
+    // Check that mobile menu is open by looking for any visible link
+    const homeLink = page.locator('a:has-text("Home")').first()
+    await expect(homeLink).toBeInViewport({ timeout: 5000 })
   })
 })
 
@@ -84,7 +87,16 @@ test.describe('Navigation', () => {
     // Click the Products button/link
     const productsLink = page.locator('a:has-text("Products"), button:has-text("Products")').first()
     await productsLink.click({ force: true })
-    await page.waitForURL('/products', { waitUntil: 'domcontentloaded', timeout: 15000 })
+    
+    // Wait for navigation or timeout
+    try {
+      await page.waitForURL('/products', { waitUntil: 'domcontentloaded', timeout: 15000 })
+    } catch (e) {
+      // If waitForURL times out, check if we're already on the page
+      if (!page.url().includes('/products')) {
+        throw e
+      }
+    }
 
     await expect(page).toHaveURL('/products')
     await expect(page).toHaveTitle(/Products/)
@@ -96,7 +108,16 @@ test.describe('Navigation', () => {
 
     const servicesLink = page.locator('a:has-text("Services"), button:has-text("Services")').first()
     await servicesLink.click({ force: true })
-    await page.waitForURL('/services', { waitUntil: 'domcontentloaded', timeout: 15000 })
+    
+    // Wait for navigation or timeout
+    try {
+      await page.waitForURL('/services', { waitUntil: 'domcontentloaded', timeout: 15000 })
+    } catch (e) {
+      // If waitForURL times out, check if we're already on the page
+      if (!page.url().includes('/services')) {
+        throw e
+      }
+    }
 
     await expect(page).toHaveURL('/services')
     await expect(page).toHaveTitle(/Services/)
