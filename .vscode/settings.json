@@ -1,0 +1,18 @@
+{
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": [
+      ".github/workflows/*.yml",
+      ".github/workflows/*.yaml"
+    ]
+  },
+  "yaml.customTags": [
+    "!secret scalar",
+    "!env scalar",
+    "!function scalar"
+  ],
+  "yaml.format.enable": true,
+  "yaml.validate": true,
+  "github.copilot.enable": {
+    ".github/workflows/*.yml": true
+  }
+}
