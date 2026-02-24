@@ -26,7 +26,17 @@ async function instrumentedHandler(req: Request) {
 			console.warn('Sentry capture failed', e)
 		}
 		logger.error('NextAuth handler error', { error: String(err) })
-		throw err
+		// Return a JSON error response so clients (and NextAuth devtools) can
+		// parse the error payload instead of receiving an empty response body.
+		try {
+			return new Response(JSON.stringify({ error: 'NextAuth handler error' }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			})
+		} catch (e) {
+			// As a last resort, re-throw the original error
+			throw err
+		}
 	}
 }
 

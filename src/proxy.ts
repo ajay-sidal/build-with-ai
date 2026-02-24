@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
   // Enforce HTTPS in production
+  // Enforce HTTPS only when explicitly enabled in the environment. This
+  // prevents local test runs (and CI) from being redirected unexpectedly.
+  // Set `ENFORCE_HTTPS=1` in production environments that require it.
   if (
+    process.env.ENFORCE_HTTPS === '1' &&
     process.env.NODE_ENV === 'production' &&
     request.nextUrl.protocol === 'http:'
   ) {

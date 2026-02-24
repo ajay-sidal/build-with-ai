@@ -20,6 +20,23 @@ interface MarzAvatarProps {
 const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
   ({ isOpen, setIsOpen, position, isLoading, isSpeaking }, ref) => {
   const lottieSrc = (isLoading || isSpeaking) ? ROBOT_ACTIVE_URL : ROBOT_IDLE_URL;
+  const [lottieAvailable, setLottieAvailable] = React.useState<boolean | null>(null)
+
+  React.useEffect(() => {
+    let mounted = true
+    async function check() {
+      try {
+        const res = await fetch(lottieSrc, { method: 'GET', mode: 'cors' })
+        if (!mounted) return
+        setLottieAvailable(res.ok)
+      } catch (e) {
+        if (!mounted) return
+        setLottieAvailable(false)
+      }
+    }
+    check()
+    return () => { mounted = false }
+  }, [lottieSrc])
 
   return (
     <motion.button
@@ -50,11 +67,18 @@ const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
           >
-            <DotLottieReact
-              src={lottieSrc}
-              loop
-              autoplay
-            />
+            {lottieAvailable === false ? (
+              // Fallback simple avatar when Lottie resource is unavailable
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center text-white">
+                🤖
+              </div>
+            ) : (
+              <DotLottieReact
+                src={lottieSrc}
+                loop
+                autoplay
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

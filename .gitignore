@@ -40,3 +40,5 @@ data/partners.json
 
 # typescript
 *.tsbuildinfo
+
+.vercel

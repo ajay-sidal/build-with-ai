@@ -12,12 +12,14 @@ function loadQueueDependencies() {
   
   loaded = true
   try {
-    // These are marked as external in next.config.js to avoid Turbopack resolution
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const bullmq = require('bullmq')
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    Redis = require('ioredis')
-    Queue = bullmq.Queue
+    // Use indirect require to avoid static bundlers (Turbopack) trying to
+    // resolve optional dependencies at build time. This keeps these deps
+    // truly optional at runtime.
+    // eslint-disable-next-line no-eval
+    const req: NodeRequire = eval('require')
+    const bullmq = req('bullmq')
+    Redis = req('ioredis')
+    Queue = bullmq?.Queue ?? null
     available = true
   } catch (e) {
     // BullMQ and ioredis are optional - queue functionality disabled if not installed

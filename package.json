@@ -14,6 +14,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
+    "ci:playwright": "bash ./ci/run-playwright.sh",
+    "start:http": "cmd /c scripts\\start_http_dev.cmd",
     "audit": "tsx src/utils/audit-test.ts",
     "e2e:license": "tsx src/utils/e2e-license-flow.ts",
     "lint:spectral": "npx @stoplight/spectral-cli lint --ruleset .spectral.yaml .github/workflows/*.yml",
