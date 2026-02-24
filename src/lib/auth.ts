@@ -12,6 +12,15 @@ function optionalProvider<T>(provider: T, enabled: boolean): T | null {
 const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.trim() !== '')
 const hasNextAuthSecret = !!(process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_SECRET.trim() !== '')
 
+// Generate a fallback secret for development only (never use in production)
+const getFallbackSecret = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return undefined
+  }
+  // Development-only fallback secret
+  return 'dev-fallback-secret-do-not-use-in-production-' + process.platform
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: hasDatabase ? PrismaAdapter(prisma) : undefined,
   session: {
@@ -35,7 +44,7 @@ export const authOptions: NextAuthOptions = {
     ),
   ].filter(Boolean) as NextAuthOptions['providers'],
   // NEXTAUTH_SECRET is required for JWT sessions
-  secret: (process.env.NEXTAUTH_SECRET || '').trim() || undefined,
+  secret: (process.env.NEXTAUTH_SECRET || '').trim() || getFallbackSecret(),
   pages: {
     signIn: '/login',
   },
@@ -48,13 +57,10 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  // Disable NextAuth if critical env vars are missing (prevents 500 errors)
-  ...(!hasNextAuthSecret ? {
-    // In development, generate a warning but continue
-    logger: {
-      error: (code, ...message) => console.error('[NextAuth]', code, message),
-      warn: (code) => console.warn('[NextAuth]', code),
-      debug: (code, ...message) => console.log('[NextAuth]', code, message),
-    },
-  } : {}),
+  // Always enable error logging to help debug issues
+  logger: {
+    error: (code, ...message) => console.error('[NextAuth]', code, message),
+    warn: (code) => console.warn('[NextAuth]', code),
+    debug: (code, ...message) => console.log('[NextAuth]', code, message),
+  },
 }

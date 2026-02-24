@@ -2,14 +2,11 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 import { X } from 'lucide-react'
 
-// Lottie animation URLs - use local files with CDN fallback
-const ROBOT_IDLE_URL = "/lottie/marz-robot-idle.lottie";
-const ROBOT_ACTIVE_URL = "/lottie/marz-robot-active.lottie";
-const CDN_ROBOT_IDLE_URL = "https://lottie.host/c2d736b9-d543-49f2-a149-099a349913c9/pS2sI5n7sQ.lottie";
-const CDN_ROBOT_ACTIVE_URL = "https://lottie.host/4f70a259-4e94-43b6-8f32-5a995383325c/2JkGoa5e3k.lottie";
+// Simple emoji-based avatar (no external dependencies)
+// This avoids 403 errors from external Lottie CDN
+const MARZ_EMOJI = "🤖";
 
 interface MarzAvatarProps {
   isOpen: boolean
@@ -21,33 +18,7 @@ interface MarzAvatarProps {
 
 const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
   ({ isOpen, setIsOpen, position, isLoading, isSpeaking }, ref) => {
-  const lottieSrc = (isLoading || isSpeaking) ? ROBOT_ACTIVE_URL : ROBOT_IDLE_URL;
-  const lottieCdnSrc = (isLoading || isSpeaking) ? CDN_ROBOT_ACTIVE_URL : CDN_ROBOT_IDLE_URL;
-  const [lottieAvailable, setLottieAvailable] = React.useState<boolean | null>(null)
-
-  React.useEffect(() => {
-    let mounted = true
-    async function check() {
-      try {
-        // Try local file first
-        const res = await fetch(lottieSrc, { method: 'GET' })
-        if (!mounted) return
-        if (res.ok) {
-          setLottieAvailable(true)
-          return
-        }
-        // Fallback to CDN
-        const cdnRes = await fetch(lottieCdnSrc, { method: 'GET', mode: 'cors' })
-        if (!mounted) return
-        setLottieAvailable(cdnRes.ok)
-      } catch (e) {
-        if (!mounted) return
-        setLottieAvailable(false)
-      }
-    }
-    check()
-    return () => { mounted = false }
-  }, [lottieSrc, lottieCdnSrc])
+  const [isHovered, setIsHovered] = React.useState(false)
 
   return (
     <motion.button
@@ -56,8 +27,10 @@ const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
       animate={{ scale: 1, opacity: 1 }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={() => setIsOpen(!isOpen)}
-      className={`fixed bottom-6 z-50 flex h-24 w-24 items-center justify-center rounded-full bg-transparent transition-all ${position === 'right' ? 'right-4' : 'left-4'}`}
+      className={`fixed bottom-6 z-50 flex items-center justify-center rounded-full bg-gradient-to-br from-zinc-700 to-zinc-800 text-white shadow-lg transition-all ${position === 'right' ? 'right-4' : 'left-4'} ${isOpen ? 'h-16 w-16' : 'h-20 w-20'}`}
       aria-label={isOpen ? 'Close chat' : 'Open chat'}
     >
       <AnimatePresence mode="wait">
@@ -67,7 +40,6 @@ const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
             initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
             animate={{ rotate: 0, opacity: 1, scale: 1 }}
             exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-zinc-700 to-zinc-800 text-white shadow-lg"
           >
             <X size={32} />
           </motion.div>
@@ -77,19 +49,23 @@ const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
+            className="flex items-center justify-center"
           >
-            {lottieAvailable === false ? (
-              // Fallback simple avatar when Lottie resource is unavailable
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center text-white">
-                🤖
-              </div>
-            ) : (
-              <DotLottieReact
-                src={lottieAvailable === true ? lottieSrc : lottieCdnSrc}
-                loop
-                autoplay
-              />
-            )}
+            <motion.span
+              animate={{
+                scale: isHovered || isLoading || isSpeaking ? 1.1 : 1,
+                rotate: isSpeaking ? [0, -5, 5, 0] : 0,
+              }}
+              transition={{
+                rotate: {
+                  repeat: isSpeaking ? Infinity : 0,
+                  duration: 0.5,
+                },
+              }}
+              className="text-4xl"
+            >
+              {MARZ_EMOJI}
+            </motion.span>
           </motion.div>
         )}
       </AnimatePresence>
