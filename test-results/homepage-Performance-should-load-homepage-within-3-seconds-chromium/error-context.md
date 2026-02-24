@@ -1,0 +1,106 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]:
+      - link "BUILD WITH AI BUILD WITH AI" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img "BUILD WITH AI" [ref=e7]
+        - generic [ref=e8]: BUILD WITH AI
+      - navigation "Main navigation" [ref=e9]:
+        - generic [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Developers" [ref=e12] [cursor=pointer]:
+            - /url: /developers
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - menu "Products dropdown" [ref=e14]:
+            - button "Products" [ref=e15] [cursor=pointer]:
+              - text: Products
+              - img [ref=e16]
+          - menu "Services dropdown" [ref=e18]:
+            - button "Services" [ref=e19] [cursor=pointer]:
+              - text: Services
+              - img [ref=e20]
+      - textbox "Search" [ref=e24]:
+        - /placeholder: Search domains, e.g. brilliant.ai
+      - generic [ref=e25]:
+        - button "Notifications" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic "Disconnected" [ref=e31]
+        - button "Switch to light theme" [ref=e32] [cursor=pointer]: 🌙
+        - button "View shopping cart" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - button "Login" [ref=e39] [cursor=pointer]
+        - button "Sign Up" [ref=e40] [cursor=pointer]
+  - button "Toggle theme" [ref=e42] [cursor=pointer]:
+    - generic [ref=e43]: 🌙
+    - generic [ref=e44]: Toggle theme
+  - generic [ref=e47]:
+    - img [ref=e48]
+    - paragraph [ref=e50]: Loading...
+  - contentinfo [ref=e51]:
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - img "BUILD WITH AI" [ref=e58]
+            - generic [ref=e59]: BUILD WITH AI
+          - paragraph [ref=e60]: Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
+          - generic [ref=e61]:
+            - button "Admin" [ref=e62] [cursor=pointer]:
+              - img [ref=e63]
+              - text: Admin
+            - button "Website Hub" [ref=e68] [cursor=pointer]:
+              - img [ref=e69]
+              - text: Website Hub
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - generic [ref=e74]: Platform
+            - generic [ref=e75]:
+              - button "Domain Search" [ref=e76] [cursor=pointer]
+              - button "All Products" [ref=e77] [cursor=pointer]
+              - button "Services" [ref=e78] [cursor=pointer]
+              - button "SSL Vault" [ref=e79] [cursor=pointer]
+              - button "Developers" [ref=e80] [cursor=pointer]
+          - generic [ref=e81]:
+            - generic [ref=e82]: Product Categories
+            - generic [ref=e83]:
+              - button "Domains" [ref=e84] [cursor=pointer]
+              - button "SSL Certificates" [ref=e85] [cursor=pointer]
+              - button "DNS Services" [ref=e86] [cursor=pointer]
+              - button "Email Services" [ref=e87] [cursor=pointer]
+              - button "Spam Experts" [ref=e88] [cursor=pointer]
+              - button "EasyDMARC" [ref=e89] [cursor=pointer]
+              - button "Licenses" [ref=e90] [cursor=pointer]
+          - generic [ref=e91]:
+            - generic [ref=e92]: Account
+            - generic [ref=e93]:
+              - button "Website Dashboard" [ref=e94] [cursor=pointer]
+              - button "Billing & Assets" [ref=e95] [cursor=pointer]
+              - button "Login" [ref=e96] [cursor=pointer]
+              - button "Sign Up" [ref=e97] [cursor=pointer]
+          - generic [ref=e98]:
+            - generic [ref=e99]: Company
+            - generic [ref=e100]:
+              - button "About" [ref=e101] [cursor=pointer]
+              - button "Partners" [ref=e102] [cursor=pointer]
+              - button "Privacy" [ref=e103] [cursor=pointer]
+              - button "Terms" [ref=e104] [cursor=pointer]
+      - generic [ref=e105]:
+        - generic [ref=e106]: © 2026 BUILD WITH AI. All rights reserved.
+        - generic [ref=e107]:
+          - link "LinkedIn" [ref=e108] [cursor=pointer]:
+            - /url: https://www.linkedin.com/
+            - img [ref=e109]
+          - link "X (Twitter)" [ref=e113] [cursor=pointer]:
+            - /url: https://x.com/
+            - img [ref=e114]
+  - button "Open chat"
+  - button [ref=e117] [cursor=pointer]: ⌘K
+  - button "Open Next.js Dev Tools" [ref=e123] [cursor=pointer]:
+    - img [ref=e124]
+  - alert [ref=e127]
+```

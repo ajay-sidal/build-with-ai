@@ -67,8 +67,13 @@ export default function LeadModal({ open, result, onClose, onOpenLead }: Props) 
   }, [open, onClose])
 
   return (
-    <div ref={containerRef} role="dialog" aria-modal="true" className="mt-4 rounded-md border border-zinc-800 bg-zinc-900 p-4">
-      <div className="flex items-start justify-between">
+    <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      className="mt-4 rounded-lg border border-zinc-800 bg-gradient-to-r from-zinc-900/80 to-zinc-950 p-4 shadow-lg"
+    >
+      <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-sm font-semibold">{result.message}</div>
           {result.leadId && <div className="text-xs text-zinc-400">Lead ID: {result.leadId}</div>}
@@ -76,13 +81,13 @@ export default function LeadModal({ open, result, onClose, onOpenLead }: Props) 
         <div className="flex items-center gap-2">
           {result.leadId && (
             <button
-              className="rounded-md px-2 py-1 text-sm bg-zinc-800 hover:bg-zinc-700"
+              className="rounded-md px-3 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500"
               onClick={() => onOpenLead?.(result.leadId!)}
             >
               Open
             </button>
           )}
-          <button className="rounded-md px-2 py-1 text-sm bg-transparent hover:bg-zinc-800" onClick={onClose}>
+          <button className="rounded-md px-3 py-1 text-sm bg-transparent border border-zinc-800 hover:bg-zinc-800" onClick={onClose}>
             Close
           </button>
         </div>

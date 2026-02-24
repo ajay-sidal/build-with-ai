@@ -79,6 +79,17 @@ function getDefaultWelcomeMessage(): any[] {
 }
 
 export default function MarzChatWidget() {
+  // If tests want to disable the widget, set localStorage.marz_disable = '1'
+  if (typeof window !== 'undefined') {
+    try {
+      if (localStorage.getItem('marz_disable') === '1') {
+        return null
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   // UI State
   const [isOpen, setIsOpen] = React.useState(false)
   const [isListening, setIsListening] = React.useState(false)
