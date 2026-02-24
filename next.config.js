@@ -45,13 +45,20 @@ const nextConfig = {
       'https://js.stripe.com',
       'https://*.stripe.com',
       'https://api.groq.com',
+      'https://vercel.live', // Vercel feedback widget
+      'https://*.vercel.com', // Vercel assets
+      'https://*.vercel.app', // Vercel deployments
     ].join(' ')
 
     const connectSrc = [
       "'self'",
       'https:',
+      'wss:', // WebSocket for Vercel
       'https://api.groq.com',
       'https://*.upstash.io',
+      'https://vercel.live', // Vercel feedback
+      'https://*.vercel.com', // Vercel API
+      'https://*.vercel.app', // Vercel deployments
     ].join(' ')
 
     const frameSrc = [
