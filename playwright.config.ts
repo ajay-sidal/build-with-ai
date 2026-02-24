@@ -24,17 +24,17 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'https://localhost:3000',
-    /* Ignore TLS issues when testing against local HTTPS */
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    /* Ignore TLS errors when testing */
     ignoreHTTPSErrors: true,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
-    /* Screenshot on failure */
+    /* Collect screenshot on failure */
     screenshot: 'only-on-failure',
 
-    /* Video on failure */
+    /* Collect video on failure */
     video: 'retain-on-failure',
   },
 
@@ -76,11 +76,13 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: process.env.START_DEV_SERVER ? {
-    command: 'npm run dev',
+  /* Run local dev server before starting the tests */
+  webServer: {
+    command: 'SKIP_HTTPS_REDIRECT=1 npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-  } : undefined,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
 })

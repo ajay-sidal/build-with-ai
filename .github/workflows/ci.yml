@@ -3,7 +3,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -37,8 +37,22 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Start server for E2E tests
+        run: |
+          # Start Next.js production server in background
+          SKIP_HTTPS_REDIRECT=1 npm run start &
+          # Wait for server to be ready (up to 60 seconds)
+          n=0; until curl -sSf http://localhost:3000 >/dev/null 2>&1 || [ $n -ge 60 ]; do
+            echo "Waiting for server to start... ($n/60)"
+            n=$((n+1))
+            sleep 1
+          done
+          # Verify server is running
+          curl -sSf http://localhost:3000 || (echo "Server failed to start" && exit 1)
+          echo "Server is running on http://localhost:3000"
+
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: BASE_URL=http://localhost:3000 npm run test:e2e
 
       - name: Upload coverage artifact
         if: always()
