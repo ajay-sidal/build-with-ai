@@ -19,7 +19,8 @@
     "audit": "tsx src/utils/audit-test.ts",
     "e2e:license": "tsx src/utils/e2e-license-flow.ts",
     "lint:spectral": "npx @stoplight/spectral-cli lint --ruleset .spectral.yaml .github/workflows/*.yml",
-    "db:seed-vectors": "tsx src/scripts/seed-vector-db.ts"
+    "db:seed-vectors": "tsx scripts/seed-vector-db.ts",
+    "worker:leads": "tsx scripts/start-leads-worker.ts"
   },
   "keywords": [],
   "author": "",
