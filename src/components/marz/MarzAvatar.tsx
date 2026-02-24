@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 import { X } from 'lucide-react'
 
-// Lottie animation URLs
-const ROBOT_IDLE_URL = "https://lottie.host/c2d736b9-d543-49f2-a149-099a349913c9/pS2sI5n7sQ.lottie";
-const ROBOT_ACTIVE_URL = "https://lottie.host/4f70a259-4e94-43b6-8f32-5a995383325c/2JkGoa5e3k.lottie";
+// Lottie animation URLs - use local files with CDN fallback
+const ROBOT_IDLE_URL = "/lottie/marz-robot-idle.lottie";
+const ROBOT_ACTIVE_URL = "/lottie/marz-robot-active.lottie";
+const CDN_ROBOT_IDLE_URL = "https://lottie.host/c2d736b9-d543-49f2-a149-099a349913c9/pS2sI5n7sQ.lottie";
+const CDN_ROBOT_ACTIVE_URL = "https://lottie.host/4f70a259-4e94-43b6-8f32-5a995383325c/2JkGoa5e3k.lottie";
 
 interface MarzAvatarProps {
   isOpen: boolean
@@ -20,15 +22,24 @@ interface MarzAvatarProps {
 const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
   ({ isOpen, setIsOpen, position, isLoading, isSpeaking }, ref) => {
   const lottieSrc = (isLoading || isSpeaking) ? ROBOT_ACTIVE_URL : ROBOT_IDLE_URL;
+  const lottieCdnSrc = (isLoading || isSpeaking) ? CDN_ROBOT_ACTIVE_URL : CDN_ROBOT_IDLE_URL;
   const [lottieAvailable, setLottieAvailable] = React.useState<boolean | null>(null)
 
   React.useEffect(() => {
     let mounted = true
     async function check() {
       try {
-        const res = await fetch(lottieSrc, { method: 'GET', mode: 'cors' })
+        // Try local file first
+        const res = await fetch(lottieSrc, { method: 'GET' })
         if (!mounted) return
-        setLottieAvailable(res.ok)
+        if (res.ok) {
+          setLottieAvailable(true)
+          return
+        }
+        // Fallback to CDN
+        const cdnRes = await fetch(lottieCdnSrc, { method: 'GET', mode: 'cors' })
+        if (!mounted) return
+        setLottieAvailable(cdnRes.ok)
       } catch (e) {
         if (!mounted) return
         setLottieAvailable(false)
@@ -36,7 +47,7 @@ const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
     }
     check()
     return () => { mounted = false }
-  }, [lottieSrc])
+  }, [lottieSrc, lottieCdnSrc])
 
   return (
     <motion.button
@@ -75,6 +86,7 @@ const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
             ) : (
               <DotLottieReact
                 src={lottieSrc}
+                fallbackSrc={lottieCdnSrc}
                 loop
                 autoplay
               />
