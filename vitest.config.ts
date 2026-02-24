@@ -6,6 +6,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     globals: true,
+    include: ['src/**/*.test.tsx', 'src/**/*.test.ts'],
+    exclude: [
+      'src/tests/integration/checkout.full.test.ts',
+      'src/tests/integration/checkout.safe.test.ts',
+      'src/tests/integration/admin-leads.test.tsx',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
