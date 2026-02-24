@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Enforce HTTPS in production
   if (
     process.env.NODE_ENV === 'production' &&
@@ -11,12 +11,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Add security headers
+  // Add security headers (CSP is handled in next.config.js headers)
   const response = NextResponse.next();
-  response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self';");
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   return response;
 }

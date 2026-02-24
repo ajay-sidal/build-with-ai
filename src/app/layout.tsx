@@ -9,6 +9,7 @@ import AffiliateRefTracker from '../components/AffiliateRefTracker'
 import MarzChatWidget from '../components/marz/MarzChatWidget'
 import { CartProvider } from '../components/providers/CartProvider'
 import CookieConsent from '../components/CookieConsent'
+import CommandPaletteClient from '../components/CommandPaletteClient'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -69,6 +70,7 @@ export default function RootLayout({
                 <Footer />
                 <MarzChatWidget />
                 <CookieConsent />
+                <CommandPaletteClient />
               </CartProvider>
             </NotificationProvider>
           </ThemeProvider>

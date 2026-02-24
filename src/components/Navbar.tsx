@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from './ui/button'
 import { allProducts, allServices } from '../lib/openprovider-products'
 import NotificationBell from './NotificationBell'
+import SearchBar from './ui/SearchBar'
 
 // Main navigation items (centered) - Products and Services are now dropdown-only
 const mainNavItems = [
@@ -81,6 +82,33 @@ export default function Navbar() {
   const { itemCount } = useCart()
   const { theme, toggle } = useTheme()
   const router = useRouter()
+
+  // Search suggestions state for SearchBar
+  const [suggestions, setSuggestions] = React.useState<string[]>([])
+  const [searchQuery, setSearchQuery] = React.useState('')
+
+  // Fetch suggestions with debounce
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!searchQuery || searchQuery.trim().length === 0) {
+      setSuggestions([])
+      return
+    }
+
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/marz/suggestions?q=${encodeURIComponent(searchQuery)}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSuggestions(Array.isArray(data) ? data : [])
+        }
+      } catch (e) {
+        console.error('[MARZ] suggestion fetch failed', e)
+      }
+    }, 250)
+
+    return () => clearTimeout(t)
+  }, [searchQuery])
 
   const isLoading = status === 'loading'
   const isAuthenticated = !!session
@@ -224,6 +252,19 @@ export default function Navbar() {
                 </div>
               </div>
             </nav>
+
+            {/* Search bar (desktop) */}
+            <div className="hidden lg:block lg:flex-1 lg:pl-6">
+              <SearchBar
+                placeholder="Search domains, e.g. brilliant.ai"
+                suggestions={suggestions}
+                onSearch={(val) => {
+                  setSearchQuery('')
+                  // Navigate to a search results page for now
+                  router.push(`/products?query=${encodeURIComponent(val)}`)
+                }}
+              />
+            </div>
 
             {/* Authentication Buttons - Right side */}
             <div className="hidden items-center gap-2 lg:flex">

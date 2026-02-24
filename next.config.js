@@ -2,101 +2,50 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Mark optional dependencies as external
+  turbopack: {
+    resolveAlias: {
+      bullmq: 'bullmq',
+      ioredis: 'ioredis',
+    },
+  },
+  webpack: (config, { isServer }) => {
+    config.externals = config.externals || [];
+    config.externals.push('bullmq', 'ioredis');
+    return config;
+  },
   async headers() {
-    const isDev = process.env.NODE_ENV === 'development'
-    
-    // In development, use a permissive CSP to allow Next.js HMR and dev tools
-    if (isDev) {
-      return [
-        {
-          source: '/(.*)',
-          headers: [
-            {
-              key: 'Content-Security-Policy',
-              value: [
-                "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-                "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval'",
-                "style-src 'self' 'unsafe-inline'",
-                "connect-src 'self' https: ws: wss: http://localhost:*",
-                "img-src 'self' data: blob: https:",
-                "font-src 'self' data: https:",
-                "media-src 'self' blob: mediastream:",
-                "frame-src 'self' https:",
-                "frame-ancestors 'none'",
-                "base-uri 'self'",
-                "form-action 'self'",
-              ].join('; '),
-            },
-            { key: 'X-Content-Type-Options', value: 'nosniff' },
-            { key: 'X-Frame-Options', value: 'DENY' },
-            { key: 'X-DNS-Prefetch-Control', value: 'off' },
-            { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(self)' },
-          ],
-        },
-      ]
-    }
-
-    // Production CSP - secure but functional
-    const scriptSrc = [
-      "'self'",
-      "'unsafe-inline'",
-      "'unsafe-eval'", // Required for Next.js hydration
-      'https://js.stripe.com',
-      'https://*.stripe.com',
-      'https://api.groq.com',
-      'https://vercel.live', // Vercel feedback widget
-      'https://*.vercel.com', // Vercel assets
-      'https://*.vercel.app', // Vercel deployments
-    ].join(' ')
-
-    const connectSrc = [
-      "'self'",
-      'https:',
-      'wss:', // WebSocket for Vercel
-      'https://api.groq.com',
-      'https://*.upstash.io',
-      'https://vercel.live', // Vercel feedback
-      'https://*.vercel.com', // Vercel API
-      'https://*.vercel.app', // Vercel deployments
-    ].join(' ')
-
-    const frameSrc = [
-      'https://checkout.stripe.com',
-      'https://*.stripe.com',
-    ].join(' ')
-
-    const csp = [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "form-action 'self' https://checkout.stripe.com https://*.stripe.com",
-      "frame-ancestors 'none'",
-      `frame-src ${frameSrc}`,
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data: https:",
-      `connect-src ${connectSrc}`,
-      `script-src ${scriptSrc}`,
-      `script-src-elem ${scriptSrc}`,
-      "style-src 'self' 'unsafe-inline' https:",
-      "media-src 'self' blob: mediastream:",
-      "object-src 'none'",
-      'upgrade-insecure-requests',
-    ].join('; ')
-
     return [
       {
         source: '/(.*)',
         headers: [
-          { key: 'Content-Security-Policy', value: csp },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "form-action 'self' https://checkout.stripe.com https://*.stripe.com",
+              "frame-ancestors 'none'",
+              "frame-src https://checkout.stripe.com https://*.stripe.com",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data: https: fonts.gstatic.com",
+              "connect-src 'self' https: wss: ws:",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel.com https://*.vercel.app https://js.stripe.com https://*.stripe.com https://api.groq.com",
+              "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel.com https://*.vercel.app https://js.stripe.com https://*.stripe.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "media-src 'self' blob: mediastream:",
+              "object-src 'none'",
+            ].join('; '),
+          },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-DNS-Prefetch-Control', value: 'off' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(self)' },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         ],
       },
-    ]
+    ];
   },
 };
 

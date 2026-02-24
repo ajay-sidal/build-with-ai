@@ -1,0 +1,51 @@
+# Spectral ruleset for GitHub Actions workflows
+# See: https://meta.stoplight.io/docs/spectral
+
+extends: []
+
+rules:
+  # Require workflow name
+  workflow-name:
+    description: "Workflow should have a name"
+    severity: error
+    given: "$"
+    then:
+      field: name
+      function: truthy
+
+  # Require job name
+  job-name:
+    description: "Job should have a name"
+    severity: error
+    given: "$.jobs.*"
+    then:
+      field: name
+      function: truthy
+
+  # Require runs-on for jobs
+  job-runs-on:
+    description: "Job should specify runs-on"
+    severity: error
+    given: "$.jobs.*"
+    then:
+      field: runs-on
+      function: truthy
+
+  # Require steps in jobs
+  job-steps:
+    description: "Job should have steps"
+    severity: error
+    given: "$.jobs.*"
+    then:
+      field: steps
+      function: truthy
+
+  # Require action version pinning (should use @vN or @vN.N.N)
+  action-version-pinning:
+    description: "Actions should be pinned to a version"
+    severity: warn
+    given: "$..uses"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^.+@v\\d+(\\.\\d+)?(\\.\\d+)?$"

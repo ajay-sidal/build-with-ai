@@ -103,3 +103,50 @@ model OrderItem {
 
   @@index([orderId])
 }
+
+// Leads models for the enterprise leads generator
+model Lead {
+  id          String   @id @default(cuid())
+  company     String
+  website     String?  
+  domain      String?  @unique
+  industry    String?
+  employees   Int?
+  revenue     String?
+  country     String?
+  region      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enrichments LeadEnrichment[]
+
+  @@index([company])
+  @@index([domain])
+}
+
+model LeadEnrichment {
+  id        String   @id @default(cuid())
+  leadId    String
+  provider  String
+  data      Json
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([provider])
+}
+
+model LeadJob {
+  id        String   @id @default(cuid())
+  userId    String?
+  status    String   @default("pending")
+  params    Json
+  result    Json?
+  enqueuedAt DateTime @default(now())
+  completedAt DateTime?
+
+  @@index([userId])
+  @@index([status])
+}
