@@ -1,0 +1,158 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]:
+      - link "BUILD WITH AI BUILD WITH AI" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img "BUILD WITH AI" [ref=e7]
+        - generic [ref=e8]: BUILD WITH AI
+      - navigation "Main navigation" [ref=e9]:
+        - generic [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Developers" [ref=e12] [cursor=pointer]:
+            - /url: /developers
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - menu "Products dropdown" [ref=e14]:
+            - button "Products" [ref=e15] [cursor=pointer]:
+              - text: Products
+              - img [ref=e16]
+          - menu "Services dropdown" [ref=e18]:
+            - button "Services" [ref=e19] [cursor=pointer]:
+              - text: Services
+              - img [ref=e20]
+      - textbox "Search" [ref=e24]:
+        - /placeholder: Search domains, e.g. brilliant.ai
+      - generic [ref=e25]:
+        - button "Notifications" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic "Connected" [ref=e31]
+        - button "Switch to light theme" [ref=e32] [cursor=pointer]: 🌙
+        - button "View shopping cart" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - button "Login" [ref=e39] [cursor=pointer]
+        - button "Sign Up" [ref=e40] [cursor=pointer]
+  - button "Toggle theme" [ref=e42] [cursor=pointer]:
+    - generic [ref=e43]: 🌙
+    - generic [ref=e44]: Toggle theme
+  - generic [ref=e46]:
+    - main [ref=e47]:
+      - generic [ref=e48]:
+        - img [ref=e51]
+        - heading "404" [level=1] [ref=e57]
+        - paragraph [ref=e58]: Sorry, we couldn't find the page you're looking for.
+        - generic [ref=e59]:
+          - link "Back to Home" [ref=e60] [cursor=pointer]:
+            - /url: /
+            - img [ref=e61]
+            - text: Back to Home
+          - link "Browse Products" [ref=e64] [cursor=pointer]:
+            - /url: /products
+            - img [ref=e65]
+            - text: Browse Products
+        - generic [ref=e68]:
+          - heading "Quick Links" [level=2] [ref=e69]
+          - generic [ref=e70]:
+            - link "Domain Search" [ref=e71] [cursor=pointer]:
+              - /url: /
+            - link "SSL Vault" [ref=e72] [cursor=pointer]:
+              - /url: /ssl
+            - link "Products" [ref=e73] [cursor=pointer]:
+              - /url: /products
+            - link "Services" [ref=e74] [cursor=pointer]:
+              - /url: /services
+            - link "Developers" [ref=e75] [cursor=pointer]:
+              - /url: /developers
+            - link "Partners" [ref=e76] [cursor=pointer]:
+              - /url: /partners
+            - link "About" [ref=e77] [cursor=pointer]:
+              - /url: /about
+            - link "Login" [ref=e78] [cursor=pointer]:
+              - /url: /login
+    - contentinfo [ref=e79]:
+      - generic [ref=e80]:
+        - generic [ref=e81]: © 2026 BuildWithAI.digital
+        - generic [ref=e82]: Infrastructure for AI-native teams
+  - contentinfo [ref=e83]:
+    - generic [ref=e86]:
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - img "BUILD WITH AI" [ref=e90]
+            - generic [ref=e91]: BUILD WITH AI
+          - paragraph [ref=e92]: Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
+          - generic [ref=e93]:
+            - button "Admin" [ref=e94] [cursor=pointer]:
+              - img [ref=e95]
+              - text: Admin
+            - button "Website Hub" [ref=e100] [cursor=pointer]:
+              - img [ref=e101]
+              - text: Website Hub
+        - generic [ref=e105]:
+          - generic [ref=e106]:
+            - generic [ref=e107]: Platform
+            - generic [ref=e108]:
+              - button "Domain Search" [ref=e109] [cursor=pointer]
+              - button "All Products" [ref=e110] [cursor=pointer]
+              - button "Services" [ref=e111] [cursor=pointer]
+              - button "SSL Vault" [ref=e112] [cursor=pointer]
+              - button "Developers" [ref=e113] [cursor=pointer]
+          - generic [ref=e114]:
+            - generic [ref=e115]: Product Categories
+            - generic [ref=e116]:
+              - button "Domains" [ref=e117] [cursor=pointer]
+              - button "SSL Certificates" [ref=e118] [cursor=pointer]
+              - button "DNS Services" [ref=e119] [cursor=pointer]
+              - button "Email Services" [ref=e120] [cursor=pointer]
+              - button "Spam Experts" [ref=e121] [cursor=pointer]
+              - button "EasyDMARC" [ref=e122] [cursor=pointer]
+              - button "Licenses" [ref=e123] [cursor=pointer]
+          - generic [ref=e124]:
+            - generic [ref=e125]: Account
+            - generic [ref=e126]:
+              - button "Website Dashboard" [ref=e127] [cursor=pointer]
+              - button "Billing & Assets" [ref=e128] [cursor=pointer]
+              - button "Login" [ref=e129] [cursor=pointer]
+              - button "Sign Up" [ref=e130] [cursor=pointer]
+          - generic [ref=e131]:
+            - generic [ref=e132]: Company
+            - generic [ref=e133]:
+              - button "About" [ref=e134] [cursor=pointer]
+              - button "Partners" [ref=e135] [cursor=pointer]
+              - button "Privacy" [ref=e136] [cursor=pointer]
+              - button "Terms" [ref=e137] [cursor=pointer]
+      - generic [ref=e138]:
+        - generic [ref=e139]: © 2026 BUILD WITH AI. All rights reserved.
+        - generic [ref=e140]:
+          - link "LinkedIn" [ref=e141] [cursor=pointer]:
+            - /url: https://www.linkedin.com/
+            - img [ref=e142]
+          - link "X (Twitter)" [ref=e146] [cursor=pointer]:
+            - /url: https://x.com/
+            - img [ref=e147]
+  - button "Open chat"
+  - alertdialog "We use cookies" [ref=e149]:
+    - generic [ref=e151]:
+      - generic [ref=e152]:
+        - img [ref=e153]
+        - generic [ref=e160]:
+          - heading "We use cookies" [level=3] [ref=e161]
+          - paragraph [ref=e162]:
+            - text: We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By clicking "Accept All", you consent to our use of cookies. Visit our
+            - link "Privacy Policy" [ref=e163] [cursor=pointer]:
+              - /url: /privacy
+            - text: for more information.
+      - generic [ref=e164]:
+        - button "Preferences" [ref=e165] [cursor=pointer]:
+          - img [ref=e166]
+          - text: Preferences
+        - button "Reject All" [ref=e169] [cursor=pointer]
+        - button "Accept All" [ref=e170] [cursor=pointer]
+        - button "Dismiss" [ref=e171] [cursor=pointer]:
+          - img [ref=e172]
+  - button [ref=e176] [cursor=pointer]: ⌘K
+  - alert [ref=e177]
+```

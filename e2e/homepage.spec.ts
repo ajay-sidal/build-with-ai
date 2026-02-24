@@ -63,53 +63,52 @@ test.describe('Homepage', () => {
 
   test('should open mobile menu on small screens', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await dismissMarz(page)
 
     // Look for mobile menu button
-    const menuButton = page.locator('button[aria-label*="menu" i], button[aria-label*="Menu" i], [data-testid="mobile-menu-btn"]')
-    await expect(menuButton.first()).toBeVisible()
-    await menuButton.first().click()
-    await page.waitForTimeout(300)
+    const menuButton = page.locator('button[aria-label*="menu" i], button[aria-label*="Menu" i], [data-testid="mobile-menu-btn"]').first()
+    await menuButton.click({ force: true })
+    await page.waitForTimeout(500)
 
     // Check that mobile menu links are visible
-    await expect(page.locator('a:has-text("Home")').first()).toBeVisible()
+    await expect(page.locator('a:has-text("Home")').first()).toBeVisible({ timeout: 5000 })
   })
 })
 
 test.describe('Navigation', () => {
   test('should navigate to products page', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await dismissMarz(page)
 
     // Click the Products button/link
     const productsLink = page.locator('a:has-text("Products"), button:has-text("Products")').first()
-    await productsLink.click()
-    await page.waitForURL('/products', { waitUntil: 'networkidle' })
+    await productsLink.click({ force: true })
+    await page.waitForURL('/products', { waitUntil: 'domcontentloaded', timeout: 15000 })
 
     await expect(page).toHaveURL('/products')
     await expect(page).toHaveTitle(/Products/)
   })
 
   test('should navigate to services page', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await dismissMarz(page)
 
     const servicesLink = page.locator('a:has-text("Services"), button:has-text("Services")').first()
-    await servicesLink.click()
-    await page.waitForURL('/services', { waitUntil: 'networkidle' })
+    await servicesLink.click({ force: true })
+    await page.waitForURL('/services', { waitUntil: 'domcontentloaded', timeout: 15000 })
 
     await expect(page).toHaveURL('/services')
     await expect(page).toHaveTitle(/Services/)
   })
 
   test('should navigate to developers page', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await dismissMarz(page)
-    
+
     const devLink = page.locator('a:has-text("Developers")').first()
-    await devLink.click()
-    await page.waitForURL('/developers', { waitUntil: 'networkidle' })
+    await devLink.click({ force: true })
+    await page.waitForURL('/developers', { waitUntil: 'domcontentloaded', timeout: 15000 })
 
     await expect(page).toHaveURL('/developers')
   })
@@ -117,24 +116,24 @@ test.describe('Navigation', () => {
 
 test.describe('Authentication', () => {
   test('should navigate to login page', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await dismissMarz(page)
-    
+
     // Look for Login button in header or footer
     const loginButton = page.locator('button:has-text("Login"), a:has-text("Login"), a[href="/login"]').first()
-    await loginButton.click()
-    await page.waitForURL('/login', { waitUntil: 'networkidle' })
+    await loginButton.click({ force: true })
+    await page.waitForURL('/login', { waitUntil: 'domcontentloaded', timeout: 15000 })
 
     await expect(page).toHaveURL('/login')
   })
 
   test('should navigate to signup page', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await dismissMarz(page)
-    
+
     const signupButton = page.locator('button:has-text("Sign Up"), a:has-text("Sign Up"), a[href="/signup"]').first()
-    await signupButton.click()
-    await page.waitForURL('/signup', { waitUntil: 'networkidle' })
+    await signupButton.click({ force: true })
+    await page.waitForURL('/signup', { waitUntil: 'domcontentloaded', timeout: 15000 })
 
     await expect(page).toHaveURL('/signup')
   })

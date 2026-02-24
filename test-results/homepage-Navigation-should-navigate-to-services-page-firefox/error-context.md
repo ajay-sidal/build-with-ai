@@ -1,0 +1,182 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]:
+      - link "BUILD WITH AI BUILD WITH AI" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img "BUILD WITH AI" [ref=e7]
+        - generic [ref=e8]: BUILD WITH AI
+      - navigation "Main navigation" [ref=e9]:
+        - generic [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Developers" [ref=e12] [cursor=pointer]:
+            - /url: /developers
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - menu "Products dropdown" [ref=e14]:
+            - button "Products" [ref=e15] [cursor=pointer]:
+              - text: Products
+              - img [ref=e16]
+          - menu "Services dropdown" [ref=e18]:
+            - button "Services" [expanded] [active] [ref=e19] [cursor=pointer]:
+              - text: Services
+              - img [ref=e20]
+            - generic [ref=e23]:
+              - generic [ref=e24]:
+                - generic [ref=e25]:
+                  - img [ref=e26]
+                  - text: Overview
+                - link "Services Overview" [ref=e31] [cursor=pointer]:
+                  - /url: /services
+              - generic [ref=e32]:
+                - generic [ref=e33]:
+                  - img [ref=e34]
+                  - text: Management Services
+                - generic [ref=e36]:
+                  - link "Customer Management" [ref=e37] [cursor=pointer]:
+                    - /url: /services/customer-management
+                  - link "Domain Management" [ref=e38] [cursor=pointer]:
+                    - /url: /services/domain-management
+                  - link "SSL Management" [ref=e39] [cursor=pointer]:
+                    - /url: /services/ssl-management
+              - generic [ref=e40]:
+                - generic [ref=e41]:
+                  - img [ref=e42]
+                  - text: Design Services
+                - link "AI Design" [ref=e49] [cursor=pointer]:
+                  - /url: /services/ai-design
+      - textbox "Search" [ref=e52]:
+        - /placeholder: Search domains, e.g. brilliant.ai
+      - generic [ref=e53]:
+        - button "Notifications" [ref=e55] [cursor=pointer]:
+          - img [ref=e56]
+          - generic "Connected" [ref=e59]
+        - button "Switch to light theme" [ref=e60] [cursor=pointer]: 🌙
+        - button "View shopping cart" [ref=e61] [cursor=pointer]:
+          - img [ref=e62]
+        - button "Login" [ref=e67] [cursor=pointer]
+        - button "Sign Up" [ref=e68] [cursor=pointer]
+  - button "Toggle theme" [ref=e70] [cursor=pointer]:
+    - generic [ref=e71]: 🌙
+    - generic [ref=e72]: Toggle theme
+  - generic [ref=e74]:
+    - main [ref=e75]:
+      - generic [ref=e76]:
+        - img [ref=e79]
+        - heading "404" [level=1] [ref=e85]
+        - paragraph [ref=e86]: Sorry, we couldn't find the page you're looking for.
+        - generic [ref=e87]:
+          - link "Back to Home" [ref=e88] [cursor=pointer]:
+            - /url: /
+            - img [ref=e89]
+            - text: Back to Home
+          - link "Browse Products" [ref=e92] [cursor=pointer]:
+            - /url: /products
+            - img [ref=e93]
+            - text: Browse Products
+        - generic [ref=e96]:
+          - heading "Quick Links" [level=2] [ref=e97]
+          - generic [ref=e98]:
+            - link "Domain Search" [ref=e99] [cursor=pointer]:
+              - /url: /
+            - link "SSL Vault" [ref=e100] [cursor=pointer]:
+              - /url: /ssl
+            - link "Products" [ref=e101] [cursor=pointer]:
+              - /url: /products
+            - link "Services" [ref=e102] [cursor=pointer]:
+              - /url: /services
+            - link "Developers" [ref=e103] [cursor=pointer]:
+              - /url: /developers
+            - link "Partners" [ref=e104] [cursor=pointer]:
+              - /url: /partners
+            - link "About" [ref=e105] [cursor=pointer]:
+              - /url: /about
+            - link "Login" [ref=e106] [cursor=pointer]:
+              - /url: /login
+    - contentinfo [ref=e107]:
+      - generic [ref=e108]:
+        - generic [ref=e109]: © 2026 BuildWithAI.digital
+        - generic [ref=e110]: Infrastructure for AI-native teams
+  - contentinfo [ref=e111]:
+    - generic [ref=e114]:
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - img "BUILD WITH AI" [ref=e118]
+            - generic [ref=e119]: BUILD WITH AI
+          - paragraph [ref=e120]: Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
+          - generic [ref=e121]:
+            - button "Admin" [ref=e122] [cursor=pointer]:
+              - img [ref=e123]
+              - text: Admin
+            - button "Website Hub" [ref=e128] [cursor=pointer]:
+              - img [ref=e129]
+              - text: Website Hub
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]: Platform
+            - generic [ref=e136]:
+              - button "Domain Search" [ref=e137] [cursor=pointer]
+              - button "All Products" [ref=e138] [cursor=pointer]
+              - button "Services" [ref=e139] [cursor=pointer]
+              - button "SSL Vault" [ref=e140] [cursor=pointer]
+              - button "Developers" [ref=e141] [cursor=pointer]
+          - generic [ref=e142]:
+            - generic [ref=e143]: Product Categories
+            - generic [ref=e144]:
+              - button "Domains" [ref=e145] [cursor=pointer]
+              - button "SSL Certificates" [ref=e146] [cursor=pointer]
+              - button "DNS Services" [ref=e147] [cursor=pointer]
+              - button "Email Services" [ref=e148] [cursor=pointer]
+              - button "Spam Experts" [ref=e149] [cursor=pointer]
+              - button "EasyDMARC" [ref=e150] [cursor=pointer]
+              - button "Licenses" [ref=e151] [cursor=pointer]
+          - generic [ref=e152]:
+            - generic [ref=e153]: Account
+            - generic [ref=e154]:
+              - button "Website Dashboard" [ref=e155] [cursor=pointer]
+              - button "Billing & Assets" [ref=e156] [cursor=pointer]
+              - button "Login" [ref=e157] [cursor=pointer]
+              - button "Sign Up" [ref=e158] [cursor=pointer]
+          - generic [ref=e159]:
+            - generic [ref=e160]: Company
+            - generic [ref=e161]:
+              - button "About" [ref=e162] [cursor=pointer]
+              - button "Partners" [ref=e163] [cursor=pointer]
+              - button "Privacy" [ref=e164] [cursor=pointer]
+              - button "Terms" [ref=e165] [cursor=pointer]
+      - generic [ref=e166]:
+        - generic [ref=e167]: © 2026 BUILD WITH AI. All rights reserved.
+        - generic [ref=e168]:
+          - link "LinkedIn" [ref=e169] [cursor=pointer]:
+            - /url: https://www.linkedin.com/
+            - img [ref=e170]
+          - link "X (Twitter)" [ref=e174] [cursor=pointer]:
+            - /url: https://x.com/
+            - img [ref=e175]
+  - button "Open chat"
+  - alertdialog "We use cookies" [ref=e177]:
+    - generic [ref=e179]:
+      - generic [ref=e180]:
+        - img [ref=e181]
+        - generic [ref=e188]:
+          - heading "We use cookies" [level=3] [ref=e189]
+          - paragraph [ref=e190]:
+            - text: We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By clicking "Accept All", you consent to our use of cookies. Visit our
+            - link "Privacy Policy" [ref=e191] [cursor=pointer]:
+              - /url: /privacy
+            - text: for more information.
+      - generic [ref=e192]:
+        - button "Preferences" [ref=e193] [cursor=pointer]:
+          - img [ref=e194]
+          - text: Preferences
+        - button "Reject All" [ref=e197] [cursor=pointer]
+        - button "Accept All" [ref=e198] [cursor=pointer]
+        - button "Dismiss" [ref=e199] [cursor=pointer]:
+          - img [ref=e200]
+  - button [ref=e204] [cursor=pointer]: ⌘K
+  - alert [ref=e205]
+```
