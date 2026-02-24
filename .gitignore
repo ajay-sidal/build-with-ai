@@ -42,3 +42,7 @@ data/partners.json
 *.tsbuildinfo
 
 .vercel
+
+# playwright
+playwright-report/
+test-results/
