@@ -4,6 +4,7 @@ import SessionProvider from '../components/providers/SessionProvider'
 import { ThemeProvider } from '../components/providers/ThemeProvider'
 import { NotificationProvider } from '../lib/notifications'
 import Navbar from '../components/Navbar'
+import ThemeToggle from '../components/ThemeToggle'
 import Footer from '../components/Footer'
 import AffiliateRefTracker from '../components/AffiliateRefTracker'
 import MarzChatWidget from '../components/marz/MarzChatWidget'
@@ -63,6 +64,9 @@ export default function RootLayout({
             <NotificationProvider>
               <CartProvider>
                 <Navbar />
+                <div className="absolute top-4 right-6 z-40">
+                  <ThemeToggle />
+                </div>
                 <Suspense fallback={null}>
                   <AffiliateRefTracker />
                 </Suspense>

@@ -1,0 +1,204 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]:
+      - link "BUILD WITH AI BUILD WITH AI" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img "BUILD WITH AI" [ref=e7]
+        - generic [ref=e8]: BUILD WITH AI
+      - navigation "Main navigation" [ref=e9]:
+        - generic [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Developers" [ref=e12] [cursor=pointer]:
+            - /url: /developers
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - menu "Products dropdown" [ref=e14]:
+            - button "Products" [ref=e15] [cursor=pointer]:
+              - text: Products
+              - img [ref=e16]
+          - menu "Services dropdown" [ref=e18]:
+            - button "Services" [ref=e19] [cursor=pointer]:
+              - text: Services
+              - img [ref=e20]
+      - textbox "Search" [ref=e24]:
+        - /placeholder: Search domains, e.g. brilliant.ai
+      - generic [ref=e25]:
+        - button "Notifications" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic "Connected" [ref=e31]
+        - button "Switch to light theme" [ref=e32] [cursor=pointer]: 🌙
+        - button "View shopping cart" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - button "Login" [ref=e39] [cursor=pointer]
+        - button "Sign Up" [ref=e40] [cursor=pointer]
+  - button "Toggle theme" [ref=e42] [cursor=pointer]:
+    - generic [ref=e43]: 🌙
+    - generic [ref=e44]: Toggle theme
+  - main [ref=e46]:
+    - generic [ref=e47]:
+      - heading "Developers" [level=1] [ref=e48]
+      - paragraph [ref=e49]: Programmatic access to domain availability + SSL catalog. Powered by OpenProvider.
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - heading "Authentication" [level=2] [ref=e52]
+        - paragraph [ref=e53]: Send your key in the x-api-key header. Keys are generated in your dashboard.
+      - generic [ref=e55]: "Rate limit: 60 requests/min per key."
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - heading "Endpoints" [level=2] [ref=e58]
+        - paragraph [ref=e59]: All responses include a powered_by header.
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: Domains
+          - generic [ref=e63]: GET /api/v1/domains/check
+          - generic [ref=e64]: "Query params: query (required), tlds (optional comma list)."
+        - generic [ref=e65]:
+          - generic [ref=e66]: SSL
+          - generic [ref=e67]: GET /api/v1/ssl/products
+          - generic [ref=e68]: Returns the SSL catalog from the OpenProvider engine.
+    - generic [ref=e69]:
+      - generic [ref=e70]:
+        - heading "Examples" [level=2] [ref=e71]
+        - paragraph [ref=e72]: Copy/paste starter snippets.
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e75]: cURL
+          - generic [ref=e76]: "curl -s -H \"x-api-key: YOUR_API_KEY\" \"https://www.buildwithai.digital/api/v1/domains/check?query=verde&tlds=com,digital,ai\""
+        - generic [ref=e77]:
+          - generic [ref=e78]: JavaScript
+          - generic [ref=e79]: "const res = await fetch(\"https://www.buildwithai.digital/api/v1/domains/check?query=verde\", { headers: { \"x-api-key\": process.env.BWAI_API_KEY }, }); const data = await res.json(); console.log(data.results);"
+        - generic [ref=e80]:
+          - generic [ref=e81]: Python
+          - generic [ref=e82]: "import os import requests url = \"https://www.buildwithai.digital/api/v1/domains/check?query=verde\" res = requests.get(url, headers={\"x-api-key\": os.environ[\"BWAI_API_KEY\"]}) print(res.json()[\"results\"])"
+    - generic [ref=e83]:
+      - generic [ref=e84]:
+        - heading "Monetization note" [level=2] [ref=e85]
+        - paragraph [ref=e86]: API usage is attributed to the key owner. Future registration endpoints can automatically propagate partner attribution.
+      - generic [ref=e88]: This is the foundation for API access tiers (higher limits, team keys, usage analytics) without exposing OpenProvider credentials.
+  - contentinfo [ref=e89]:
+    - generic [ref=e92]:
+      - generic [ref=e93]:
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - img "BUILD WITH AI" [ref=e96]
+            - generic [ref=e97]: BUILD WITH AI
+          - paragraph [ref=e98]: Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
+          - generic [ref=e99]:
+            - button "Admin" [ref=e100] [cursor=pointer]:
+              - img [ref=e101]
+              - text: Admin
+            - button "Website Hub" [ref=e106] [cursor=pointer]:
+              - img [ref=e107]
+              - text: Website Hub
+        - generic [ref=e111]:
+          - generic [ref=e112]:
+            - generic [ref=e113]: Platform
+            - generic [ref=e114]:
+              - button "Domain Search" [ref=e115] [cursor=pointer]
+              - button "All Products" [ref=e116] [cursor=pointer]
+              - button "Services" [ref=e117] [cursor=pointer]
+              - button "SSL Vault" [ref=e118] [cursor=pointer]
+              - button "Developers" [ref=e119] [cursor=pointer]
+          - generic [ref=e120]:
+            - generic [ref=e121]: Product Categories
+            - generic [ref=e122]:
+              - button "Domains" [ref=e123] [cursor=pointer]
+              - button "SSL Certificates" [ref=e124] [cursor=pointer]
+              - button "DNS Services" [ref=e125] [cursor=pointer]
+              - button "Email Services" [ref=e126] [cursor=pointer]
+              - button "Spam Experts" [ref=e127] [cursor=pointer]
+              - button "EasyDMARC" [ref=e128] [cursor=pointer]
+              - button "Licenses" [ref=e129] [cursor=pointer]
+          - generic [ref=e130]:
+            - generic [ref=e131]: Account
+            - generic [ref=e132]:
+              - button "Website Dashboard" [ref=e133] [cursor=pointer]
+              - button "Billing & Assets" [ref=e134] [cursor=pointer]
+              - button "Login" [ref=e135] [cursor=pointer]
+              - button "Sign Up" [ref=e136] [cursor=pointer]
+          - generic [ref=e137]:
+            - generic [ref=e138]: Company
+            - generic [ref=e139]:
+              - button "About" [ref=e140] [cursor=pointer]
+              - button "Partners" [ref=e141] [cursor=pointer]
+              - button "Privacy" [ref=e142] [cursor=pointer]
+              - button "Terms" [ref=e143] [cursor=pointer]
+      - generic [ref=e144]:
+        - generic [ref=e145]: © 2026 BUILD WITH AI. All rights reserved.
+        - generic [ref=e146]:
+          - link "LinkedIn" [ref=e147] [cursor=pointer]:
+            - /url: https://www.linkedin.com/
+            - img [ref=e148]
+          - link "X (Twitter)" [ref=e152] [cursor=pointer]:
+            - /url: https://x.com/
+            - img [ref=e153]
+  - button "Close chat" [ref=e155] [cursor=pointer]:
+    - img [ref=e157]
+  - dialog "MARZ" [ref=e160]:
+    - generic [ref=e161]:
+      - generic [ref=e162]:
+        - img [ref=e164]
+        - generic [ref=e170]:
+          - heading "MARZ" [level=3] [ref=e171]
+          - paragraph [ref=e172]: AI Assistant
+      - generic [ref=e173]:
+        - button "Clear chat history" [ref=e174] [cursor=pointer]:
+          - img [ref=e175]
+        - button "Settings" [ref=e181] [cursor=pointer]:
+          - img [ref=e182]
+        - button "Dock to left" [ref=e185] [cursor=pointer]:
+          - img [ref=e186]
+        - button "Close chat" [ref=e190] [cursor=pointer]:
+          - img [ref=e191]
+    - log [ref=e195]:
+      - listitem [ref=e196]:
+        - paragraph [ref=e198]:
+          - text: 👋 Hi! I'm
+          - strong [ref=e199]: MARZ
+          - text: ", your personal AI assistant for BUILD WITH AI. I can help you register domains, secure your website with SSL certificates, set up DNS hosting, and much more. What would you like to work on today?"
+    - generic [ref=e201]:
+      - button "Start voice input" [ref=e202] [cursor=pointer]:
+        - img [ref=e203]
+      - generic [ref=e207]:
+        - generic [ref=e208]: Chat message
+        - textbox "Chat message" [active] [ref=e209]:
+          - /placeholder: Ask me anything...
+      - button "Send message" [disabled]:
+        - img
+  - alertdialog "We use cookies" [ref=e210]:
+    - generic [ref=e212]:
+      - generic [ref=e213]:
+        - img [ref=e214]
+        - generic [ref=e221]:
+          - heading "We use cookies" [level=3] [ref=e222]
+          - paragraph [ref=e223]:
+            - text: We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By clicking "Accept All", you consent to our use of cookies. Visit our
+            - link "Privacy Policy" [ref=e224] [cursor=pointer]:
+              - /url: /privacy
+            - text: for more information.
+      - generic [ref=e225]:
+        - button "Preferences" [ref=e226] [cursor=pointer]:
+          - img [ref=e227]
+          - text: Preferences
+        - button "Reject All" [ref=e230] [cursor=pointer]
+        - button "Accept All" [ref=e231] [cursor=pointer]
+        - button "Dismiss" [ref=e232] [cursor=pointer]:
+          - img [ref=e233]
+  - button [ref=e237] [cursor=pointer]: ⌘K
+  - generic [ref=e242] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e243]:
+      - img [ref=e244]
+    - generic [ref=e248]:
+      - button "Open issues overlay" [ref=e249]:
+        - generic [ref=e250]:
+          - generic [ref=e251]: "0"
+          - generic [ref=e252]: "1"
+        - generic [ref=e253]: Issue
+      - button "Collapse issues badge" [ref=e254]:
+        - img [ref=e255]
+  - alert [ref=e257]
+```

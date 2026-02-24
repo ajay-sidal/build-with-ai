@@ -3,6 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useNotifications } from '../lib/notifications'
+import LeadModal from './LeadModal'
 
 type Command = {
   id: string
@@ -190,37 +191,15 @@ export default function CommandPaletteClient() {
             )
           })}
         </ul>
-        {showModal && lastResult && (
-          <div className="mt-4 rounded-md border border-zinc-800 bg-zinc-900 p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="text-sm font-semibold">{lastResult.message}</div>
-                {lastResult.leadId && (
-                  <div className="text-xs text-zinc-400">Lead ID: {lastResult.leadId}</div>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {lastResult.leadId && (
-                  <button
-                    className="rounded-md px-2 py-1 text-sm bg-zinc-800 hover:bg-zinc-700"
-                    onClick={() => {
-                      setShowModal(false)
-                      router.push(`/leads/${lastResult.leadId}`)
-                    }}
-                  >
-                    Open
-                  </button>
-                )}
-                <button
-                  className="rounded-md px-2 py-1 text-sm bg-transparent hover:bg-zinc-800"
-                  onClick={() => setShowModal(false)}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <LeadModal
+          open={showModal}
+          result={lastResult}
+          onClose={() => setShowModal(false)}
+          onOpenLead={(id) => {
+            setShowModal(false)
+            router.push(`/leads/${id}`)
+          }}
+        />
       </div>
     </div>
   )
