@@ -1,0 +1,217 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]:
+      - link "BUILD WITH AI BUILD WITH AI" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img "BUILD WITH AI" [ref=e7]
+        - generic [ref=e8]: BUILD WITH AI
+      - navigation "Main navigation" [ref=e9]:
+        - generic [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "Developers" [ref=e12] [cursor=pointer]:
+            - /url: /developers
+          - link "About" [ref=e13] [cursor=pointer]:
+            - /url: /about
+          - menu "Products dropdown" [ref=e14]:
+            - button "Products" [ref=e15] [cursor=pointer]:
+              - text: Products
+              - img [ref=e16]
+          - menu "Services dropdown" [ref=e18]:
+            - button "Services" [ref=e19] [cursor=pointer]:
+              - text: Services
+              - img [ref=e20]
+      - textbox "Search" [ref=e24]:
+        - /placeholder: Search domains, e.g. brilliant.ai
+      - generic [ref=e25]:
+        - button "Notifications" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic "Connected" [ref=e31]
+        - button "Switch to light theme" [ref=e32] [cursor=pointer]: 🌙
+        - button "View shopping cart" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - button "Login" [ref=e39] [cursor=pointer]
+        - button "Sign Up" [ref=e40] [cursor=pointer]
+  - button "Toggle theme" [ref=e42] [cursor=pointer]:
+    - generic [ref=e43]: 🌙
+    - generic [ref=e44]: Toggle theme
+  - main [ref=e46]:
+    - link "Back to Home" [ref=e47] [cursor=pointer]:
+      - /url: /
+      - img [ref=e48]
+      - text: Back to Home
+    - generic [ref=e50]:
+      - heading "Terms of Service" [level=1] [ref=e51]
+      - paragraph [ref=e52]: "Last updated: February 22, 2026"
+      - separator [ref=e53]
+      - heading "1. Acceptance of Terms" [level=2] [ref=e54]
+      - paragraph [ref=e55]: By accessing or using BuildWithAI.digital ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service.
+      - heading "2. Description of Service" [level=2] [ref=e56]
+      - paragraph [ref=e57]: BuildWithAI.digital provides domain registration, SSL certificates, DNS hosting, and related infrastructure services powered by OpenProvider. We act as a reseller and intermediary for these services.
+      - heading "3. Account Registration" [level=2] [ref=e58]
+      - paragraph [ref=e59]: "To use certain features of the Service, you must:"
+      - list [ref=e60]:
+        - listitem [ref=e61]: Be at least 18 years old
+        - listitem [ref=e62]: Provide accurate and complete registration information
+        - listitem [ref=e63]: Maintain the security of your account credentials
+        - listitem [ref=e64]: Notify us immediately of any unauthorized access
+      - paragraph [ref=e65]: You are responsible for all activities that occur under your account.
+      - heading "4. Domain Registration Terms" [level=2] [ref=e66]
+      - heading "4.1 ICANN Compliance" [level=3] [ref=e67]
+      - paragraph [ref=e68]: Domain registrations are subject to ICANN (Internet Corporation for Assigned Names and Numbers) policies and the policies of applicable domain registries. You agree to comply with all such policies.
+      - heading "4.2 Domain Ownership" [level=3] [ref=e69]
+      - paragraph [ref=e70]: You acknowledge that domain registration does not guarantee permanent ownership. Domains must be renewed according to registry rules, and failure to renew may result in loss of the domain.
+      - heading "4.3 Accurate Information" [level=3] [ref=e71]
+      - paragraph [ref=e72]: You must provide accurate WHOIS information for domain registrations. Providing false information may result in domain suspension or cancellation.
+      - heading "4.4 Prohibited Uses" [level=3] [ref=e73]
+      - paragraph [ref=e74]: "You may not register or use domains for:"
+      - list [ref=e75]:
+        - listitem [ref=e76]: Trademark infringement
+        - listitem [ref=e77]: Phishing or fraud
+        - listitem [ref=e78]: Malware distribution
+        - listitem [ref=e79]: Spam or unsolicited communications
+        - listitem [ref=e80]: Any illegal activities
+      - heading "5. SSL Certificate Terms" [level=2] [ref=e81]
+      - paragraph [ref=e82]: "SSL certificates are issued by Certificate Authorities (CAs). You agree to:"
+      - list [ref=e83]:
+        - listitem [ref=e84]: Provide accurate domain ownership information
+        - listitem [ref=e85]: Use certificates only for domains you own or control
+        - listitem [ref=e86]: Comply with CA/Browser Forum requirements
+        - listitem [ref=e87]: Renew certificates before expiration
+      - heading "6. Payment and Billing" [level=2] [ref=e88]
+      - heading "6.1 Pricing" [level=3] [ref=e89]
+      - paragraph [ref=e90]: All prices are in USD unless otherwise stated. Prices are subject to change with notice. Renewal prices may differ from initial registration prices.
+      - heading "6.2 Payment Methods" [level=3] [ref=e91]
+      - paragraph [ref=e92]: We accept payments through Stripe. You authorize us to charge your payment method for all purchases and recurring services.
+      - heading "6.3 Refunds" [level=3] [ref=e93]
+      - paragraph [ref=e94]: "Refund policies vary by product:"
+      - list [ref=e95]:
+        - listitem [ref=e96]:
+          - strong [ref=e97]: "Domains:"
+          - text: Generally non-refundable after grace period (typically 5 days)
+        - listitem [ref=e98]:
+          - strong [ref=e99]: "SSL Certificates:"
+          - text: May be refunded within 30 days if not yet issued
+        - listitem [ref=e100]:
+          - strong [ref=e101]: "Other services:"
+          - text: Case-by-case basis
+      - heading "6.4 Auto-Renewal" [level=3] [ref=e102]
+      - paragraph [ref=e103]: Many services are set to auto-renew by default. You can disable auto-renewal in your account settings. We are not responsible for services that expire due to disabled auto-renewal.
+      - heading "7. Acceptable Use Policy" [level=2] [ref=e104]
+      - paragraph [ref=e105]: "You may not use the Service to:"
+      - list [ref=e106]:
+        - listitem [ref=e107]: Violate any applicable laws or regulations
+        - listitem [ref=e108]: Infringe intellectual property rights
+        - listitem [ref=e109]: Transmit harmful code or malware
+        - listitem [ref=e110]: Engage in spam or unsolicited marketing
+        - listitem [ref=e111]: Attempt unauthorized access to systems
+        - listitem [ref=e112]: Interfere with the Service's operation
+        - listitem [ref=e113]: Resell services without authorization
+      - heading "8. Intellectual Property" [level=2] [ref=e114]
+      - paragraph [ref=e115]: The Service, including its content, features, and functionality, is owned by BuildWithAI.digital and is protected by copyright, trademark, and other intellectual property laws.
+      - heading "9. Disclaimers" [level=2] [ref=e116]
+      - paragraph [ref=e117]: THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+      - heading "10. Limitation of Liability" [level=2] [ref=e118]
+      - paragraph [ref=e119]: TO THE MAXIMUM EXTENT PERMITTED BY LAW, BUILDWITHAI.DIGITAL SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR REVENUES, ARISING FROM YOUR USE OF THE SERVICE.
+      - paragraph [ref=e120]: OUR TOTAL LIABILITY FOR ANY CLAIM RELATED TO THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU PAID TO US IN THE 12 MONTHS PRECEDING THE CLAIM.
+      - heading "11. Indemnification" [level=2] [ref=e121]
+      - paragraph [ref=e122]: You agree to indemnify and hold harmless BuildWithAI.digital, its affiliates, and their respective officers, directors, employees, and agents from any claims, damages, or expenses arising from your use of the Service or violation of these Terms.
+      - heading "12. Termination" [level=2] [ref=e123]
+      - paragraph [ref=e124]: We may terminate or suspend your account and access to the Service at our discretion, with or without cause, with or without notice.
+      - heading "13. Governing Law" [level=2] [ref=e125]
+      - paragraph [ref=e126]: These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to conflict of law principles.
+      - heading "14. Dispute Resolution" [level=2] [ref=e127]
+      - paragraph [ref=e128]: Any disputes arising from these Terms or the Service shall be resolved through binding arbitration in accordance with the rules of [Arbitration Organization]. The arbitration shall take place in [Your City, State].
+      - heading "15. Changes to Terms" [level=2] [ref=e129]
+      - paragraph [ref=e130]: We may modify these Terms at any time. Continued use of the Service after changes constitutes acceptance of the new Terms.
+      - heading "16. Contact Information" [level=2] [ref=e131]
+      - paragraph [ref=e132]: "For questions about these Terms, please contact us at:"
+      - list [ref=e133]:
+        - listitem [ref=e134]: "Email: legal@buildwithai.digital"
+        - listitem [ref=e135]: "Address: BuildWithAI.digital, [Your Business Address]"
+      - paragraph [ref=e137]:
+        - strong [ref=e138]: "Note:"
+        - text: This is a template terms of service. Please consult with legal counsel to ensure compliance with applicable laws and customize for your specific business practices, jurisdiction, and services.
+  - contentinfo [ref=e139]:
+    - generic [ref=e142]:
+      - generic [ref=e143]:
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - img "BUILD WITH AI" [ref=e146]
+            - generic [ref=e147]: BUILD WITH AI
+          - paragraph [ref=e148]: Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
+          - generic [ref=e149]:
+            - button "Admin" [ref=e150] [cursor=pointer]:
+              - img [ref=e151]
+              - text: Admin
+            - button "Website Hub" [ref=e156] [cursor=pointer]:
+              - img [ref=e157]
+              - text: Website Hub
+        - generic [ref=e160]:
+          - generic [ref=e161]:
+            - generic [ref=e162]: Platform
+            - generic [ref=e163]:
+              - button "Domain Search" [ref=e164] [cursor=pointer]
+              - button "All Products" [ref=e165] [cursor=pointer]
+              - button "Services" [ref=e166] [cursor=pointer]
+              - button "SSL Vault" [ref=e167] [cursor=pointer]
+              - button "Developers" [ref=e168] [cursor=pointer]
+          - generic [ref=e169]:
+            - generic [ref=e170]: Product Categories
+            - generic [ref=e171]:
+              - button "Domains" [ref=e172] [cursor=pointer]
+              - button "SSL Certificates" [ref=e173] [cursor=pointer]
+              - button "DNS Services" [ref=e174] [cursor=pointer]
+              - button "Email Services" [ref=e175] [cursor=pointer]
+              - button "Spam Experts" [ref=e176] [cursor=pointer]
+              - button "EasyDMARC" [ref=e177] [cursor=pointer]
+              - button "Licenses" [ref=e178] [cursor=pointer]
+          - generic [ref=e179]:
+            - generic [ref=e180]: Account
+            - generic [ref=e181]:
+              - button "Website Dashboard" [ref=e182] [cursor=pointer]
+              - button "Billing & Assets" [ref=e183] [cursor=pointer]
+              - button "Login" [ref=e184] [cursor=pointer]
+              - button "Sign Up" [ref=e185] [cursor=pointer]
+          - generic [ref=e186]:
+            - generic [ref=e187]: Company
+            - generic [ref=e188]:
+              - button "About" [ref=e189] [cursor=pointer]
+              - button "Partners" [ref=e190] [cursor=pointer]
+              - button "Privacy" [ref=e191] [cursor=pointer]
+              - button "Terms" [ref=e192] [cursor=pointer]
+      - generic [ref=e193]:
+        - generic [ref=e194]: © 2026 BUILD WITH AI. All rights reserved.
+        - generic [ref=e195]:
+          - link "LinkedIn" [ref=e196] [cursor=pointer]:
+            - /url: https://www.linkedin.com/
+            - img [ref=e197]
+          - link "X (Twitter)" [ref=e201] [cursor=pointer]:
+            - /url: https://x.com/
+            - img [ref=e202]
+  - button "Open chat"
+  - alertdialog "We use cookies" [ref=e204]:
+    - generic [ref=e206]:
+      - generic [ref=e207]:
+        - img [ref=e208]
+        - generic [ref=e210]:
+          - heading "We use cookies" [level=3] [ref=e211]
+          - paragraph [ref=e212]:
+            - text: We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By clicking "Accept All", you consent to our use of cookies. Visit our
+            - link "Privacy Policy" [ref=e213] [cursor=pointer]:
+              - /url: /privacy
+            - text: for more information.
+      - generic [ref=e214]:
+        - button "Preferences" [ref=e215] [cursor=pointer]:
+          - img [ref=e216]
+          - text: Preferences
+        - button "Reject All" [ref=e219] [cursor=pointer]
+        - button "Accept All" [ref=e220] [cursor=pointer]
+        - button "Dismiss" [ref=e221] [cursor=pointer]:
+          - img [ref=e222]
+  - button [ref=e226] [cursor=pointer]: ⌘K
+  - alert [ref=e227]
+```

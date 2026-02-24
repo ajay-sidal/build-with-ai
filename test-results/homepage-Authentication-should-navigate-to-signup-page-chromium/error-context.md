@@ -12,7 +12,7 @@
         - generic [ref=e10]:
           - link "Home" [ref=e11] [cursor=pointer]:
             - /url: /
-          - link "Developers" [active] [ref=e12] [cursor=pointer]:
+          - link "Developers" [ref=e12] [cursor=pointer]:
             - /url: /developers
           - link "About" [ref=e13] [cursor=pointer]:
             - /url: /about
@@ -34,7 +34,7 @@
         - button "View shopping cart" [ref=e33] [cursor=pointer]:
           - img [ref=e34]
         - button "Login" [ref=e39] [cursor=pointer]
-        - button "Sign Up" [ref=e40] [cursor=pointer]
+        - button "Sign Up" [active] [ref=e40] [cursor=pointer]
   - button "Toggle theme" [ref=e42] [cursor=pointer]:
     - generic [ref=e43]: 🌙
     - generic [ref=e44]: Toggle theme

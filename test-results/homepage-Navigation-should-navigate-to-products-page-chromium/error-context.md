@@ -17,227 +17,142 @@
           - link "About" [ref=e13] [cursor=pointer]:
             - /url: /about
           - menu "Products dropdown" [ref=e14]:
-            - button "Products" [expanded] [active] [ref=e15] [cursor=pointer]:
+            - button "Products" [active] [ref=e15] [cursor=pointer]:
               - text: Products
               - img [ref=e16]
-            - generic [ref=e19]:
-              - generic [ref=e20]:
-                - generic [ref=e21]:
-                  - img [ref=e22]
-                  - text: Overview
-                - link "All Products" [ref=e27] [cursor=pointer]:
-                  - /url: /products
-              - generic [ref=e28]:
-                - generic [ref=e29]:
-                  - img [ref=e30]
-                  - text: Domains
-                - generic [ref=e33]:
-                  - link "Domain Registration" [ref=e34] [cursor=pointer]:
-                    - /url: /products/domain-registration
-                  - link "Domain Transfer" [ref=e35] [cursor=pointer]:
-                    - /url: /products/domain-transfer
-                  - link "Domain Renewal" [ref=e36] [cursor=pointer]:
-                    - /url: /products/domain-renewal
-                  - link "Premium DNS" [ref=e37] [cursor=pointer]:
-                    - /url: /products/premium-dns
-              - generic [ref=e38]:
-                - generic [ref=e39]:
-                  - img [ref=e40]
-                  - text: SSL Certificates
-                - generic [ref=e42]:
-                  - link "Domain Validation SSL" [ref=e43] [cursor=pointer]:
-                    - /url: /products/domain-validation-ssl
-                  - link "Organization Validation SSL" [ref=e44] [cursor=pointer]:
-                    - /url: /products/organization-validation-ssl
-                  - link "Extended Validation SSL" [ref=e45] [cursor=pointer]:
-                    - /url: /products/extended-validation-ssl
-                  - link "Wildcard SSL" [ref=e46] [cursor=pointer]:
-                    - /url: /products/wildcard-ssl
-                  - link "Multi-Domain SSL (SAN)" [ref=e47] [cursor=pointer]:
-                    - /url: /products/multi-domain-ssl
-                  - link "Code Signing Certificate" [ref=e48] [cursor=pointer]:
-                    - /url: /products/code-signing
-                  - link "S/MIME Email Certificate" [ref=e49] [cursor=pointer]:
-                    - /url: /products/email-signing
-              - generic [ref=e50]:
-                - generic [ref=e51]:
-                  - img [ref=e52]
-                  - text: DNS Services
-                - generic [ref=e55]:
-                  - link "DNS Hosting" [ref=e56] [cursor=pointer]:
-                    - /url: /products/dns-hosting
-                  - link "DNS Templates" [ref=e57] [cursor=pointer]:
-                    - /url: /products/dns-templates
-                  - link "Nameserver Groups" [ref=e58] [cursor=pointer]:
-                    - /url: /products/nameserver-groups
-              - generic [ref=e59]:
-                - generic [ref=e60]:
-                  - img [ref=e61]
-                  - text: Email Services
-                - generic [ref=e64]:
-                  - link "Email Verification" [ref=e65] [cursor=pointer]:
-                    - /url: /products/email-verification
-                  - link "Email Templates" [ref=e66] [cursor=pointer]:
-                    - /url: /products/email-templates
-              - generic [ref=e67]:
-                - generic [ref=e68]:
-                  - img [ref=e69]
-                  - text: Spam Experts
-                - generic [ref=e72]:
-                  - link "Incoming Email Filter" [ref=e73] [cursor=pointer]:
-                    - /url: /products/incoming-filter
-                  - link "Outgoing Email Filter" [ref=e74] [cursor=pointer]:
-                    - /url: /products/outgoing-filter
-                  - link "Email Archiving" [ref=e75] [cursor=pointer]:
-                    - /url: /products/email-archiving
-              - generic [ref=e76]:
-                - generic [ref=e77]:
-                  - img [ref=e78]
-                  - text: EasyDMARC
-                - link "EasyDMARC" [ref=e81] [cursor=pointer]:
-                  - /url: /products/easy-dmarc
-              - generic [ref=e82]:
-                - generic [ref=e83]:
-                  - img [ref=e84]
-                  - text: Licenses
-                - generic [ref=e88]:
-                  - link "Plesk Licenses" [ref=e89] [cursor=pointer]:
-                    - /url: /products/plesk-licenses
-                  - link "Virtuozzo Licenses" [ref=e90] [cursor=pointer]:
-                    - /url: /products/virtuozzo-licenses
-          - menu "Services dropdown" [ref=e91]:
-            - button "Services" [ref=e92] [cursor=pointer]:
+          - menu "Services dropdown" [ref=e18]:
+            - button "Services" [ref=e19] [cursor=pointer]:
               - text: Services
-              - img [ref=e93]
-      - textbox "Search" [ref=e97]:
+              - img [ref=e20]
+      - textbox "Search" [ref=e24]:
         - /placeholder: Search domains, e.g. brilliant.ai
-      - generic [ref=e98]:
-        - button "Notifications" [ref=e100] [cursor=pointer]:
-          - img [ref=e101]
-          - generic "Connected" [ref=e104]
-        - button "Switch to light theme" [ref=e105] [cursor=pointer]: 🌙
-        - button "View shopping cart" [ref=e106] [cursor=pointer]:
-          - img [ref=e107]
-        - button "Login" [ref=e112] [cursor=pointer]
-        - button "Sign Up" [ref=e113] [cursor=pointer]
-  - button "Toggle theme" [ref=e115] [cursor=pointer]:
-    - generic [ref=e116]: 🌙
-    - generic [ref=e117]: Toggle theme
-  - generic [ref=e119]:
-    - main [ref=e120]:
-      - generic [ref=e121]:
-        - img [ref=e124]
-        - heading "404" [level=1] [ref=e126]
-        - paragraph [ref=e127]: Sorry, we couldn't find the page you're looking for.
-        - generic [ref=e128]:
-          - link "Back to Home" [ref=e129] [cursor=pointer]:
+      - generic [ref=e25]:
+        - button "Notifications" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic "Connected" [ref=e31]
+        - button "Switch to light theme" [ref=e32] [cursor=pointer]: 🌙
+        - button "View shopping cart" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - button "Login" [ref=e39] [cursor=pointer]
+        - button "Sign Up" [ref=e40] [cursor=pointer]
+  - button "Toggle theme" [ref=e42] [cursor=pointer]:
+    - generic [ref=e43]: 🌙
+    - generic [ref=e44]: Toggle theme
+  - generic [ref=e46]:
+    - main [ref=e47]:
+      - generic [ref=e48]:
+        - img [ref=e51]
+        - heading "404" [level=1] [ref=e53]
+        - paragraph [ref=e54]: Sorry, we couldn't find the page you're looking for.
+        - generic [ref=e55]:
+          - link "Back to Home" [ref=e56] [cursor=pointer]:
             - /url: /
-            - img [ref=e130]
+            - img [ref=e57]
             - text: Back to Home
-          - link "Browse Products" [ref=e133] [cursor=pointer]:
+          - link "Browse Products" [ref=e60] [cursor=pointer]:
             - /url: /products
-            - img [ref=e134]
+            - img [ref=e61]
             - text: Browse Products
-        - generic [ref=e137]:
-          - heading "Quick Links" [level=2] [ref=e138]
-          - generic [ref=e139]:
-            - link "Domain Search" [ref=e140] [cursor=pointer]:
+        - generic [ref=e64]:
+          - heading "Quick Links" [level=2] [ref=e65]
+          - generic [ref=e66]:
+            - link "Domain Search" [ref=e67] [cursor=pointer]:
               - /url: /
-            - link "SSL Vault" [ref=e141] [cursor=pointer]:
+            - link "SSL Vault" [ref=e68] [cursor=pointer]:
               - /url: /ssl
-            - link "Products" [ref=e142] [cursor=pointer]:
+            - link "Products" [ref=e69] [cursor=pointer]:
               - /url: /products
-            - link "Services" [ref=e143] [cursor=pointer]:
+            - link "Services" [ref=e70] [cursor=pointer]:
               - /url: /services
-            - link "Developers" [ref=e144] [cursor=pointer]:
+            - link "Developers" [ref=e71] [cursor=pointer]:
               - /url: /developers
-            - link "Partners" [ref=e145] [cursor=pointer]:
+            - link "Partners" [ref=e72] [cursor=pointer]:
               - /url: /partners
-            - link "About" [ref=e146] [cursor=pointer]:
+            - link "About" [ref=e73] [cursor=pointer]:
               - /url: /about
-            - link "Login" [ref=e147] [cursor=pointer]:
+            - link "Login" [ref=e74] [cursor=pointer]:
               - /url: /login
-    - contentinfo [ref=e148]:
-      - generic [ref=e149]:
-        - generic [ref=e150]: © 2026 BuildWithAI.digital
-        - generic [ref=e151]: Infrastructure for AI-native teams
-  - contentinfo [ref=e152]:
-    - generic [ref=e155]:
-      - generic [ref=e156]:
-        - generic [ref=e157]:
-          - generic [ref=e158]:
-            - img "BUILD WITH AI" [ref=e159]
-            - generic [ref=e160]: BUILD WITH AI
-          - paragraph [ref=e161]: Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
-          - generic [ref=e162]:
-            - button "Admin" [ref=e163] [cursor=pointer]:
-              - img [ref=e164]
+    - contentinfo [ref=e75]:
+      - generic [ref=e76]:
+        - generic [ref=e77]: © 2026 BuildWithAI.digital
+        - generic [ref=e78]: Infrastructure for AI-native teams
+  - contentinfo [ref=e79]:
+    - generic [ref=e82]:
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - img "BUILD WITH AI" [ref=e86]
+            - generic [ref=e87]: BUILD WITH AI
+          - paragraph [ref=e88]: Infrastructure for AI-native teams. Domains, SSL, DNS, and more.
+          - generic [ref=e89]:
+            - button "Admin" [ref=e90] [cursor=pointer]:
+              - img [ref=e91]
               - text: Admin
-            - button "Website Hub" [ref=e169] [cursor=pointer]:
-              - img [ref=e170]
+            - button "Website Hub" [ref=e96] [cursor=pointer]:
+              - img [ref=e97]
               - text: Website Hub
-        - generic [ref=e173]:
-          - generic [ref=e174]:
-            - generic [ref=e175]: Platform
-            - generic [ref=e176]:
-              - button "Domain Search" [ref=e177] [cursor=pointer]
-              - button "All Products" [ref=e178] [cursor=pointer]
-              - button "Services" [ref=e179] [cursor=pointer]
-              - button "SSL Vault" [ref=e180] [cursor=pointer]
-              - button "Developers" [ref=e181] [cursor=pointer]
-          - generic [ref=e182]:
-            - generic [ref=e183]: Product Categories
-            - generic [ref=e184]:
-              - button "Domains" [ref=e185] [cursor=pointer]
-              - button "SSL Certificates" [ref=e186] [cursor=pointer]
-              - button "DNS Services" [ref=e187] [cursor=pointer]
-              - button "Email Services" [ref=e188] [cursor=pointer]
-              - button "Spam Experts" [ref=e189] [cursor=pointer]
-              - button "EasyDMARC" [ref=e190] [cursor=pointer]
-              - button "Licenses" [ref=e191] [cursor=pointer]
-          - generic [ref=e192]:
-            - generic [ref=e193]: Account
-            - generic [ref=e194]:
-              - button "Website Dashboard" [ref=e195] [cursor=pointer]
-              - button "Billing & Assets" [ref=e196] [cursor=pointer]
-              - button "Login" [ref=e197] [cursor=pointer]
-              - button "Sign Up" [ref=e198] [cursor=pointer]
-          - generic [ref=e199]:
-            - generic [ref=e200]: Company
-            - generic [ref=e201]:
-              - button "About" [ref=e202] [cursor=pointer]
-              - button "Partners" [ref=e203] [cursor=pointer]
-              - button "Privacy" [ref=e204] [cursor=pointer]
-              - button "Terms" [ref=e205] [cursor=pointer]
-      - generic [ref=e206]:
-        - generic [ref=e207]: © 2026 BUILD WITH AI. All rights reserved.
-        - generic [ref=e208]:
-          - link "LinkedIn" [ref=e209] [cursor=pointer]:
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - generic [ref=e102]: Platform
+            - generic [ref=e103]:
+              - button "Domain Search" [ref=e104] [cursor=pointer]
+              - button "All Products" [ref=e105] [cursor=pointer]
+              - button "Services" [ref=e106] [cursor=pointer]
+              - button "SSL Vault" [ref=e107] [cursor=pointer]
+              - button "Developers" [ref=e108] [cursor=pointer]
+          - generic [ref=e109]:
+            - generic [ref=e110]: Product Categories
+            - generic [ref=e111]:
+              - button "Domains" [ref=e112] [cursor=pointer]
+              - button "SSL Certificates" [ref=e113] [cursor=pointer]
+              - button "DNS Services" [ref=e114] [cursor=pointer]
+              - button "Email Services" [ref=e115] [cursor=pointer]
+              - button "Spam Experts" [ref=e116] [cursor=pointer]
+              - button "EasyDMARC" [ref=e117] [cursor=pointer]
+              - button "Licenses" [ref=e118] [cursor=pointer]
+          - generic [ref=e119]:
+            - generic [ref=e120]: Account
+            - generic [ref=e121]:
+              - button "Website Dashboard" [ref=e122] [cursor=pointer]
+              - button "Billing & Assets" [ref=e123] [cursor=pointer]
+              - button "Login" [ref=e124] [cursor=pointer]
+              - button "Sign Up" [ref=e125] [cursor=pointer]
+          - generic [ref=e126]:
+            - generic [ref=e127]: Company
+            - generic [ref=e128]:
+              - button "About" [ref=e129] [cursor=pointer]
+              - button "Partners" [ref=e130] [cursor=pointer]
+              - button "Privacy" [ref=e131] [cursor=pointer]
+              - button "Terms" [ref=e132] [cursor=pointer]
+      - generic [ref=e133]:
+        - generic [ref=e134]: © 2026 BUILD WITH AI. All rights reserved.
+        - generic [ref=e135]:
+          - link "LinkedIn" [ref=e136] [cursor=pointer]:
             - /url: https://www.linkedin.com/
-            - img [ref=e210]
-          - link "X (Twitter)" [ref=e214] [cursor=pointer]:
+            - img [ref=e137]
+          - link "X (Twitter)" [ref=e141] [cursor=pointer]:
             - /url: https://x.com/
-            - img [ref=e215]
+            - img [ref=e142]
   - button "Open chat"
-  - alertdialog "We use cookies" [ref=e217]:
-    - generic [ref=e219]:
-      - generic [ref=e220]:
-        - img [ref=e221]
-        - generic [ref=e223]:
-          - heading "We use cookies" [level=3] [ref=e224]
-          - paragraph [ref=e225]:
+  - alertdialog "We use cookies" [ref=e144]:
+    - generic [ref=e146]:
+      - generic [ref=e147]:
+        - img [ref=e148]
+        - generic [ref=e150]:
+          - heading "We use cookies" [level=3] [ref=e151]
+          - paragraph [ref=e152]:
             - text: We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By clicking "Accept All", you consent to our use of cookies. Visit our
-            - link "Privacy Policy" [ref=e226] [cursor=pointer]:
+            - link "Privacy Policy" [ref=e153] [cursor=pointer]:
               - /url: /privacy
             - text: for more information.
-      - generic [ref=e227]:
-        - button "Preferences" [ref=e228] [cursor=pointer]:
-          - img [ref=e229]
+      - generic [ref=e154]:
+        - button "Preferences" [ref=e155] [cursor=pointer]:
+          - img [ref=e156]
           - text: Preferences
-        - button "Reject All" [ref=e232] [cursor=pointer]
-        - button "Accept All" [ref=e233] [cursor=pointer]
-        - button "Dismiss" [ref=e234] [cursor=pointer]:
-          - img [ref=e235]
-  - button [ref=e239] [cursor=pointer]: ⌘K
-  - alert [ref=e240]
+        - button "Reject All" [ref=e159] [cursor=pointer]
+        - button "Accept All" [ref=e160] [cursor=pointer]
+        - button "Dismiss" [ref=e161] [cursor=pointer]:
+          - img [ref=e162]
+  - button [ref=e166] [cursor=pointer]: ⌘K
+  - alert [ref=e167]
 ```
