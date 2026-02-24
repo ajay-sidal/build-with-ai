@@ -85,8 +85,7 @@ const MarzAvatar = React.forwardRef<HTMLButtonElement, MarzAvatarProps>(
               </div>
             ) : (
               <DotLottieReact
-                src={lottieSrc}
-                fallbackSrc={lottieCdnSrc}
+                src={lottieAvailable === true ? lottieSrc : lottieCdnSrc}
                 loop
                 autoplay
               />
