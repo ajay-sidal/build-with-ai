@@ -1,12 +1,5 @@
-'use client'
-
 import Link from 'next/link'
 import { ArrowRight, Sparkles, Globe, Shield, Server, Zap, Mail, CheckCircle, Code } from 'lucide-react'
-import dynamic from 'next/dynamic'
-
-const AnimatedHero3D = dynamic(() => import('../components/AnimatedHero3D'), { ssr: false, loading: () => (
-  <div className="h-full w-full flex items-center justify-center text-zinc-500">Loading...</div>
-)})
 
 export default function HomePage() {
   return (
@@ -14,41 +7,36 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="mx-auto max-w-7xl px-6 py-20 sm:py-32 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="text-left">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-600/10 px-4 py-2 text-sm font-medium text-blue-400 mb-6">
-                <Sparkles className="h-4 w-4" />
-                <span>Powered by Advanced AI</span>
-              </div>
-              <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                Build Your Digital
-                <span className="block bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                  Future Today
-                </span>
-              </h1>
-              <p className="mt-8 text-lg leading-8 text-zinc-400 max-w-2xl">
-                The world's first AI-driven domain registrar and infrastructure hub. 
-                Search, secure, and scale your digital assets with zero-knowledge SSL 
-                and instant DNS provisioning.
-              </p>
-              <div className="mt-10 flex items-center gap-x-8">
-                <Link
-                  href="/products"
-                  className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-blue-500/25"
-                >
-                  Explore Products
-                  <ArrowRight className="inline-block ml-2 h-5 w-5" />
-                </Link>
-                <Link
-                  href="/developers"
-                  className="text-base font-semibold leading-7 text-zinc-300 hover:text-white transition-colors"
-                >
-                  Developers →
-                </Link>
-              </div>
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-600/10 px-4 py-2 text-sm font-medium text-blue-400 mb-6">
+              <Sparkles className="h-4 w-4" />
+              <span>Powered by Advanced AI</span>
             </div>
-            <div className="relative h-[400px] lg:h-[500px]">
-              <AnimatedHero3D />
+            <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+              Build Your Digital
+              <span className="block bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                Future Today
+              </span>
+            </h1>
+            <p className="mt-8 text-lg leading-8 text-zinc-400 max-w-2xl mx-auto">
+              The world's first AI-driven domain registrar and infrastructure hub.
+              Search, secure, and scale your digital assets with zero-knowledge SSL
+              and instant DNS provisioning.
+            </p>
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              <Link
+                href="/products"
+                className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 text-base font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-blue-500/25"
+              >
+                Explore Products
+                <ArrowRight className="inline-block ml-2 h-5 w-5" />
+              </Link>
+              <Link
+                href="/developers"
+                className="text-base font-semibold leading-7 text-zinc-300 hover:text-white transition-colors"
+              >
+                Developers →
+              </Link>
             </div>
           </div>
         </div>
