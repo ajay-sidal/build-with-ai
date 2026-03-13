@@ -1,6 +1,7 @@
 import Link from "next/link";
 import DomainSearch from "@/components/web3/DomainSearch";
 import FAQ from "@/components/ui/FAQ";
+import SovereignEcosystemGrid from "@/components/SovereignEcosystemGrid";
 
 export default function Home() {
   return (
@@ -54,41 +55,13 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="py-24 relative z-10 bg-[#0a0a0a]">
-        <div className="container mx-auto px-4 text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-4">The Sovereign <span className="text-teal-500">Ecosystem</span></h2>
-          <p className="text-neutral-400 text-lg max-w-2xl mx-auto font-medium">Build, scale, and tokenize your digital presence.</p>
-        </div>
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {/* Sovereign Domains - 2 Col Span */}
-          <div className="md:col-span-2 bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
-            <h3 className="text-2xl font-bold text-white mb-4">Sovereign Domains</h3>
-            <p className="text-neutral-400 leading-relaxed mb-8">Every domain purchased natively bridges to a Web3 Smart Wallet.</p>
-            <span className="text-teal-500 font-bold text-xs tracking-widest uppercase">Explore Engine →</span>
-          </div>
-          {/* SSL Sanctuary - 1 Col Span */}
-          <div className="bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
-            <h3 className="text-xl font-bold text-white mb-4">SSL Sanctuary</h3>
-            <p className="text-neutral-400 text-sm leading-relaxed mb-8">Bank-grade 256-bit encryption for total security.</p>
-            <span className="text-teal-500 font-bold text-xs tracking-widest uppercase">Secure Now →</span>
-          </div>
-          {/* Enterprise Hosting - 1 Col Span */}
-          <div className="bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
-            <h3 className="text-xl font-bold text-white mb-4">Enterprise Hosting</h3>
-            <p className="text-neutral-400 text-sm leading-relaxed mb-8">Dedicated server environments with premium architecture.</p>
-            <span className="text-teal-500 font-bold text-xs tracking-widest uppercase">Deploy Server →</span>
-          </div>
-          {/* DFY Agency - 2 Col Span */}
-          <div className="md:col-span-2 bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
-            <h3 className="text-2xl font-bold text-white mb-4">DFY Agency Protocol</h3>
-            <p className="text-neutral-400 leading-relaxed mb-8">Custom Web3-ready platforms designed by elite architects.</p>
-            <span className="text-teal-400 font-bold text-xs tracking-widest uppercase">View Portfolio →</span>
-          </div>
-        </div>
-      </section>
+      
+      {/* Gold Standard Bento Grid */}
+      <SovereignEcosystemGrid />
+      
       <section className="py-24 bg-[#050505] border-y border-neutral-900 relative z-10">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-white mb-12">The MARZ <span className="text-teal-500">Sovereignty Protocol</span></h2>
+          <h2 className="text-3xl font-black text-white mb-12 tracking-[0.2em]">The MARZ <span className="text-teal-500">Sovereignty Protocol</span></h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
             <div className="group"><div className="text-teal-500 font-bold text-xl mb-2">01. Bridge</div><p className="text-neutral-500 text-sm">Deploy via ICANN Elite backbone.</p></div>
             <div className="group"><div className="text-teal-500 font-bold text-xl mb-2">02. Tokenize</div><p className="text-neutral-500 text-sm">Mint RWA twin on-chain.</p></div>
