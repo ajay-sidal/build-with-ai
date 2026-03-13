@@ -5,13 +5,13 @@
 @layer utilities {
   /* THE SANCTUARY - SOVEREIGN TYPOGRAPHY */
   .text-sovereign-header {
-    @apply font-black uppercase tracking-[0.2em] leading-tight;
+    @apply font-black uppercase tracking-[0.2em] leading-tight text-white antialiased;
   }
-  
+
   .text-sovereign-title {
-    @apply font-black uppercase tracking-[0.2em] leading-tight;
+    @apply text-xl md:text-2xl font-black uppercase tracking-[0.2em] leading-tight text-white antialiased;
   }
-  
+
   .text-sovereign-subtitle {
     @apply font-bold uppercase tracking-[0.15em] leading-normal;
   }

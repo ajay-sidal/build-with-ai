@@ -97,8 +97,8 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Wallet size={28} className="text-teal-400" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl text-white text-sovereign-title">
-                    Sovereign Domains
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-[0.2em] leading-tight text-white antialiased">
+                    SOVEREIGN DOMAINS
                   </h3>
                 </div>
                 <p className="text-neutral-400 leading-relaxed mb-8">
@@ -144,8 +144,8 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Lock size={28} className="text-teal-400" />
                   </div>
-                  <h3 className="text-xl md:text-2xl text-white text-sovereign-title">
-                    SSL Sanctuary
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-[0.2em] leading-tight text-white antialiased">
+                    SSL SANCTUARY
                   </h3>
                 </div>
                 <p className="text-neutral-400 text-sm leading-relaxed mb-8">
@@ -190,8 +190,8 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Server size={28} className="text-teal-400" />
                   </div>
-                  <h3 className="text-xl md:text-2xl text-white text-sovereign-title">
-                    Enterprise Hosting
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-[0.2em] leading-tight text-white antialiased">
+                    ENTERPRISE HOSTING
                   </h3>
                 </div>
                 <p className="text-neutral-400 text-sm leading-relaxed mb-8">
@@ -238,8 +238,8 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Code2 size={28} className="text-teal-400" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl text-white text-sovereign-title">
-                    DFY Agency Protocol
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-[0.2em] leading-tight text-white antialiased">
+                    DFY AGENCY PROTOCOL
                   </h3>
                 </div>
                 <p className="text-neutral-400 leading-relaxed mb-8">
@@ -299,8 +299,8 @@ export default function SovereignEcosystemGrid() {
                     >
                       <GraduationCap size={28} className="text-teal-400" />
                     </div>
-                    <h3 className="text-xl md:text-2xl text-white text-sovereign-title">
-                      MARZ Academy
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-[0.2em] leading-tight text-white antialiased">
+                      MARZ ACADEMY
                     </h3>
                   </div>
                   <p className="text-neutral-400 text-sm leading-relaxed mb-6">
