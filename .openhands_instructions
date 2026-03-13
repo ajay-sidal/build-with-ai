@@ -1,0 +1,2 @@
+When using the execute_bash tool, you MUST include the security_risk parameter in your JSON. For directory scans, reading files, or benign development tasks, set security_risk to 'low'. Never omit this field.
+

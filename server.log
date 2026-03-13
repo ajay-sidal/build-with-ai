@@ -1,0 +1,15 @@
+nohup: ignoring input
+
+> build-with-ai@1.0.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://65.109.7.159:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 793ms
+ GET / 200 in 3.2s (compile: 2.9s, proxy.ts: 65ms, render: 306ms)
+⚠ Cross origin request detected from buildwithai.digital to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins

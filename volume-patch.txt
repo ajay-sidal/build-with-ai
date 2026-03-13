@@ -1,0 +1,4 @@
+    volumes:
+      - ./openwebui_data:/app/backend/data
+      - /root/build-with-ai/projects:/projects:ro
+      - /root/build-with-ai/.strategic:/projects/.strategic:ro

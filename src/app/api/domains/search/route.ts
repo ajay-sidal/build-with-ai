@@ -89,7 +89,7 @@ export async function POST(req: Request) {
   
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Invalid request', details: parsed.error.errors, requestId },
+      { error: 'Invalid request', details: parsed.error.issues, requestId },
       { status: 400, headers: { 'x-request-id': requestId } }
     )
   }

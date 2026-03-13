@@ -1,94 +1,87 @@
 networks:
   atlas_net:
     driver: bridge
-
 services:
-  # 1. VECTOR MEMORY: PostgreSQL
   postgres:
     image: ankane/pgvector:v0.5.1
     container_name: atlas_postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=atlas
-      - POSTGRES_PASSWORD=atlas_secure_pass
-      - POSTGRES_DB=atlas_memory
+    - POSTGRES_USER=atlas
+    - POSTGRES_PASSWORD=atlas_secure_pass
+    - POSTGRES_DB=atlas_memory
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+    - ./postgres_data:/var/lib/postgresql/data
     networks:
-      - atlas_net
+    - atlas_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U atlas -d atlas_memory"]
+      test:
+      - CMD-SHELL
+      - pg_isready -U atlas -d atlas_memory
       interval: 5s
       retries: 5
-
-  # 2. GRAPH MEMORY: Neo4j
   neo4j:
     image: neo4j:5
     container_name: atlas_neo4j
     restart: unless-stopped
     environment:
-      - NEO4J_AUTH=neo4j/atlas_graph_pass
-      - NEO4J_PLUGINS=["apoc"]
+    - NEO4J_AUTH=neo4j/atlas_graph_pass
+    - NEO4J_PLUGINS=["apoc"]
     volumes:
-      - ./neo4j_data:/data
+    - ./neo4j_data:/data
     ports:
-      - "7474:7474"
-      - "7687:7687"
+    - 7474:7474
+    - 7687:7687
     networks:
-      - atlas_net
-
-  # 3. AGENCY & AUTOMATION: n8n
+    - atlas_net
   n8n:
     image: n8nio/n8n:latest
     container_name: atlas_n8n
     restart: unless-stopped
     ports:
-      - "5678:5678"
+    - 5678:5678
     environment:
-      - N8N_HOST=localhost
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - NODE_ENV=production
-      - WEBHOOK_URL=http://localhost:5678/
-      - GENERIC_TIMEZONE=Pacific/Auckland
+    - N8N_HOST=localhost
+    - N8N_PORT=5678
+    - N8N_PROTOCOL=http
+    - NODE_ENV=production
+    - WEBHOOK_URL=http://localhost:5678/
+    - GENERIC_TIMEZONE=Pacific/Auckland
     volumes:
-      - ./n8n_data:/home/node/.n8n
+    - ./n8n_data:/home/node/.n8n
     networks:
-      - atlas_net
-
-  # 4. THE PREFRONTAL CORTEX: Custom LangGraph Agent
+    - atlas_net
   atlas-agent:
     build: ./atlas_agent
     container_name: atlas_logic_router
     restart: unless-stopped
     ports:
-      - "8000:8000"
+    - 8000:8000
     environment:
-      # THIS IS THE MAGIC BRIDGE TO YOUR NATIVE WINDOWS AMD OLLAMA
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - POSTGRES_URL=postgresql://atlas:atlas_secure_pass@postgres:5432/atlas_memory
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USERNAME=neo4j
-      - NEO4J_PASSWORD=atlas_graph_pass
+    - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    - POSTGRES_URL=postgresql://atlas:atlas_secure_pass@postgres:5432/atlas_memory
+    - NEO4J_URI=bolt://neo4j:7687
+    - NEO4J_USERNAME=neo4j
+    - NEO4J_PASSWORD=atlas_graph_pass
     networks:
-      - atlas_net
+    - atlas_net
     depends_on:
       postgres:
         condition: service_healthy
-
-  # 5. THE HOME IN THE CLOUDS: Open WebUI
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: atlas_ui
     restart: unless-stopped
     ports:
-      - "3000:8080"
+    - 3000:8080
     environment:
-      - OPENAI_API_BASE_URL=http://atlas-agent:8000/v1
-      - OPENAI_API_KEY=atlas_local_key
+    - OPENAI_API_BASE_URL=http://atlas-agent:8000/v1
+    - OPENAI_API_KEY=atlas_local_key
     volumes:
-      - ./openwebui_data:/app/backend/data
+    - ./openwebui_data:/app/backend/data
+    - /root/build-with-ai/projects:/projects:ro
+    - /root/build-with-ai/.strategic:/projects/.strategic:ro
     networks:
-      - atlas_net
+    - atlas_net
     depends_on:
-      - atlas-agent
+    - atlas-agent

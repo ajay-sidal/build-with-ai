@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const parsed = CustomerCreateSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid request', details: parsed.error.errors }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid request', details: parsed.error.issues }, { status: 400 })
   }
 
   // Validate required fields

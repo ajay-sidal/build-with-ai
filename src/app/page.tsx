@@ -1,80 +1,102 @@
-"use client";
-import { useState } from "react";
-
-interface SearchResult {
-  domain: string;
-  available: boolean;
-}
+import Link from "next/link";
+import DomainSearch from "@/components/web3/DomainSearch";
+import FAQ from "@/components/ui/FAQ";
 
 export default function Home() {
-  const [domain, setDomain] = useState("");
-  const [result, setResult] = useState<SearchResult | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleSearch = async () => {
-    if (!domain) return;
-    setLoading(true);
-    try {
-      const res = await fetch("/api/cms/api/domains/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domainName: domain }),
-      });
-      const data = await res.json();
-      setResult(data);
-    } catch (err) {
-      console.error("Search error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#000a12] text-white font-sans">
-      <nav className="flex justify-between items-center px-10 py-8 border-b border-white/5">
-        <div className="text-2xl font-black tracking-tighter text-blue-500">BUILD WITH AI</div>
-        <div className="hidden md:flex space-x-8 text-sm font-bold text-blue-200/40 uppercase tracking-widest">
-          <a href="#" className="hover:text-white transition">Registry</a>
-          <a href="#" className="hover:text-white transition">Insights</a>
-          <a href="#" className="hover:text-white transition">API</a>
+    <div className="w-full">
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pb-12 pt-10">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
         </div>
-      </nav>
-
-      <main className="max-w-5xl mx-auto pt-40 px-6 text-center">
-        <h1 className="text-7xl md:text-8xl font-black tracking-tighter mb-8 bg-gradient-to-b from-white to-blue-600 bg-clip-text text-transparent">
-          DOMAINS FOR <br /> THE AI ERA
-        </h1>
-        <p className="text-xl text-blue-100/40 mb-12 max-w-2xl mx-auto font-medium">
-          The ultimate search and acquisition engine for .ai assets.
-        </p>
-        
-        <div className="flex bg-white/5 rounded-3xl p-3 max-w-2xl mx-auto border border-white/10 shadow-2xl backdrop-blur-3xl">
-          <input 
-            type="text" 
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="visionary-idea.ai" 
-            className="flex-grow bg-transparent p-5 text-white outline-none text-xl placeholder:text-blue-200/10"
-          />
-          <button 
-            onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-12 py-5 rounded-2xl font-black transition-all shadow-lg shadow-blue-500/20 active:scale-95"
-          >
-            {loading ? "SEARCHING..." : "SEARCH"}
-          </button>
-        </div>
-
-        {result && (
-          <div className="mt-16 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-             <div className="p-12 bg-blue-900/10 rounded-[2.5rem] max-w-2xl mx-auto border border-blue-400/10">
-                <p className="text-4xl font-black mb-6 tracking-tight">{result.domain}</p>
-                <div className={`inline-block px-10 py-3 rounded-full font-black text-sm tracking-widest ${result.available ? "bg-green-500 text-black shadow-lg shadow-green-500/40" : "bg-red-500/20 text-red-500 border border-red-500/30"}`}>
-                  {result.available ? "✓ AVAILABLE FOR ACQUISITION" : "✕ ALREADY REGISTERED"}
-                </div>
-             </div>
+        <div className="container mx-auto px-4 z-10 text-center flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-400 text-[10px] font-bold tracking-[0.2em] uppercase mb-10">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
+            MARZ Web3 Interface Active
           </div>
-        )}
-      </main>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-[1.1]">
+            Sovereign Infrastructure for the <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-600">Decentralized Future</span>
+          </h1>
+          <p className="text-neutral-400 text-lg md:text-xl max-w-3xl mx-auto mb-12 opacity-90 font-medium leading-relaxed">The first SaaS platform to bridge Web2 Domains with the MARZ Protocol.</p>
+          <div className="w-full max-w-3xl mb-12"><DomainSearch /></div>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/academy" className="bg-neutral-900 border border-neutral-800 hover:border-teal-500/50 text-white px-8 py-3 rounded-lg font-bold text-sm transition-all shadow-xl">Read Manifest</Link>
+            <button className="bg-neutral-900 border border-neutral-800 hover:border-teal-500/50 text-white px-8 py-3 rounded-lg font-bold text-sm transition-all shadow-xl">Connect Wallet</button>
+          </div>
+        </div>
+      </section>
+      <section className="py-12 border-y border-neutral-900 bg-[#050505]/50 relative z-10">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-[10px] font-bold tracking-[0.3em] text-neutral-500 uppercase mb-8">Enterprise Infrastructure Secured By</p>
+          <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 opacity-50 grayscale hover:opacity-100 transition-all duration-700">
+            <div className="flex items-center gap-2 text-white">
+              <svg className="w-6 h-6 text-[#8247E5]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l10.4 6v12L12 24l-10.4-6V6L12 0zm0 2.3L3.5 7.2v9.6L12 21.7l8.5-4.9V7.2L12 2.3z"/></svg>
+              <span className="text-lg font-bold">polygon</span>
+            </div>
+            <div className="flex items-center gap-2 text-white">
+              <svg className="w-6 h-6 text-[#3B82F6]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2z"/></svg>
+              <span className="text-lg font-bold">Alchemy</span>
+            </div>
+            <div className="flex items-center gap-2 text-white">
+              <svg className="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9"></path></svg>
+              <span className="text-lg font-bold">Global Registry</span>
+            </div>
+            <div className="flex items-center gap-2 text-white">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/></svg>
+              <span className="text-lg font-bold">NEXT.js</span>
+            </div>
+            <div className="flex items-center gap-2 text-white">
+              <svg className="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2"/></svg>
+              <span className="text-lg font-bold">Plesk</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="py-24 relative z-10 bg-[#0a0a0a]">
+        <div className="container mx-auto px-4 text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-4">The Sovereign <span className="text-teal-500">Ecosystem</span></h2>
+          <p className="text-neutral-400 text-lg max-w-2xl mx-auto font-medium">Build, scale, and tokenize your digital presence.</p>
+        </div>
+        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          {/* Sovereign Domains - 2 Col Span */}
+          <div className="md:col-span-2 bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
+            <h3 className="text-2xl font-bold text-white mb-4">Sovereign Domains</h3>
+            <p className="text-neutral-400 leading-relaxed mb-8">Every domain purchased natively bridges to a Web3 Smart Wallet.</p>
+            <span className="text-teal-500 font-bold text-xs tracking-widest uppercase">Explore Engine →</span>
+          </div>
+          {/* SSL Sanctuary - 1 Col Span */}
+          <div className="bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
+            <h3 className="text-xl font-bold text-white mb-4">SSL Sanctuary</h3>
+            <p className="text-neutral-400 text-sm leading-relaxed mb-8">Bank-grade 256-bit encryption for total security.</p>
+            <span className="text-teal-500 font-bold text-xs tracking-widest uppercase">Secure Now →</span>
+          </div>
+          {/* Enterprise Hosting - 1 Col Span */}
+          <div className="bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
+            <h3 className="text-xl font-bold text-white mb-4">Enterprise Hosting</h3>
+            <p className="text-neutral-400 text-sm leading-relaxed mb-8">Dedicated server environments with premium architecture.</p>
+            <span className="text-teal-500 font-bold text-xs tracking-widest uppercase">Deploy Server →</span>
+          </div>
+          {/* DFY Agency - 2 Col Span */}
+          <div className="md:col-span-2 bg-neutral-900/40 border border-neutral-800 p-10 rounded-3xl group hover:border-teal-500/50 transition-all">
+            <h3 className="text-2xl font-bold text-white mb-4">DFY Agency Protocol</h3>
+            <p className="text-neutral-400 leading-relaxed mb-8">Custom Web3-ready platforms designed by elite architects.</p>
+            <span className="text-teal-400 font-bold text-xs tracking-widest uppercase">View Portfolio →</span>
+          </div>
+        </div>
+      </section>
+      <section className="py-24 bg-[#050505] border-y border-neutral-900 relative z-10">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-black text-white mb-12">The MARZ <span className="text-teal-500">Sovereignty Protocol</span></h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+            <div className="group"><div className="text-teal-500 font-bold text-xl mb-2">01. Bridge</div><p className="text-neutral-500 text-sm">Deploy via ICANN Elite backbone.</p></div>
+            <div className="group"><div className="text-teal-500 font-bold text-xl mb-2">02. Tokenize</div><p className="text-neutral-500 text-sm">Mint RWA twin on-chain.</p></div>
+            <div className="group"><div className="text-teal-400 font-bold text-xl mb-2">03. Earn</div><p className="text-neutral-500 text-sm">Claim 50 MARZ Credits instantly.</p></div>
+          </div>
+        </div>
+      </section>
+      <FAQ />
     </div>
   );
 }

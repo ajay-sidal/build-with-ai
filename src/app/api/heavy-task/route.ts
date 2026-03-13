@@ -13,7 +13,7 @@ export const maxDuration = 60 // seconds (adjust based on Vercel plan)
 // Request validation schema
 const HeavyTaskSchema = z.object({
   taskType: z.enum(['vector-embedding', 'image-processing', 'data-transformation', 'bulk-operation']),
-  payload: z.record(z.unknown()),
+  payload: z.record(z.string(), z.unknown()),
   priority: z.enum(['low', 'normal', 'high']).optional().default('normal'),
 })
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
           success: false,
           requestId,
           error: 'Validation error',
-          details: error.errors,
+          details: error.issues,
         },
         { status: 400, headers: { 'X-Request-ID': requestId } }
       )
