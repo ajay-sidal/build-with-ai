@@ -27,6 +27,19 @@ const staggerContainer = {
   },
 };
 
+// Gold Standard Typography Styles
+const cardTitleBaseStyles = {
+  fontFamily: DESIGN_TOKENS.typography.fontFamily,
+  fontWeight: 800, // font-black
+  letterSpacing: DESIGN_TOKENS.typography.tracking.widest, // 0.2em
+  color: DESIGN_TOKENS.colors.text.primary, // #ffffff
+};
+
+const sectionHeaderStyles = {
+  ...cardTitleBaseStyles,
+  fontWeight: 900, // font-black for section headers
+};
+
 export default function SovereignEcosystemGrid() {
   return (
     <section className="py-24 relative z-10 bg-[#0a0a0a]">
@@ -42,7 +55,7 @@ export default function SovereignEcosystemGrid() {
         >
           <h2
             className="text-4xl md:text-5xl font-black text-white mb-4"
-            style={{ letterSpacing: DESIGN_TOKENS.typography.tracking.widest }}
+            style={sectionHeaderStyles}
           >
             The Sovereign{" "}
             <span
@@ -73,7 +86,7 @@ export default function SovereignEcosystemGrid() {
           >
             <Link href="/products/domains/registration" className="block h-full">
               <div
-                className="group h-full bg-[#0a0a0a] border rounded-3xl p-10 transition-all duration-300 hover:shadow-lg"
+                className="group h-full bg-[#0a0a0a] border rounded-3xl p-8 md:p-10 transition-all duration-300 hover:shadow-lg"
                 style={{
                   borderColor: DESIGN_TOKENS.colors.border.subtle,
                   boxShadow: DESIGN_TOKENS.effects.cardShadow,
@@ -98,14 +111,14 @@ export default function SovereignEcosystemGrid() {
                     <Wallet size={28} className="text-teal-400" />
                   </div>
                   <h3
-                    className="text-2xl font-bold text-white"
-                    style={{ letterSpacing: DESIGN_TOKENS.typography.tracking.widest }}
+                    className="text-2xl md:text-3xl font-black text-white uppercase"
+                    style={cardTitleBaseStyles}
                   >
                     Sovereign Domains
                   </h3>
                 </div>
                 <p className="text-neutral-400 leading-relaxed mb-8">
-                  Every domain purchased natively bridges to a Web3 Smart Wallet. 
+                  Every domain purchased natively bridges to a Web3 Smart Wallet.
                   Your digital identity, secured on-chain.
                 </p>
                 <div className="flex items-center gap-2 text-sm font-bold uppercase" style={{ color: DESIGN_TOKENS.colors.brand.teal, letterSpacing: "0.15em" }}>
@@ -123,7 +136,7 @@ export default function SovereignEcosystemGrid() {
           >
             <Link href="/ssl" className="block h-full">
               <div
-                className="group h-full bg-[#0a0a0a] border rounded-3xl p-10 transition-all duration-300 hover:shadow-lg"
+                className="group h-full bg-[#0a0a0a] border rounded-3xl p-8 md:p-10 transition-all duration-300 hover:shadow-lg"
                 style={{
                   borderColor: DESIGN_TOKENS.colors.border.subtle,
                   boxShadow: DESIGN_TOKENS.effects.cardShadow,
@@ -148,8 +161,8 @@ export default function SovereignEcosystemGrid() {
                     <Lock size={28} className="text-teal-400" />
                   </div>
                   <h3
-                    className="text-xl font-bold text-white"
-                    style={{ letterSpacing: DESIGN_TOKENS.typography.tracking.widest }}
+                    className="text-xl md:text-2xl font-black text-white uppercase"
+                    style={cardTitleBaseStyles}
                   >
                     SSL Sanctuary
                   </h3>
@@ -172,7 +185,7 @@ export default function SovereignEcosystemGrid() {
           >
             <Link href="/products/dns/hosting" className="block h-full">
               <div
-                className="group h-full bg-[#0a0a0a] border rounded-3xl p-10 transition-all duration-300 hover:shadow-lg"
+                className="group h-full bg-[#0a0a0a] border rounded-3xl p-8 md:p-10 transition-all duration-300 hover:shadow-lg"
                 style={{
                   borderColor: DESIGN_TOKENS.colors.border.subtle,
                   boxShadow: DESIGN_TOKENS.effects.cardShadow,
@@ -197,8 +210,8 @@ export default function SovereignEcosystemGrid() {
                     <Server size={28} className="text-teal-400" />
                   </div>
                   <h3
-                    className="text-xl font-bold text-white"
-                    style={{ letterSpacing: DESIGN_TOKENS.typography.tracking.widest }}
+                    className="text-xl md:text-2xl font-black text-white uppercase"
+                    style={cardTitleBaseStyles}
                   >
                     Enterprise Hosting
                   </h3>
@@ -223,7 +236,7 @@ export default function SovereignEcosystemGrid() {
           >
             <Link href="/services/ai-design" className="block h-full">
               <div
-                className="group h-full bg-[#0a0a0a] border rounded-3xl p-10 transition-all duration-300 hover:shadow-lg"
+                className="group h-full bg-[#0a0a0a] border rounded-3xl p-8 md:p-10 transition-all duration-300 hover:shadow-lg"
                 style={{
                   borderColor: DESIGN_TOKENS.colors.border.subtle,
                   boxShadow: DESIGN_TOKENS.effects.cardShadow,
@@ -248,8 +261,8 @@ export default function SovereignEcosystemGrid() {
                     <Code2 size={28} className="text-teal-400" />
                   </div>
                   <h3
-                    className="text-2xl font-bold text-white"
-                    style={{ letterSpacing: DESIGN_TOKENS.typography.tracking.widest }}
+                    className="text-2xl md:text-3xl font-black text-white uppercase"
+                    style={cardTitleBaseStyles}
                   >
                     DFY Agency Protocol
                   </h3>
@@ -274,7 +287,7 @@ export default function SovereignEcosystemGrid() {
           >
             <Link href="/academy" className="block h-full">
               <div
-                className="group relative h-full bg-gradient-to-br from-[#0a0a0a] to-[#0f0f0f] border rounded-3xl p-10 transition-all duration-300 overflow-hidden"
+                className="group relative h-full bg-gradient-to-br from-[#0a0a0a] to-[#0f0f0f] border rounded-3xl p-8 md:p-10 transition-all duration-300 overflow-hidden"
                 style={{
                   borderColor: DESIGN_TOKENS.colors.border.subtle,
                   boxShadow: DESIGN_TOKENS.effects.cardShadow,
@@ -295,7 +308,7 @@ export default function SovereignEcosystemGrid() {
                     background: DESIGN_TOKENS.effects.glassGradient,
                   }}
                 />
-                
+
                 {/* Sparkle effect */}
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <Sparkles size={20} className="text-teal-400 animate-pulse" />
@@ -312,8 +325,8 @@ export default function SovereignEcosystemGrid() {
                       <GraduationCap size={28} className="text-teal-400" />
                     </div>
                     <h3
-                      className="text-xl font-bold text-white"
-                      style={{ letterSpacing: DESIGN_TOKENS.typography.tracking.widest }}
+                      className="text-xl md:text-2xl font-black text-white uppercase"
+                      style={cardTitleBaseStyles}
                     >
                       MARZ Academy
                     </h3>
@@ -321,7 +334,7 @@ export default function SovereignEcosystemGrid() {
                   <p className="text-neutral-400 text-sm leading-relaxed mb-6">
                     Master the Sovereignty Protocol. Learn to bridge, tokenize, and earn.
                   </p>
-                  
+
                   {/* Feature badges */}
                   <div className="flex flex-wrap gap-2 mb-6">
                     <span className="rounded-full border px-3 py-1 text-xs font-medium" style={{
