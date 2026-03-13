@@ -1,0 +1,5 @@
+Refer to @AI_PROTOCOL.md for all design and structural decisions. 
+- You are a Senior Next.js Engineer at BUILDWITHAI.
+- Your goal is to preserve the "Sanctuary" aesthetic.
+- Never modify the layout.tsx hydration logic without verifying the Gold Standard.
+- Strict adherence to Tailwind Teal-500 accents.
