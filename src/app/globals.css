@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* THE SANCTUARY - SOVEREIGN TYPOGRAPHY */
+  .text-sovereign-header {
+    @apply font-black uppercase tracking-[0.2em] leading-tight;
+  }
+  
+  .text-sovereign-title {
+    @apply font-black uppercase tracking-[0.2em] leading-tight;
+  }
+  
+  .text-sovereign-subtitle {
+    @apply font-bold uppercase tracking-[0.15em] leading-normal;
+  }
+}
+
 :root {
   color-scheme: dark;
 

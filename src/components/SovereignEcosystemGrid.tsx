@@ -27,24 +27,11 @@ const staggerContainer = {
   },
 };
 
-// Gold Standard Typography Styles
-const cardTitleBaseStyles = {
-  fontFamily: DESIGN_TOKENS.typography.fontFamily,
-  fontWeight: 800, // font-black
-  letterSpacing: DESIGN_TOKENS.typography.tracking.widest, // 0.2em
-  color: DESIGN_TOKENS.colors.text.primary, // #ffffff
-};
-
-const sectionHeaderStyles = {
-  ...cardTitleBaseStyles,
-  fontWeight: 900, // font-black for section headers
-};
-
 export default function SovereignEcosystemGrid() {
   return (
     <section className="py-24 relative z-10 bg-[#0a0a0a]">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        {/* Header - Sovereign Level */}
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -54,8 +41,8 @@ export default function SovereignEcosystemGrid() {
           className="text-center mb-16"
         >
           <h2
-            className="text-4xl md:text-5xl font-black text-white mb-4"
-            style={sectionHeaderStyles}
+            className="text-4xl md:text-5xl text-white text-sovereign-header mb-4"
+            style={{ color: DESIGN_TOKENS.colors.text.primary }}
           >
             The Sovereign{" "}
             <span
@@ -110,10 +97,7 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Wallet size={28} className="text-teal-400" />
                   </div>
-                  <h3
-                    className="text-2xl md:text-3xl font-black text-white uppercase"
-                    style={cardTitleBaseStyles}
-                  >
+                  <h3 className="text-2xl md:text-3xl text-white text-sovereign-title">
                     Sovereign Domains
                   </h3>
                 </div>
@@ -160,10 +144,7 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Lock size={28} className="text-teal-400" />
                   </div>
-                  <h3
-                    className="text-xl md:text-2xl font-black text-white uppercase"
-                    style={cardTitleBaseStyles}
-                  >
+                  <h3 className="text-xl md:text-2xl text-white text-sovereign-title">
                     SSL Sanctuary
                   </h3>
                 </div>
@@ -209,10 +190,7 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Server size={28} className="text-teal-400" />
                   </div>
-                  <h3
-                    className="text-xl md:text-2xl font-black text-white uppercase"
-                    style={cardTitleBaseStyles}
-                  >
+                  <h3 className="text-xl md:text-2xl text-white text-sovereign-title">
                     Enterprise Hosting
                   </h3>
                 </div>
@@ -260,10 +238,7 @@ export default function SovereignEcosystemGrid() {
                   >
                     <Code2 size={28} className="text-teal-400" />
                   </div>
-                  <h3
-                    className="text-2xl md:text-3xl font-black text-white uppercase"
-                    style={cardTitleBaseStyles}
-                  >
+                  <h3 className="text-2xl md:text-3xl text-white text-sovereign-title">
                     DFY Agency Protocol
                   </h3>
                 </div>
@@ -324,10 +299,7 @@ export default function SovereignEcosystemGrid() {
                     >
                       <GraduationCap size={28} className="text-teal-400" />
                     </div>
-                    <h3
-                      className="text-xl md:text-2xl font-black text-white uppercase"
-                      style={cardTitleBaseStyles}
-                    >
+                    <h3 className="text-xl md:text-2xl text-white text-sovereign-title">
                       MARZ Academy
                     </h3>
                   </div>
