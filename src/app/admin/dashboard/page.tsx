@@ -20,6 +20,7 @@ export default async function AdminDashboardPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
       <p className="mt-1 text-sm text-zinc-400">Enterprise admin features for subscribers, affiliates, investors, agencies.</p>
       <ul className="mt-6 space-y-4">
+        <li><Link href="/dashboard/admin" className="text-blue-400 underline">FOUNDER Dashboard</Link></li>
         <li><Link href="/admin/leads" className="text-blue-400 underline">Leads Management</Link></li>
         <li><Link href="/admin/payouts" className="text-blue-400 underline">Payout Requests</Link></li>
         <li><Link href="/admin/errors" className="text-blue-400 underline">Error Logs</Link></li>

@@ -163,7 +163,12 @@ export default function DomainSearch() {
   }
 
   async function onBuyNow(result: DomainResult) {
-    const handle = typeof window !== 'undefined' ? window.localStorage.getItem('op_customer_handle') : null
+    const cookieHandle = typeof window !== 'undefined'
+      ? document.cookie.match(/(?:^|; )bwai_user_id=([^;]+)/)?.[1] || null
+      : null
+    const handle = typeof window !== 'undefined'
+      ? window.localStorage.getItem('op_customer_handle') || (cookieHandle ? decodeURIComponent(cookieHandle) : null)
+      : null
     if (!handle) {
       router.push(`/signup?next=${encodeURIComponent(`/?domain=${result.domain}`)}`)
       return

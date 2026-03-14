@@ -56,3 +56,15 @@ export async function getUser(userId: string): Promise<DbUser | null> {
   )
   return rows[0] || null
 }
+
+export async function getLatestUser(): Promise<DbUser | null> {
+  await ensureUsersTable()
+  const pool = getPostgresPool()
+  const { rows } = await pool.query<DbUser>(
+    `SELECT user_id, email, subscription_tier, renewal_date
+     FROM public.users
+     ORDER BY updated_at DESC NULLS LAST, created_at DESC NULLS LAST
+     LIMIT 1`,
+  )
+  return rows[0] || null
+}

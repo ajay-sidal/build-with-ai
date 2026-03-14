@@ -45,6 +45,10 @@ export default function SignupForm() {
         throw new Error('error' in data ? data.error : 'Signup failed')
       }
 
+      if (data.handle && typeof window !== 'undefined') {
+        window.localStorage.setItem('op_customer_handle', data.handle)
+      }
+
       setSuccess('Account created! Redirecting to sign in...')
       setTimeout(() => {
         router.push('/login?next=' + encodeURIComponent(next))

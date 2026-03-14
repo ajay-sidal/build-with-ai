@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 
 const NAV_ITEMS = [
   { label: 'Mission Control', href: '/dashboard' },
@@ -11,15 +12,26 @@ const NAV_ITEMS = [
   { label: 'API Console', href: '/dashboard/api' },
 ];
 
-const leads = [
-  { name: 'A. Patel', service: 'SSL Migration', budget: '$4,800', status: 'Discovery' },
-  { name: 'M. Rivers', service: 'Domain Portfolio Bridge', budget: '$12,000', status: 'Proposal Sent' },
-  { name: 'N. Ortega', service: 'Premium DNS Setup', budget: '$2,400', status: 'Discovery' },
-  { name: 'K. Johnson', service: 'Enterprise API Integration', budget: '$18,500', status: 'Proposal Sent' },
-  { name: 'S. Kim', service: 'Brand Protection Package', budget: '$9,200', status: 'Discovery' },
-];
+type DashboardLead = {
+  id: string;
+  name: string;
+  service: string;
+  budgetUsd: number;
+  status: 'Discovery' | 'Proposal Sent' | 'Active Mission';
+  email: string;
+  createdAt: string;
+};
 
 function StatusPill({ status }: { status: string }) {
+  if (status === 'Active Mission') {
+    return (
+      <span className="inline-flex items-center gap-1.5 bg-teal-500/10 text-teal-400 border border-teal-500/30 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider uppercase">
+        <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+        Active Mission
+      </span>
+    );
+  }
+
   if (status === 'Proposal Sent') {
     return (
       <span className="inline-flex items-center gap-1.5 bg-purple-500/10 text-purple-400 border border-purple-500/30 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider uppercase">
@@ -37,9 +49,57 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
+function formatUsd(amount: number) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+}
+
 export default function DashboardLeadsPage() {
-  const potentialValue = '$46,900';
-  const activeMissions = '5';
+  const [leads, setLeads] = useState<DashboardLead[]>([]);
+  const [potentialValueUsd, setPotentialValueUsd] = useState(0);
+  const [activeMissions, setActiveMissions] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch('/api/dashboard/leads', { cache: 'no-store' });
+        const data = (await res.json().catch(() => null)) as
+          | { leads?: DashboardLead[]; potentialContractValueUsd?: number; activeMissions?: number; error?: string }
+          | null;
+
+        if (!res.ok) {
+          throw new Error(data?.error || 'Failed to load CRM pipeline');
+        }
+
+        if (!cancelled) {
+          setLeads(Array.isArray(data?.leads) ? data.leads : []);
+          setPotentialValueUsd(Number(data?.potentialContractValueUsd || 0));
+          setActiveMissions(Number(data?.activeMissions || 0));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load CRM pipeline');
+          setLeads([]);
+          setPotentialValueUsd(0);
+          setActiveMissions(0);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const liveIntakeLabel = useMemo(() => (loading ? 'Syncing database…' : 'Live Intake: database / leads.jsonl'), [loading]);
 
   return (
     <div className="min-h-screen bg-[#070709] text-white flex">
@@ -97,7 +157,7 @@ export default function DashboardLeadsPage() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="card-glass p-6">
             <h2 className="text-sovereign-title text-lg text-white mb-3">Potential Contract Value</h2>
-            <p className="text-4xl font-black text-gradient mb-2">{potentialValue}</p>
+            <p className="text-4xl font-black text-gradient mb-2">{formatUsd(potentialValueUsd)}</p>
             <p className="text-neutral-500 text-xs uppercase tracking-wider">Across current pipeline</p>
           </div>
           <div className="card-glass p-6">
@@ -110,8 +170,10 @@ export default function DashboardLeadsPage() {
         <section className="card-glass p-6 md:p-8 overflow-x-auto">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-sovereign-title text-lg text-white">Lead Pipeline</h2>
-            <span className="text-xs text-neutral-500 uppercase tracking-wider">Live Intake: /leads</span>
+            <span className="text-xs text-neutral-500 uppercase tracking-wider">{liveIntakeLabel}</span>
           </div>
+
+          {error ? <div className="mb-4 rounded-xl border border-red-800/40 bg-red-950/20 p-4 text-sm text-red-200">{error}</div> : null}
 
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
@@ -123,16 +185,26 @@ export default function DashboardLeadsPage() {
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
-                <tr key={`${lead.name}-${lead.service}`} className="border-b border-neutral-800/40 hover:bg-white/[0.02]">
-                  <td className="py-3 px-2 text-sm font-semibold text-white">{lead.name}</td>
-                  <td className="py-3 px-2 text-sm text-neutral-300">{lead.service}</td>
-                  <td className="py-3 px-2 text-sm font-bold text-teal-400">{lead.budget}</td>
-                  <td className="py-3 px-2">
-                    <StatusPill status={lead.status} />
-                  </td>
+              {loading ? (
+                <tr>
+                  <td className="py-8 text-neutral-500" colSpan={4}>Syncing live leads…</td>
                 </tr>
-              ))}
+              ) : leads.length === 0 ? (
+                <tr>
+                  <td className="py-8 text-neutral-500" colSpan={4}>No leads found in the live intake store.</td>
+                </tr>
+              ) : (
+                leads.map((lead) => (
+                  <tr key={lead.id} className="border-b border-neutral-800/40 hover:bg-white/[0.02]">
+                    <td className="py-3 px-2 text-sm font-semibold text-white">{lead.name}</td>
+                    <td className="py-3 px-2 text-sm text-neutral-300">{lead.service}</td>
+                    <td className="py-3 px-2 text-sm font-bold text-teal-400">{formatUsd(lead.budgetUsd)}</td>
+                    <td className="py-3 px-2">
+                      <StatusPill status={lead.status} />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </section>

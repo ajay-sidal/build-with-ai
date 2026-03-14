@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const NAV_ITEMS = [
   {
@@ -54,20 +54,88 @@ const NAV_ITEMS = [
 
 const EMPTY_SLOTS = Array.from({ length: 6 });
 
+type MarzAsset = {
+  id: string;
+  identity: string;
+  status: string;
+  gasSponsoredUsd: number;
+  createdAt: string;
+};
+
+type MarzDashboardResponse = {
+  totalIdentities: number;
+  gasSponsoredUsd: number;
+  assets: MarzAsset[];
+  error?: string;
+};
+
 export default function MARZDashboardPage() {
   const [identity, setIdentity] = useState('');
   const [minting, setMinting] = useState(false);
-  const [minted, setMinted] = useState(false);
+  const [mintedIdentity, setMintedIdentity] = useState<string | null>(null);
+  const [stats, setStats] = useState({ totalIdentities: 0, gasSponsoredUsd: 0, assets: [] as MarzAsset[] });
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
-  function handleMint(e: React.FormEvent) {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDashboard() {
+      try {
+        setDashboardError(null);
+        const res = await fetch('/api/dashboard/marz', { cache: 'no-store' });
+        const data = (await res.json().catch(() => null)) as MarzDashboardResponse | null;
+        if (!res.ok) {
+          throw new Error(data?.error || 'Failed to load MARZ dashboard');
+        }
+        if (!cancelled) {
+          setStats({
+            totalIdentities: Number(data?.totalIdentities || 0),
+            gasSponsoredUsd: Number(data?.gasSponsoredUsd || 0),
+            assets: Array.isArray(data?.assets) ? data.assets : [],
+          });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setDashboardError(err instanceof Error ? err.message : 'Failed to load MARZ dashboard');
+        }
+      }
+    }
+
+    loadDashboard();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleMint(e: React.FormEvent) {
     e.preventDefault();
     if (!identity.trim()) return;
     setMinting(true);
-    // Shell — no contract call yet; simulate transition
-    setTimeout(() => {
+
+    try {
+      setDashboardError(null);
+      const res = await fetch('/api/dashboard/marz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identity }),
+      });
+      const data = (await res.json().catch(() => null)) as (MarzDashboardResponse & { minted?: { identity?: string }; error?: string }) | null;
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to mint identity');
+      }
+
+      setMintedIdentity(data?.minted?.identity ? `${data.minted.identity}.marz` : `${identity}.marz`);
+      setStats({
+        totalIdentities: Number(data?.totalIdentities || 0),
+        gasSponsoredUsd: Number(data?.gasSponsoredUsd || 0),
+        assets: Array.isArray(data?.assets) ? data.assets : [],
+      });
+      setIdentity('');
+    } catch (err) {
+      setDashboardError(err instanceof Error ? err.message : 'Failed to mint identity');
+    } finally {
       setMinting(false);
-      setMinted(true);
-    }, 2200);
+    }
   }
 
   return (
@@ -178,16 +246,18 @@ export default function MARZDashboardPage() {
             </div>
             <div className="shrink-0 flex items-center gap-4 text-xs text-neutral-500">
               <div className="text-center">
-                <p className="text-white font-black text-2xl">100</p>
-                <p className="uppercase tracking-wider">Genesis slots</p>
+                <p className="text-white font-black text-2xl">{stats.totalIdentities}</p>
+                <p className="uppercase tracking-wider">Minted identities</p>
               </div>
               <div className="w-px h-8 bg-neutral-800" />
               <div className="text-center">
-                <p className="text-teal-400 font-black text-2xl">$0</p>
-                <p className="uppercase tracking-wider">Gas fee</p>
+                <p className="text-teal-400 font-black text-2xl">${stats.gasSponsoredUsd.toFixed(2)}</p>
+                <p className="uppercase tracking-wider">Gas sponsored</p>
               </div>
             </div>
           </div>
+
+          {dashboardError ? <div className="rounded-xl border border-red-800/40 bg-red-950/20 p-4 text-sm text-red-200">{dashboardError}</div> : null}
 
           {/* ── MINT CARD ── */}
           <div className="card-glass p-8 md:p-12 relative overflow-hidden">
@@ -216,7 +286,7 @@ export default function MARZDashboardPage() {
               </div>
 
               {/* Input form */}
-              {!minted ? (
+              {!mintedIdentity ? (
                 <form onSubmit={handleMint} className="space-y-4">
                   <div className="relative">
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -271,10 +341,10 @@ export default function MARZDashboardPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-teal-400 font-black text-xl mb-1">{identity}.marz</p>
-                    <p className="text-neutral-400 text-sm">Identity minted. Awaiting on-chain confirmation.</p>
+                    <p className="text-teal-400 font-black text-xl mb-1">{mintedIdentity}</p>
+                    <p className="text-neutral-400 text-sm">Identity minted and persisted to the live MARZ registry.</p>
                   </div>
-                  <button onClick={() => { setMinted(false); setIdentity(''); }} className="text-xs text-neutral-500 hover:text-white transition-colors underline underline-offset-4">
+                  <button onClick={() => { setMintedIdentity(null); setIdentity(''); }} className="text-xs text-neutral-500 hover:text-white transition-colors underline underline-offset-4">
                     Mint another identity
                   </button>
                 </div>
@@ -293,8 +363,8 @@ export default function MARZDashboardPage() {
           {/* ── Protocol stats bar ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Identities', value: '—', sub: 'Genesis phase' },
-              { label: 'Gas Sponsored', value: '$0.00', sub: 'All time' },
+              { label: 'Total Identities', value: stats.totalIdentities.toString(), sub: 'Live registry' },
+              { label: 'Gas Sponsored', value: `$${stats.gasSponsoredUsd.toFixed(2)}`, sub: 'All time' },
               { label: 'Chain', value: 'MARZ', sub: 'Layer 1' },
               { label: 'Bridge Status', value: 'Live', sub: 'Gasless active', accent: true },
             ].map((s) => (
@@ -319,28 +389,43 @@ export default function MARZDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {EMPTY_SLOTS.map((_, i) => (
-                <div key={i} className="card-glass p-6 flex flex-col gap-3 relative overflow-hidden group">
-                  {/* Empty slot ghost UI */}
-                  <div className="flex items-center gap-3">
-                    <div className="skeleton w-10 h-10 rounded-xl" />
-                    <div className="flex-1 space-y-2">
-                      <div className="skeleton h-3 w-3/4 rounded" />
-                      <div className="skeleton h-2 w-1/2 rounded" />
+              {stats.assets.length === 0
+                ? EMPTY_SLOTS.map((_, i) => (
+                    <div key={i} className="card-glass p-6 flex flex-col gap-3 relative overflow-hidden group">
+                      <div className="flex items-center gap-3">
+                        <div className="skeleton w-10 h-10 rounded-xl" />
+                        <div className="flex-1 space-y-2">
+                          <div className="skeleton h-3 w-3/4 rounded" />
+                          <div className="skeleton h-2 w-1/2 rounded" />
+                        </div>
+                      </div>
+                      <div className="skeleton h-2 w-full rounded" />
+                      <div className="skeleton h-2 w-2/3 rounded" />
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="skeleton h-5 w-16 rounded-full" />
+                        <div className="skeleton h-5 w-10 rounded" />
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-[#0a0a0c]/80 rounded-[16px]">
+                        <p className="text-neutral-500 text-xs font-bold uppercase tracking-wider">Mint to populate</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="skeleton h-2 w-full rounded" />
-                  <div className="skeleton h-2 w-2/3 rounded" />
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="skeleton h-5 w-16 rounded-full" />
-                    <div className="skeleton h-5 w-10 rounded" />
-                  </div>
-                  {/* Overlay hint */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-[#0a0a0c]/80 rounded-[16px]">
-                    <p className="text-neutral-500 text-xs font-bold uppercase tracking-wider">Mint to populate</p>
-                  </div>
-                </div>
-              ))}
+                  ))
+                : stats.assets.map((asset) => (
+                    <div key={asset.id} className="card-glass p-6 flex flex-col gap-3 relative overflow-hidden border border-teal-500/20">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-white font-black text-base">{asset.identity}.marz</p>
+                          <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Minted asset</p>
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-teal-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+                          {asset.status}
+                        </span>
+                      </div>
+                      <div className="text-sm text-neutral-400">Gas sponsored: ${asset.gasSponsoredUsd.toFixed(2)}</div>
+                      <div className="text-xs text-neutral-500">Created {new Date(asset.createdAt).toLocaleString()}</div>
+                    </div>
+                  ))}
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const NAV_ITEMS = [
   { label: 'Mission Control', href: '/dashboard', active: true },
@@ -33,11 +34,43 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-  const membershipTier = 'Founder';
-  const services = [
-    { name: 'SSL Sanctuary', status: 'Active' },
-    { name: 'Premium DNS', status: 'Active' },
-  ];
+  const [membershipTier, setMembershipTier] = useState('Syncing profile');
+  const [services, setServices] = useState<Array<{ name: string; status: 'Active' | 'Inactive' }>>([]);
+  const [snapshotError, setSnapshotError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSnapshot() {
+      try {
+        setSnapshotError(null);
+        const res = await fetch('/api/dashboard/snapshot', { cache: 'no-store' });
+        const data = (await res.json().catch(() => null)) as
+          | { membershipTier?: string; securityServices?: Array<{ name: string; status: 'Active' | 'Inactive' }>; error?: string }
+          | null;
+
+        if (!res.ok) {
+          throw new Error(data?.error || 'Failed to load account snapshot');
+        }
+
+        if (!cancelled) {
+          setMembershipTier(data?.membershipTier || 'AI Explorer');
+          setServices(Array.isArray(data?.securityServices) ? data.securityServices : []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setSnapshotError(err instanceof Error ? err.message : 'Failed to load account snapshot');
+          setMembershipTier('Unavailable');
+          setServices([]);
+        }
+      }
+    }
+
+    loadSnapshot();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#070709] text-white flex">
@@ -110,6 +143,7 @@ export default function DashboardPage() {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="card-glass p-6">
             <h2 className="text-sovereign-title text-lg text-white mb-4">Account Snapshot</h2>
+            {snapshotError ? <div className="mb-4 rounded-lg border border-red-800/40 bg-red-950/20 px-3 py-2 text-xs text-red-200">{snapshotError}</div> : null}
             <div className="space-y-4">
               <div className="flex items-center justify-between border border-neutral-800 rounded-lg px-4 py-3 bg-black/20">
                 <span className="text-neutral-400 text-sm">Membership Tier</span>
@@ -121,11 +155,19 @@ export default function DashboardPage() {
               <div className="border border-neutral-800 rounded-lg px-4 py-3 bg-black/20">
                 <p className="text-neutral-400 text-sm mb-3">Security Services</p>
                 <div className="space-y-2">
-                  {services.map((service) => (
+                  {services.length === 0 ? (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white">No live services found</span>
+                      <span className="inline-flex items-center gap-1.5 text-neutral-500 text-[10px] font-black uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
+                        Inactive
+                      </span>
+                    </div>
+                  ) : services.map((service) => (
                     <div key={service.name} className="flex items-center justify-between text-sm">
                       <span className="text-white">{service.name}</span>
-                      <span className="inline-flex items-center gap-1.5 text-teal-400 text-[10px] font-black uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${service.status === 'Active' ? 'text-teal-400' : 'text-neutral-500'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${service.status === 'Active' ? 'bg-teal-400 animate-pulse' : 'bg-neutral-500'}`} />
                         {service.status}
                       </span>
                     </div>
