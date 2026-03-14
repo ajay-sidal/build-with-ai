@@ -12,7 +12,7 @@ export default function NotFound() {
             </div>
           </div>
 
-          <h1 className="text-balance text-6xl font-semibold tracking-tight text-zinc-100">404</h1>
+          <h1 className="text-sovereign-title text-balance text-6xl text-zinc-100">404</h1>
           <p className="mt-4 text-balance text-lg text-zinc-400">
             Sorry, we couldn't find the page you're looking for.
           </p>

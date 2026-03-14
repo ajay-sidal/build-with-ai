@@ -30,32 +30,7 @@ export const DESIGN_TOKENS = {
     tracking: {
       widest: "0.2em", // Standard for Sanctuary headers
       tighter: "-0.05em", // For "THE SANCTUARY" branding
-    },
-    weights: {
-      black: 900,
-      extrabold: 800,
-      bold: 700,
-    },
-    sovereign: {
-      header: {
-        fontWeight: 900,        // font-black
-        textTransform: "uppercase",
-        letterSpacing: "0.2em", // tracking-sanctuary
-        lineHeight: 1.25,       // leading-tight
-      },
-      title: {
-        fontWeight: 800,        // font-extrabold
-        textTransform: "uppercase",
-        letterSpacing: "0.2em", // tracking-sanctuary
-        lineHeight: 1.25,       // leading-tight
-      },
-      subtitle: {
-        fontWeight: 700,        // font-bold
-        textTransform: "uppercase",
-        letterSpacing: "0.15em",
-        lineHeight: 1.5,        // leading-normal
-      },
-    },
+    }
   },
   effects: {
     glassGradient: "linear-gradient(to bottom right, rgba(20, 184, 166, 0.05), transparent)",

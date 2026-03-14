@@ -12,6 +12,7 @@ export default function ScrollToTop() {
 
   return isVisible ? (
     <button 
+      aria-label="Scroll to top"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
       className="fixed bottom-24 left-6 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border border-teal-500/30 text-teal-400 p-3 rounded-full shadow-[0_0_15px_rgba(45,212,191,0.15)] hover:bg-teal-400 hover:text-neutral-950 transition-all group"
     >

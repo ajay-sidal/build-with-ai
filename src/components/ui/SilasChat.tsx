@@ -3,6 +3,7 @@
 export default function SilasChat() {
   return (
     <button 
+      aria-label="Open Silas chat assistant"
       onClick={() => console.log('Silas Chat Initiated')} 
       className="fixed bottom-24 right-6 z-50 bg-teal-500 text-neutral-950 p-4 rounded-full shadow-[0_0_20px_rgba(45,212,191,0.3)] hover:bg-teal-400 hover:scale-110 transition-all flex items-center justify-center group"
     >

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { getDataDir } from '../../../lib/dataDir'
@@ -62,10 +63,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ProposalPage({ params }: { params: { slug: string } }) {
-  const proposal = await loadProposal(params.slug)
+  const data = await loadProposal(params.slug)
 
-  const clientName = proposal?.clientName || params.slug
-  const scope = proposal?.scope || { aiDesign: true }
+  if (!data) {
+    notFound()
+  }
+
+  const clientName = data.clientName
+  const scope = data.scope || { aiDesign: true }
 
   return (
     <ProposalClient
@@ -73,8 +78,8 @@ export default async function ProposalPage({ params }: { params: { slug: string 
         slug: params.slug,
         clientName,
         scope,
-        depositAmount: proposal?.depositAmount ?? 999,
-        currency: proposal?.currency ?? 'USD',
+        depositAmount: data.depositAmount ?? 999,
+        currency: data.currency ?? 'USD',
       }}
     />
   )
