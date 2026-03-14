@@ -94,7 +94,7 @@ export default function Home() {
             <span className="text-teal-500 font-bold text-xs tracking-tight uppercase">Deploy Server →</span>
           </Link>
           {/* DFY Agency - 2 Col Span */}
-          <Link href="/agency" className="md:col-span-2 block bg-neutral-900/40 border border-neutral-800 px-10 py-12 rounded-3xl group hover:border-teal-500/50 transition-all">
+          <Link href="/services/ai-design" className="md:col-span-2 block bg-neutral-900/40 border border-neutral-800 px-10 py-12 rounded-3xl group hover:border-teal-500/50 transition-all">
             <h3 className="text-sovereign-title text-2xl text-white mb-5">DFY Agency Protocol</h3>
             <p className="text-neutral-400 leading-relaxed mb-8">Custom Web3-ready platforms designed by elite architects.</p>
             <span className="text-teal-400 font-bold text-xs tracking-tight uppercase">View Portfolio →</span>

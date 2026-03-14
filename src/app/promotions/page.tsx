@@ -47,7 +47,7 @@ const offers = [
     spotsRemaining: 'Active now',
     cta: 'Start Migration',
     ctaStyle: 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]',
-    href: '/products/ssl',
+    href: '/signup?next=%2Fproducts%2Fssl',
     stat: '1 Year',
     statLabel: 'Premium DNS free',
   },
@@ -69,7 +69,7 @@ const offers = [
     spotsRemaining: 'Closing soon',
     cta: 'Unlock Lifetime Access',
     ctaStyle: 'bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)]',
-    href: '/academy',
+    href: '/signup?next=%2Facademy',
     stat: '50% Off',
     statLabel: 'Lifetime founders rate',
   },
@@ -190,10 +190,10 @@ export default function PromotionsPage() {
               <span className="flex items-center gap-1.5"><span className="text-teal-400">✓</span> On-chain Verified</span>
             </div>
             <Link
-              href="/leads"
+              href="/signup?next=%2Fidentity"
               className="shrink-0 border border-teal-500/50 text-teal-400 hover:bg-teal-500/10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all"
             >
-              Talk to the team →
+              Start your signup →
             </Link>
           </div>
         </div>

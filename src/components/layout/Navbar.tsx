@@ -42,7 +42,7 @@ export default function Navbar() {
 
           {/* Dropdown 2: Services */}
           <div className="relative group py-8">
-            <Link href="/#services-grid" className="hover:text-teal-400 transition-colors flex items-center gap-1">Services <span className="text-[10px]">&#9660;</span></Link>
+            <Link href="/services" className="hover:text-teal-400 transition-colors flex items-center gap-1">Services <span className="text-[10px]">&#9660;</span></Link>
             <div className="absolute top-20 left-0 w-48 bg-[#0a0a0a] border border-neutral-800 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden flex flex-col">
               <Link href="/services/ai-design" className="px-4 py-3 hover:bg-neutral-900 hover:text-teal-400 border-b border-neutral-800/50">DFY Websites</Link>
               <Link href="/services/domain-management" className="px-4 py-3 hover:bg-neutral-900 hover:text-teal-400 border-b border-neutral-800/50">Brand Protection</Link>
@@ -81,8 +81,8 @@ export default function Navbar() {
           <Link href="/leads" className="hidden lg:block border border-teal-500/50 text-teal-400 hover:bg-teal-500/10 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-[0_0_10px_rgba(45,212,191,0.05)]">
             Book Appointment
           </Link>
-          <Link href="/dashboard" className="hidden lg:block text-sm font-medium text-neutral-300 hover:text-white transition-colors">Login</Link>
-          <Link href="/dashboard" className="hidden lg:block bg-[#2dd4bf] hover:bg-teal-300 text-neutral-950 text-sm font-bold px-6 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(45,212,191,0.2)]">Sign Up</Link>
+          <Link href="/login" className="hidden lg:block text-sm font-medium text-neutral-300 hover:text-white transition-colors">Login</Link>
+          <Link href="/signup" className="hidden lg:block bg-[#2dd4bf] hover:bg-teal-300 text-neutral-950 text-sm font-bold px-6 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(45,212,191,0.2)]">Sign Up</Link>
           
           <button aria-label="Toggle mobile menu" onClick={() => setIsMobileOpen(!isMobileOpen)} className="xl:hidden text-teal-400 p-2">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -102,8 +102,8 @@ export default function Navbar() {
           <Link href="/leads" className="text-neutral-300 hover:text-teal-400">Contact Us</Link>
           <hr className="border-neutral-800" />
           <Link href="/leads" className="border border-teal-500 text-teal-400 font-bold py-2 rounded-lg w-full text-center">Book an Appointment</Link>
-          <Link href="/dashboard" className="text-neutral-300 hover:text-teal-400 text-center py-2">Login</Link>
-          <Link href="/dashboard" className="bg-teal-500 text-neutral-950 font-bold py-2 rounded-lg w-full text-center">Sign Up</Link>
+          <Link href="/login" className="text-neutral-300 hover:text-teal-400 text-center py-2">Login</Link>
+          <Link href="/signup" className="bg-teal-500 text-neutral-950 font-bold py-2 rounded-lg w-full text-center">Sign Up</Link>
         </div>
       )}
     </nav>

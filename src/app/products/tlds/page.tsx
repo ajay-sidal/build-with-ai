@@ -46,7 +46,7 @@ export default function TLDsPage() {
                   className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950/60 px-4 py-3 transition hover:border-zinc-700"
                 >
                   <span className="font-mono text-sm text-zinc-200">{ext}</span>
-                  <Link href="/#tld-search" className="text-xs text-zinc-500 hover:text-zinc-300">
+                  <Link href="/products/domains/registration" className="text-xs text-zinc-500 hover:text-zinc-300">
                     Register →
                   </Link>
                 </div>

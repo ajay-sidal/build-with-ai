@@ -110,7 +110,7 @@ export default function CartPage() {
                 </div>
                 <div className="mt-6">
                   <Link
-                    href="/checkout" // Placeholder for checkout page
+                    href="/signup?next=%2Fdashboard%2Fbilling"
                     className="flex w-full items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-transform hover:scale-105"
                   >
                     Proceed to Checkout
