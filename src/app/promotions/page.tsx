@@ -19,7 +19,7 @@ const offers = [
       </svg>
     ),
     title: 'The Genesis Mint',
-    description: 'Claim your .marz identity. $0 Gas Fees for the first 100 survivors.',
+    description: 'Claim your .marz identity. $0 Gas Fees for the first 100 Sovereign Members.',
     detail: 'Be among the first sovereign identities on the MARZ Protocol. Your on-chain handle, zero friction, zero cost. This window closes forever once 100 mints are claimed.',
     spotsLabel: '100 spots',
     spotsRemaining: '100 remaining',

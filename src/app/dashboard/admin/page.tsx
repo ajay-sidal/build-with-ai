@@ -34,7 +34,7 @@ export default async function FounderDashboardPage() {
               <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-teal-400">Founder Command</p>
               <h1 className="text-sovereign-header text-4xl text-white">FOUNDER Dashboard</h1>
               <p className="mt-3 max-w-3xl text-sm text-neutral-400">
-                Global authority view for mission leaders. CRM intake, MARZ registry, and OpenProvider reseller health are aggregated here without survivor-level filters.
+                Global authority view for mission leaders. CRM intake, MARZ registry, and OpenProvider reseller health are aggregated here without member-level filters.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -60,7 +60,7 @@ export default async function FounderDashboardPage() {
           <div className="card-glass p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">Pipeline Value</p>
             <p className="mt-3 text-4xl font-black text-teal-400">{formatUsd(leads.potentialContractValueUsd)}</p>
-            <p className="mt-2 text-sm text-neutral-400">Across all survivor submissions</p>
+            <p className="mt-2 text-sm text-neutral-400">Across all Sovereign Member submissions</p>
           </div>
           <div className="card-glass p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">MARZ Registry</p>

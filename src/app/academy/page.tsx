@@ -325,7 +325,7 @@ export default function AcademyPage() {
                   <p className="text-xs text-neutral-400 leading-relaxed">
                     {founderUnlocked
                       ? 'Unlocked. You have completed all 7 modules in the integrated MARZ curriculum.'
-                      : 'Reserved for survivors completing all 7 integrated MARZ Academy modules.'}
+                      : 'Reserved for Sovereign Members completing all 7 integrated MARZ Academy modules.'}
                   </p>
                 </div>
               </div>
