@@ -1,6 +1,3 @@
-"use client";
-import { useState } from 'react';
-
 const faqs = [
   {
     question: "How does domain tokenization work?",
@@ -20,7 +17,6 @@ const faqs = [
   }
 ];
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
   return (
     <section className="py-24 bg-[#0a0a0a] relative z-10">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -29,20 +25,16 @@ export default function FAQ() {
         </h2>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900/20">
-              <button 
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full p-6 text-left flex justify-between items-center hover:bg-neutral-800/40 transition-colors"
-              >
+            <details key={index} className="group border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900/20">
+              <summary className="w-full p-6 text-left flex justify-between items-center hover:bg-neutral-800/40 transition-colors cursor-pointer list-none">
                 <span className="font-semibold text-neutral-200">{faq.question}</span>
-                <span className="text-teal-500 text-xl">{openIndex === index ? '−' : '+'}</span>
-              </button>
-              {openIndex === index && (
-                <div className="p-6 pt-0 text-neutral-400 text-sm leading-relaxed border-t border-neutral-800/50">
-                  {faq.answer}
-                </div>
-              )}
-            </div>
+                <span className="text-teal-500 text-xl group-open:hidden">+</span>
+                <span className="text-teal-500 text-xl hidden group-open:inline">−</span>
+              </summary>
+              <div className="p-6 pt-0 text-neutral-400 text-sm leading-relaxed border-t border-neutral-800/50">
+                {faq.answer}
+              </div>
+            </details>
           ))}
         </div>
       </div>

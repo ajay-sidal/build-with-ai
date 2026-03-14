@@ -7,7 +7,12 @@ import ScrollToTop from '@/components/ui/ScrollToTop';
 import SilasChat from '@/components/ui/SilasChat';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  weight: ['400', '700', '900'],
+});
 
 export const metadata: Metadata = {
   title: 'BUILDWITHAI Enterprise',
@@ -24,6 +29,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" href="/fonts/inter-950-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/grid.svg" as="image" fetchPriority="high" />
+      </head>
       <body className={`${inter.variable} ${inter.className} flex flex-col min-h-screen bg-[color:var(--bg-primary)] text-[color:var(--text-primary)] relative`}>
         <ThemeProvider>
           <Navbar />

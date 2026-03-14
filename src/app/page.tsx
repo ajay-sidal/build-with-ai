@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import Link from "next/link";
-import DomainSearch from "@/components/web3/DomainSearch";
-import FAQ from "@/components/ui/FAQ";
+import DomainSearch from '@/components/web3/DomainSearch'
+import FAQ from '@/components/ui/FAQ'
 
 export const metadata: Metadata = {
   title: 'BUILDWITHAI Enterprise',
@@ -20,7 +20,7 @@ export default function Home() {
     <div className="w-full">
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pb-12 pt-10">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
         </div>
         <div className="container mx-auto px-4 z-10 text-center flex flex-col items-center">
